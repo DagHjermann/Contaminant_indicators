@@ -1,0 +1,305 @@
+title: "01_Read_fix_NIFES_data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(ggplot2)
+
+save_data <- FALSE
+```
+
+
+```{r}
+dat1 <- read_excel("Input_data/Data kysttorsk NH nov. 2018.xlsx", sheet = "Metaller i torskefilet")
+dat2 <- read_excel("Input_data/Data kysttorsk NH nov. 2018.xlsx", sheet = "Metaller og POPs i torskelever", skip = 2)
+
+colnames(dat1)
+# cat("\n")
+# colnames(dat2)
+
+# Check uniqueness of Jnr
+nrow(dat1) == length(unique(dat1$Jnr))
+nrow(dat2) == length(unique(dat2$Jnr))
+```
+
+## Put dat1 on tidy ('tall') format
+### Get column numbers
+```{r}
+# colnames(dat1) %>% dput()
+
+colnumber_unit <- which(substr(colnames(dat1),1,5) %in% "Enhet")
+colnumber_conc <- colnumber_unit - 1
+colnumber_meta <- 1:(colnumber_conc[1]-1)
+```
+
+### Make concentration data
+```{r}
+dat1_conc <- dat1[c(colnumber_meta, colnumber_conc)] %>%
+  gather("Parameter", "Conc_chr", `Tørrstoff %`:Ni) %>%                            # Note hard-coded column names
+  as.data.frame()
+
+# Check first and second character of value. The "<" is always in the first
+table(substr(dat1_conc$Conc_chr, 1, 1))
+table(substr(dat1_conc$Conc_chr, 2, 2))
+
+# Remove less-than sign and make Conc variabøe
+dat1_conc$Conc_chr2 <- sub("<", "", dat1_conc$Conc_chr, fixed = TRUE)
+dat1_conc$Conc <- as.numeric(dat1_conc$Conc_chr2)
+
+# Find less-thans and make Flag variable
+dat1_conc$Flag <- ifelse(substr(dat1_conc$Conc_chr, 1, 1) %in% "<", "<", "")
+
+nrow(dat1_conc)
+```
+
+### Make unit data
+```{r}
+dat1_unit <- dat1[c(1, colnumber_unit)] %>%
+  as.data.frame()
+
+# Set column names (which now are "Enhet__1" etc.) to the corresponding actual name
+colnames(dat1_unit)[-1] <- colnames(dat1)[colnumber_conc]
+
+dat1_unit <- dat1_unit %>%
+  gather("Parameter", "Unit", `Tørrstoff %`:Ni) %>%                               # Note hard-coded column names
+  as.data.frame()
+
+nrow(dat1_unit)
+```
+
+### Put dat1_conc and dat1_unit together
+```{r}
+check <- sum(dat1_conc$Jnr != dat1_unit$Jnr)
+cat("Number of Jnr not equal:", sum(check), "\n")
+
+if (!is.na(check) & check == 0){
+  dat1_tall <- cbind(dat1_conc, Unit = dat1_unit$Unit, stringsAsFactors = FALSE)
+}
+```
+
+
+## Put dat2 on tidy ('tall') format
+### Get column numbers
+```{r}
+# colnames(dat2) %>% dput()
+
+colnumber_unit <- which(substr(colnames(dat2),1,5) %in% "Enhet")
+colnumber_conc <- colnumber_unit - 1
+colnumber_meta <- 1:(colnumber_conc[1]-1)
+
+# colnames(dat2)[colnumber_meta]
+# colnames(dat2)[colnumber_conc]
+# colnames(dat2)[colnumber_unit]
+```
+
+### Make concentration data
+```{r}
+dat2_conc <- dat2[c(colnumber_meta, colnumber_conc)] %>%
+  gather("Parameter", "Conc_chr", `Totalfett Etylacetat`:`Sum PBDE 7`) %>%                             # Note hard-coded column names
+  as.data.frame()
+
+# Check first and second character of value. The "<" is always in the first
+table(substr(dat2_conc$Conc_chr, 1, 1))
+table(substr(dat2_conc$Conc_chr, 2, 2))
+
+# Remove less-than sign and make Conc variabøe
+dat2_conc$Conc_chr2 <- sub("<", "", dat2_conc$Conc_chr, fixed = TRUE)
+dat2_conc$Conc <- as.numeric(dat2_conc$Conc_chr2)
+
+# Find less-thans and make Flag variable
+dat2_conc$Flag <- ifelse(substr(dat2_conc$Conc_chr, 1, 1) %in% "<", "<", "")
+
+nrow(dat2_conc)
+```
+
+### Make unit data
+```{r}
+dat2_unit <- dat2[c(1, colnumber_unit)] %>%
+  as.data.frame()
+
+# Set column names (which now are "Enhet__1" etc.) to the corresponding actual name
+colnames(dat2_unit)[-1] <- colnames(dat2)[colnumber_conc]
+
+dat2_unit <- dat2_unit %>%
+  gather("Parameter", "Unit", `Totalfett Etylacetat`:`Sum PBDE 7`) %>%                             # Note hard-coded column names
+  as.data.frame()
+
+nrow(dat2_unit)
+```
+
+### Put dat2_conc and dat2_unit together
+```{r}
+check <- sum(dat2_conc$Jnr != dat2_unit$Jnr)
+cat("Number of Jnr not equal:", sum(check), "\n")
+
+if (!is.na(check) & check == 0){
+  dat2_tall <- cbind(dat2_conc, Unit = dat2_unit$Unit, stringsAsFactors = FALSE)
+}
+```
+
+## Put dat1_tall and dat2_tall together
+```{r}
+df_nifes_cod <- bind_rows(dat1_tall, dat2_tall)
+nrow(df_nifes_cod)  
+```
+
+## Check data
+```{r}
+# Missing Conc values
+sel <- is.na(df_nifes_cod$Conc); sum(sel)
+df_nifes_cod[sel,] %>% select(Parameter, Conc_chr, Conc_chr2, Conc, Flag) %>% head()
+
+# Missing Conc but unmissing Conc_chr values
+sel <- is.na(df_nifes_cod$Conc) & !is.na(df_nifes_cod$Conc_chr); sum(sel)
+
+# Check one example where second character = " "
+tab <- table(substr(dat2_conc$Conc_chr, 2, 2))
+names(tab)
+sel <- substr(df_nifes_cod$Conc_chr,2,2) %in% " "; sum(sel)
+df_nifes_cod[sel,] %>% select(Parameter, Conc_chr, Conc_chr2, Conc, Flag) %>% head()
+
+# Check one example where second character = ""
+sel <- substr(df_nifes_cod$Conc_chr,2,2) %in% ""; sum(sel)
+df_nifes_cod[sel,] %>% select(Parameter, Conc_chr, Conc_chr2, Conc, Flag) %>% head()
+
+# Check one example where exponent value is used (3.3911910439999998E-3)
+df_nifes_cod %>% filter(Jnr %in% "2014-1753/21") %>% select(Parameter, Conc_chr, Conc)
+```
+
+## Create df_nifes_cod2
+### Add Lat, Long
+```{r}
+# df_nifes_cod %>% head(3)
+
+df_nifes_cod <- df_nifes_cod %>%
+  separate(Uttakssted, c("Lat_string","Lon_string"), sep = "[:blank:]", remove = FALSE) 
+
+df_nifes_cod %>% select(Jnr, Uttakssted:Lon_string) %>% head(3)
+
+# Some (ca 20%) have "N" and "E" as a part of Lat_string/Lon_string
+x <- stringr::str_extract(df_nifes_cod$Lat_string, "[a-z,A-Z]")
+table(addNA(x))
+x <- stringr::str_extract(df_nifes_cod$Lon_string, "[a-z,A-Z]")
+table(addNA(x))
+
+# Remove letters and create LATITUDE, LONGITUDE
+df_nifes_cod <- df_nifes_cod %>%
+  mutate(Lat_string = sub("[a-z,A-Z]", "", Lat_string),
+         Lon_string = sub("[a-z,A-Z]", "", Lon_string)) %>%
+  mutate(LATITUDE = as.numeric(Lat_string),
+         LONGITUDE = as.numeric(Lon_string))
+```
+
+### Select/order variables
+```{r}
+# Column names, replace space with underscore 
+colnames(df_nifes_cod) <- gsub(" ", "_", colnames(df_nifes_cod), fixed = TRUE)
+
+df_nifes_cod <- df_nifes_cod %>%
+  select(Jnr,Merking,År,Uttaksdato,Uttakssted,LATITUDE,LONGITUDE,Uttaksområde,Art,Organ,Latinsk_navn,
+         Parameter, Conc, Flag, Unit)
+
+```
+
+### Add sum PBDE with 6 congeners (they have only calculated "Sum PBDE 7")  
+Creates df_nifes_cod2  
+```{r}
+df_nifes_cod_PBDE6 <- df_nifes_cod %>% 
+  filter(Parameter %in% c("PBDE 28", "PBDE 47", "PBDE 99", "PBDE 100", "PBDE 126", "PBDE 153")) %>%
+  group_by(Jnr,Merking,År,Uttaksdato,Uttakssted,LATITUDE,LONGITUDE,Uttaksområde,Art,Organ,Latinsk_navn,Unit) %>%
+  summarise(Conc = sum(Conc, na.rm = TRUE), n = n(), BelowLOQ = sum(Flag %in% "<"), BelowLOQ_fraction = BelowLOQ/n)
+summary(df_nifes_cod_PBDE6$BelowLOQ_fraction)
+
+df_nifes_cod_PBDE6 <- df_nifes_cod_PBDE6 %>%
+  mutate(Flag = ifelse(BelowLOQ_fraction >= 0.5, "<", ""))  # Set Flag to "<" if >=50% of congenerers are below LOQ
+         
+#
+# Add "Parameter" and sort columns in same order
+#
+df_nifes_cod_PBDE6$Parameter <- "BDE6S"   # same name as in NIVA data
+df_nifes_cod_PBDE6 <- df_nifes_cod_PBDE6[,colnames(df_nifes_cod)] %>% as.data.frame()
+
+#
+# Add to dataset, create 'df_nifes_cod2'
+#
+df_nifes_cod2 <- rbind(df_nifes_cod, df_nifes_cod_PBDE6, stringsAsFactors = FALSE)
+nrow(df_nifes_cod)  # 36569
+nrow(df_nifes_cod2) # 36946
+
+```
+
+
+### Measurement year = 1.april to 31. March
+```{r}
+df_nifes_cod2$Time <- lubridate::dmy(df_nifes_cod2$Uttaksdato)
+df_nifes_cod2$Month <- lubridate::month(df_nifes_cod2$Time)
+
+# Lacking Year: none; lacking date: 2450
+xtabs(~addNA(År), df_nifes_cod2)
+xtabs(~addNA(Month), df_nifes_cod2)
+df_nifes_cod2 %>% filter(is.na(Month)) %>% select(År, Uttaksdato, Time, Month) %>% head(4)
+
+# Set measurement year (32% are in January-March, all in År = 2010,2011,2018)
+yr <- df_nifes_cod2$År
+sel <- with(df_nifes_cod2, Month <= 3 & !is.na(Month))
+sum(sel, na.rm = TRUE); mean(sel, na.rm = TRUE)   # 9234 = 8.2%
+yr[sel] <- yr[sel]-1
+
+# We REDEFINE Year as measurement year
+df_nifes_cod2$Year <- yr
+
+```
+
+## Some tables
+```{r}
+# Calender year (År) vs month
+xtabs(~addNA(År) + addNA(Month), df_nifes_cod2)
+
+# Calender year (År) vs measurement year (Year)
+xtabs(~addNA(År) + addNA(Year), df_nifes_cod2)   
+# All 2010,2018 data and much 2011 data are in the measurement year before
+
+# Areas
+xtabs(~addNA(Uttaksområde) + addNA(Year), df_nifes_cod2)   
+```
+
+## Create df_median and set parameter names
+```{r}
+df_median <- df_nifes_cod2 %>% 
+  group_by(Year, Uttaksområde, Organ, Parameter) %>%
+  summarise(Conc = median(Conc, na.rm = TRUE), N = n(), Over_LOQ = sum(Flag %in% ">"))
+head(df_median, 3)
+
+# Change parameter names (only those needed for indicators)
+sel <- df_median$Parameter %in% "Cd"; sum(sel)
+df_median$Parameter[sel] <- "CD"
+sel <- df_median$Parameter %in% "Hg"; sum(sel)
+df_median$Parameter[sel] <- "HG"
+sel <- df_median$Parameter %in% "Pb"; sum(sel)
+df_median$Parameter[sel] <- "PB"
+sel <- df_median$Parameter %in% "HCB"; sum(sel)    # None
+sel <- df_median$Parameter %in% "BDE6S"; sum(sel)  # OK, doesn't need to be changed
+sel <- df_median$Parameter %in% "pp-DDE"; sum(sel)  # None 
+df_median$Parameter[sel] <- "DDEPP"
+sel <- df_median$Parameter %in% "Sum PCB 7"; sum(sel)   # 8
+df_median$Parameter[sel] <- "CB_S7"
+
+# HCB, pp-DDE
+cat("Parameters:\n", table(df_median$Parameter) %>% names() %>% paste(collapse = "; "))
+```
+
+## Save 
+```{r}
+# dir.create("Data")
+
+if (save_data){
+  saveRDS(df_nifes_cod2, "Data/01_df_nifes_cod2.rds")
+  saveRDS(df_median, "Data/01_df_median.rds")
+}
+
+```
+
+
