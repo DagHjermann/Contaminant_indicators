@@ -1,17 +1,28 @@
+---
 title: "01_Read_fix_NIFES_data"
-output: html_document
+output: 
+  html_document:
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: show
+    df_print: paged
 ---
 
+Based on code from '04_NIVA_data_with_NIFES_3.R' ("H:/Documents/seksjon 212/Indikator 2018/Analyse")  
+
+## 1. Packages  
 ```{r setup, include=FALSE}
 library(dplyr)
 library(tidyr)
 library(readxl)
 library(ggplot2)
 
+# save_data <- TRUE
 save_data <- FALSE
 ```
 
-
+## 2. Data  
 ```{r}
 dat1 <- read_excel("Input_data/Data kysttorsk NH nov. 2018.xlsx", sheet = "Metaller i torskefilet")
 dat2 <- read_excel("Input_data/Data kysttorsk NH nov. 2018.xlsx", sheet = "Metaller og POPs i torskelever", skip = 2)
@@ -25,7 +36,7 @@ nrow(dat1) == length(unique(dat1$Jnr))
 nrow(dat2) == length(unique(dat2$Jnr))
 ```
 
-## Put dat1 on tidy ('tall') format
+## 3. Put dat1 on tidy ('tall') format
 ### Get column numbers
 ```{r}
 # colnames(dat1) %>% dput()
@@ -81,7 +92,7 @@ if (!is.na(check) & check == 0){
 ```
 
 
-## Put dat2 on tidy ('tall') format
+## 4. Put dat2 on tidy ('tall') format
 ### Get column numbers
 ```{r}
 # colnames(dat2) %>% dput()
@@ -140,13 +151,13 @@ if (!is.na(check) & check == 0){
 }
 ```
 
-## Put dat1_tall and dat2_tall together
+## 5. Put dat1_tall and dat2_tall together
 ```{r}
 df_nifes_cod <- bind_rows(dat1_tall, dat2_tall)
 nrow(df_nifes_cod)  
 ```
 
-## Check data
+## 6. Check data
 ```{r}
 # Missing Conc values
 sel <- is.na(df_nifes_cod$Conc); sum(sel)
@@ -169,7 +180,7 @@ df_nifes_cod[sel,] %>% select(Parameter, Conc_chr, Conc_chr2, Conc, Flag) %>% he
 df_nifes_cod %>% filter(Jnr %in% "2014-1753/21") %>% select(Parameter, Conc_chr, Conc)
 ```
 
-## Create df_nifes_cod2
+## 7. Create df_nifes_cod2
 ### Add Lat, Long
 ```{r}
 # df_nifes_cod %>% head(3)
@@ -253,7 +264,7 @@ df_nifes_cod2$Year <- yr
 
 ```
 
-## Some tables
+## 8. Some tables
 ```{r}
 # Calender year (År) vs month
 xtabs(~addNA(År) + addNA(Month), df_nifes_cod2)
@@ -266,11 +277,12 @@ xtabs(~addNA(År) + addNA(Year), df_nifes_cod2)
 xtabs(~addNA(Uttaksområde) + addNA(Year), df_nifes_cod2)   
 ```
 
-## Create df_median and set parameter names
+## 9. Create df_median and set parameter names  
+Note that we use Flag = "" for data over LOQ (not ">" as in the original script)  
 ```{r}
 df_median <- df_nifes_cod2 %>% 
   group_by(Year, Uttaksområde, Organ, Parameter) %>%
-  summarise(Conc = median(Conc, na.rm = TRUE), N = n(), Over_LOQ = sum(Flag %in% ">"))
+  summarise(Conc = median(Conc, na.rm = TRUE), N = n(), Over_LOQ = sum(Flag %in% ""))
 head(df_median, 3)
 
 # Change parameter names (only those needed for indicators)
@@ -291,7 +303,7 @@ df_median$Parameter[sel] <- "CB_S7"
 cat("Parameters:\n", table(df_median$Parameter) %>% names() %>% paste(collapse = "; "))
 ```
 
-## Save 
+## 10. Save 
 ```{r}
 # dir.create("Data")
 
