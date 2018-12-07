@@ -47,7 +47,7 @@ get_regression_statistics <- function(par, tissue, areas){
     res$N <- df_med_object$N
     res$Nplus <- df_med_object$Nplus
   }
-  data.frame(Parameter = par, res, stringsAsFactors = FALSE)
+  data.frame(Parameter = par, Tissue = tissue, res, stringsAsFactors = FALSE)
 }
 
 get_tissue <- function(par){
@@ -63,7 +63,8 @@ xtabs(~Year + Uttaksområde, df_median)
 # xtabs(~Organ, df_median)
 ```
 
-## Regression on 'df_median'
+## Regression on 'df_median'  
+Note that we also combine areas and set names for the combined areas here  
 ```{r}
 
 # testing
@@ -71,6 +72,8 @@ xtabs(~Year + Uttaksområde, df_median)
 # get_regression_statistics("HG", "Filet", c("Træna","Vikna")) 
 # get_regression_statistics("HG", get_tissue("HG"), c("Træna","Vikna")) 
 # get_regression_statistics("HCB") 
+# get_regression_statistics("CD", "Filet", c("Træna","Vikna")) 
+# get_regression_statistics("CD", "Lever", c("Træna","Vikna")) 
 
 # Doing regression for all
 sel_param <- c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7")
@@ -79,10 +82,18 @@ nifes_regression_more <- sel_param %>% purrr::map_df(~get_regression_statistics(
 nifes_regression_vikna <- sel_param %>% purrr::map_df(~get_regression_statistics(., get_tissue(.), c("Træna","Vikna")))
 nifes_regression_vestfjorden <- sel_param %>% purrr::map_df(~get_regression_statistics(., get_tissue(.), c("Vestfjorden")))
 
+# Add Cd and Pb in muscle
+nifes_regression_more_m <- c("CD", "PB") %>% purrr::map_df(~get_regression_statistics(., "Filet", "Møre"))
+nifes_regression_vikna_m <- c("CD", "PB") %>% purrr::map_df(~get_regression_statistics(., "Filet", c("Træna","Vikna")))
+nifes_regression_vestfjorden_m <- c("CD", "PB") %>% purrr::map_df(~get_regression_statistics(., "Filet", c("Vestfjorden")))
+
 nifes_regression <- bind_rows(
   data.frame(STATION_NAME = "Møre", nifes_regression_more, stringsAsFactors = FALSE),
+  data.frame(STATION_NAME = "Møre", nifes_regression_more_m, stringsAsFactors = FALSE),
   data.frame(STATION_NAME = "Helgeland", nifes_regression_vikna, stringsAsFactors = FALSE),
-  data.frame(STATION_NAME = "Lofoten", nifes_regression_vestfjorden, stringsAsFactors = FALSE)
+  data.frame(STATION_NAME = "Helgeland", nifes_regression_vikna_m, stringsAsFactors = FALSE),
+  data.frame(STATION_NAME = "Lofoten", nifes_regression_vestfjorden, stringsAsFactors = FALSE),
+  data.frame(STATION_NAME = "Lofoten", nifes_regression_vestfjorden_m, stringsAsFactors = FALSE)
 )
 
 # Interpreting table (adding 'trend_text')
@@ -110,11 +121,29 @@ nifes_regression <- left_join(nifes_regression, df_symbol_to_trend[,c("trend_tex
 # Change name (for later combining with NIVA data)
 nifes_regression <- rename(nifes_regression, PARAM = Parameter)
 
+xtabs(~PARAM + Tissue, nifes_regression)
+```
 
+## Save
+```{r}
+saveRDS(nifes_regression, "Data/02_nifes_regression.rds")
+write.csv(nifes_regression, "Data/02_nifes_regression.csv", quote = FALSE, row.names = FALSE)
 ```
 
 
+## Plots
 ```{r}
-write.csv(nifes_regression, "Data/02_nifes_regression.csv", quote = FALSE, row.names = FALSE)
+df_median %>%
+  filter(Parameter %in% sel_param) %>%
+  mutate(Station = 
+           case_when( 
+             Uttaksområde %in% "Møre" ~ "Møre", 
+             Uttaksområde %in% c("Træna","Vikna") ~ "Helgeland", 
+             Uttaksområde %in% "Vestfjorden" ~ "Lofoten"
+             )
+  ) %>%
+  ggplot(aes(Year, Conc, color = Organ)) +
+    geom_line() + geom_point() +
+    facet_grid(Parameter ~ Station, scales = "free_y")
 ```
 

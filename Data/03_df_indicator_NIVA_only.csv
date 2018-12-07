@@ -1,0 +1,93 @@
+PROJECT_ID,LATIN_NAME,STATION_CODE,STATION_NAME,LONGITUDE,LATITUDE,PARAM,N,Conc,SPECIES_ID,TISSUE_NAME,NIVA_CODE,trend
+3699,Gadus morhua,13B,Kristiansand harbour area,7.9885,58.1328333333333,BDE6S,NA,7.72805,17,Lever,LI,3
+3699,Gadus morhua,19B,NA,NA,NA,BDE6S,NA,1.1703,17,Lever,LI,0
+3699,Gadus morhua,23B,Bømlo, Outer Selbjørnfjord,5.108565,59.895618,BDE6S,NA,4.077,17,Lever,LI,3
+3699,Gadus morhua,24B,Bergen harbour area,5.27069,60.39664,BDE6S,NA,41.336,17,Lever,LI,0
+3699,Gadus morhua,28B,Ålesund harbour area,6.06861666666667,62.4677833333333,BDE6S,NA,15.1427,17,Lever,LI,1
+3699,Gadus morhua,30B,Inner Oslofjord,10.551829,59.812653,BDE6S,NA,26.4712,17,Lever,LI,3
+3699,Gadus morhua,36B,Tjøme, Outer Oslofjord,10.4358333333333,59.0405,BDE6S,NA,2.25265,17,Lever,LI,1
+3699,Gadus morhua,43B2,Tromsø harbour area,18.974,69.653,BDE6S,NA,10.8969,17,Lever,LI,3
+3699,Gadus morhua,53B,Inner Sørfjord,6.539719,60.09727,BDE6S,NA,19.1995,17,Lever,LI,1
+3699,Gadus morhua,80B,Trondheim harbour,10.371726,63.445624,BDE6S,NA,8.8418,17,Lever,LI,3
+3699,Gadus morhua,98B1,Austnesfjord, Lofoten,14.708138,68.18577,BDE6S,NA,3.8442,17,Lever,LI,1
+3699,Gadus morhua,02B,Kirkøy, Hvaler,10.97354,59.06482,CB_S7,NA,176.67,17,Lever,LI,3
+3699,Gadus morhua,10B,Kjøfjord, Outer Varangerfjord,29.7602,69.81623,CB_S7,NA,124.6,17,Lever,LI,1
+3699,Gadus morhua,13B,Kristiansand harbour area,7.9885,58.1328333333333,CB_S7,NA,699.07,17,Lever,LI,1
+3699,Gadus morhua,15B,Skågskjera, Farsund,6.746898,58.051384,CB_S7,NA,121.842,17,Lever,LI,1
+3699,Gadus morhua,19B,NA,NA,NA,CB_S7,NA,35.935,17,Lever,LI,0
+3699,Gadus morhua,23B,Bømlo, Outer Selbjørnfjord,5.108565,59.895618,CB_S7,NA,132.16,17,Lever,LI,1
+3699,Gadus morhua,24B,Bergen harbour area,5.27069,60.39664,CB_S7,NA,6137.8,17,Lever,LI,0
+3699,Gadus morhua,28B,Ålesund harbour area,6.06861666666667,62.4677833333333,CB_S7,NA,930.8,17,Lever,LI,1
+3699,Gadus morhua,30B,Inner Oslofjord,10.551829,59.812653,CB_S7,NA,2615.3,17,Lever,LI,3
+3699,Gadus morhua,36B,Tjøme, Outer Oslofjord,10.4358333333333,59.0405,CB_S7,NA,124.355,17,Lever,LI,1
+3699,Gadus morhua,43B2,Tromsø harbour area,18.974,69.653,CB_S7,NA,246.27,17,Lever,LI,1
+3699,Gadus morhua,45B2,Hammerfest harbour area,23.6333333333333,70.65,CB_S7,NA,73.22,17,Lever,LI,3
+3699,Gadus morhua,53B,Inner Sørfjord,6.539719,60.09727,CB_S7,NA,1351.9,17,Lever,LI,1
+3699,Gadus morhua,80B,Trondheim harbour,10.371726,63.445624,CB_S7,NA,359.377,17,Lever,LI,3
+3699,Gadus morhua,96B,Sandnessjøen area,12.503554,66.04437,CB_S7,NA,66.61,17,Lever,LI,1
+3699,Gadus morhua,98B1,Austnesfjord, Lofoten,14.708138,68.18577,CB_S7,NA,85.325,17,Lever,LI,1
+3699,Gadus morhua,02B,Kirkøy, Hvaler,10.97354,59.06482,CD,NA,0.03,17,Lever,LI,1
+3699,Gadus morhua,10B,Kjøfjord, Outer Varangerfjord,29.7602,69.81623,CD,NA,0.21,17,Lever,LI,1
+3699,Gadus morhua,13B,Kristiansand harbour area,7.9885,58.1328333333333,CD,NA,0.0445,17,Lever,LI,1
+3699,Gadus morhua,15B,Skågskjera, Farsund,6.746898,58.051384,CD,NA,0.024,17,Lever,LI,1
+3699,Gadus morhua,19B,NA,NA,NA,CD,NA,0.17,17,Lever,LI,0
+3699,Gadus morhua,23B,Bømlo, Outer Selbjørnfjord,5.108565,59.895618,CD,NA,0.036,17,Lever,LI,1
+3699,Gadus morhua,24B,Bergen harbour area,5.27069,60.39664,CD,NA,0.029,17,Lever,LI,0
+3699,Gadus morhua,28B,Ålesund harbour area,6.06861666666667,62.4677833333333,CD,NA,0.036,17,Lever,LI,1
+3699,Gadus morhua,30B,Inner Oslofjord,10.551829,59.812653,CD,NA,0.112,17,Lever,LI,3
+3699,Gadus morhua,36B,Tjøme, Outer Oslofjord,10.4358333333333,59.0405,CD,NA,0.0195,17,Lever,LI,1
+3699,Gadus morhua,43B2,Tromsø harbour area,18.974,69.653,CD,NA,0.04,17,Lever,LI,1
+3699,Gadus morhua,45B2,Hammerfest harbour area,23.6333333333333,70.65,CD,NA,0.28,17,Lever,LI,1
+3699,Gadus morhua,53B,Inner Sørfjord,6.539719,60.09727,CD,NA,0.072,17,Lever,LI,3
+3699,Gadus morhua,71B,Stathelle area, Langesundfjord,9.70275,59.0465,CD,NA,0.016,17,Lever,LI,3
+3699,Gadus morhua,80B,Trondheim harbour,10.371726,63.445624,CD,NA,0.05,17,Lever,LI,1
+3699,Gadus morhua,96B,Sandnessjøen area,12.503554,66.04437,CD,NA,0.052,17,Lever,LI,1
+3699,Gadus morhua,98B1,Austnesfjord, Lofoten,14.708138,68.18577,CD,NA,0.12,17,Lever,LI,1
+3699,Gadus morhua,10B,Kjøfjord, Outer Varangerfjord,29.7602,69.81623,DDEPP,NA,33.5,17,Lever,LI,1
+3699,Gadus morhua,15B,Skågskjera, Farsund,6.746898,58.051384,DDEPP,NA,19.9,17,Lever,LI,3
+3699,Gadus morhua,23B,Bømlo, Outer Selbjørnfjord,5.108565,59.895618,DDEPP,NA,35.1,17,Lever,LI,1
+3699,Gadus morhua,30B,Inner Oslofjord,10.551829,59.812653,DDEPP,NA,155,17,Lever,LI,1
+3699,Gadus morhua,36B,Tjøme, Outer Oslofjord,10.4358333333333,59.0405,DDEPP,NA,22.25,17,Lever,LI,1
+3699,Gadus morhua,53B,Inner Sørfjord,6.539719,60.09727,DDEPP,NA,582,17,Lever,LI,1
+3699,Gadus morhua,98B1,Austnesfjord, Lofoten,14.708138,68.18577,DDEPP,NA,33.2,17,Lever,LI,1
+3699,Gadus morhua,10B,Kjøfjord, Outer Varangerfjord,29.7602,69.81623,HCB,NA,11.6,17,Lever,LI,1
+3699,Gadus morhua,15B,Skågskjera, Farsund,6.746898,58.051384,HCB,NA,5.51,17,Lever,LI,1
+3699,Gadus morhua,23B,Bømlo, Outer Selbjørnfjord,5.108565,59.895618,HCB,NA,10.5,17,Lever,LI,2
+3699,Gadus morhua,30B,Inner Oslofjord,10.551829,59.812653,HCB,NA,6.27,17,Lever,LI,1
+3699,Gadus morhua,36B,Tjøme, Outer Oslofjord,10.4358333333333,59.0405,HCB,NA,4.29,17,Lever,LI,1
+3699,Gadus morhua,53B,Inner Sørfjord,6.539719,60.09727,HCB,NA,5.19,17,Lever,LI,1
+3699,Gadus morhua,98B1,Austnesfjord, Lofoten,14.708138,68.18577,HCB,NA,7.58,17,Lever,LI,1
+3699,Gadus morhua,02B,Kirkøy, Hvaler,10.97354,59.06482,HG,NA,0.111,17,Muskel,MU,1
+3699,Gadus morhua,10B,Kjøfjord, Outer Varangerfjord,29.7602,69.81623,HG,NA,0.035,17,Muskel,MU,1
+3699,Gadus morhua,13B,Kristiansand harbour area,7.9885,58.1328333333333,HG,NA,0.175,17,Muskel,MU,2
+3699,Gadus morhua,15B,Skågskjera, Farsund,6.746898,58.051384,HG,NA,0.172,17,Muskel,MU,2
+3699,Gadus morhua,19B,NA,NA,NA,HG,NA,0.03,17,Muskel,MU,0
+3699,Gadus morhua,23B,Bømlo, Outer Selbjørnfjord,5.108565,59.895618,HG,NA,0.152,17,Muskel,MU,2
+3699,Gadus morhua,24B,Bergen harbour area,5.27069,60.39664,HG,NA,0.176,17,Muskel,MU,0
+3699,Gadus morhua,28B,Ålesund harbour area,6.06861666666667,62.4677833333333,HG,NA,0.321,17,Muskel,MU,1
+3699,Gadus morhua,30B,Inner Oslofjord,10.551829,59.812653,HG,NA,0.203,17,Muskel,MU,1
+3699,Gadus morhua,36B,Tjøme, Outer Oslofjord,10.4358333333333,59.0405,HG,NA,0.08,17,Muskel,MU,1
+3699,Gadus morhua,43B2,Tromsø harbour area,18.974,69.653,HG,NA,0.049,17,Muskel,MU,2
+3699,Gadus morhua,45B2,Hammerfest harbour area,23.6333333333333,70.65,HG,NA,0.033,17,Muskel,MU,3
+3699,Gadus morhua,53B,Inner Sørfjord,6.539719,60.09727,HG,NA,0.3,17,Muskel,MU,1
+3699,Gadus morhua,71B,Stathelle area, Langesundfjord,9.70275,59.0465,HG,NA,0.211,17,Muskel,MU,1
+3699,Gadus morhua,80B,Trondheim harbour,10.371726,63.445624,HG,NA,0.156,17,Muskel,MU,1
+3699,Gadus morhua,96B,Sandnessjøen area,12.503554,66.04437,HG,NA,0.047,17,Muskel,MU,1
+3699,Gadus morhua,98B1,Austnesfjord, Lofoten,14.708138,68.18577,HG,NA,0.109,17,Muskel,MU,2
+3699,Gadus morhua,02B,Kirkøy, Hvaler,10.97354,59.06482,PB,NA,0.02999,17,Lever,LI,0
+3699,Gadus morhua,10B,Kjøfjord, Outer Varangerfjord,29.7602,69.81623,PB,NA,0.02999,17,Lever,LI,2
+3699,Gadus morhua,13B,Kristiansand harbour area,7.9885,58.1328333333333,PB,NA,0.02999,17,Lever,LI,1
+3699,Gadus morhua,15B,Skågskjera, Farsund,6.746898,58.051384,PB,NA,0.02999,17,Lever,LI,0
+3699,Gadus morhua,19B,NA,NA,NA,PB,NA,0.02999,17,Lever,LI,0
+3699,Gadus morhua,23B,Bømlo, Outer Selbjørnfjord,5.108565,59.895618,PB,NA,0.02999,17,Lever,LI,2
+3699,Gadus morhua,24B,Bergen harbour area,5.27069,60.39664,PB,NA,0.02999,17,Lever,LI,0
+3699,Gadus morhua,28B,Ålesund harbour area,6.06861666666667,62.4677833333333,PB,NA,0.02999,17,Lever,LI,0
+3699,Gadus morhua,30B,Inner Oslofjord,10.551829,59.812653,PB,NA,0.145,17,Lever,LI,1
+3699,Gadus morhua,36B,Tjøme, Outer Oslofjord,10.4358333333333,59.0405,PB,NA,0.02999,17,Lever,LI,0
+3699,Gadus morhua,43B2,Tromsø harbour area,18.974,69.653,PB,NA,0.02999,17,Lever,LI,2
+3699,Gadus morhua,45B2,Hammerfest harbour area,23.6333333333333,70.65,PB,NA,0.02999,17,Lever,LI,0
+3699,Gadus morhua,53B,Inner Sørfjord,6.539719,60.09727,PB,NA,0.062,17,Lever,LI,1
+3699,Gadus morhua,71B,Stathelle area, Langesundfjord,9.70275,59.0465,PB,NA,0.02999,17,Lever,LI,1
+3699,Gadus morhua,80B,Trondheim harbour,10.371726,63.445624,PB,NA,0.02999,17,Lever,LI,1
+3699,Gadus morhua,96B,Sandnessjøen area,12.503554,66.04437,PB,NA,0.02999,17,Lever,LI,0
+3699,Gadus morhua,98B1,Austnesfjord, Lofoten,14.708138,68.18577,PB,NA,0.02999,17,Lever,LI,2

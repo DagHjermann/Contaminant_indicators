@@ -124,6 +124,7 @@ df_limits <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx")
 ```
 
 
+
 ## Make 'df_indicator'  
 ```{r}
 df_indicator <- tibble(
@@ -137,7 +138,7 @@ df_indicator$N <- NA
 
 # View(df_indicator)
 nrow(df_indicator)
-# 87
+# 92
 
 ```
 
