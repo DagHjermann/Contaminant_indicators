@@ -1,0 +1,120 @@
+---
+title: "NIFES data, calculate trends"
+output: html_document
+---
+
+Based on code from '04_NIVA_data_with_NIFES_3.R' ("H:/Documents/seksjon 212/Indikator 2018/Analyse")  
+
+
+## Packages + functions  
+```{r}
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(ggplot2)
+library(mgcv)         # for gam()
+library(AICcmodavg)   # for AICc()
+
+source("00_functions.R")
+source("16_Trend_functions.R")
+
+```
+
+## Data
+```{r}
+df_median <- readRDS("Data/01_df_median.rds") %>%
+  as.data.frame()
+
+df_median$TISSUE_NAME <- df_median$Organ   # avoid a bunch of annoying error messages...
+```
+
+## Function for performing regression    
+From '04_NIVA_data_with_NIFES_3.R', but added 'areas' as input ('Uttaksområde')  
+```{r}
+#
+# Get regression for all
+#
+get_regression_statistics <- function(par, tissue, areas){
+  df_median_sel <- df_median  %>% 
+    filter(Parameter %in% par & Uttaksområde %in% areas & Organ %in% tissue & !is.na(Conc)) %>%
+    rename(YEAR = Year, Median = Conc)
+  df_med_object <- df_median_sel %>% select_for_regr_a() %>% select_for_regr_b()
+  modelresults <- try(calc_models_gam(df_med_object, log = TRUE))
+  if (class(modelresults)[[1]] != "try-error"){
+    res <- statistics_for_excel(df_med_object, modelresults, gam = TRUE)
+  } else {
+    res <- statistics_for_excel_empty(df_median_sel)
+    res$N <- df_med_object$N
+    res$Nplus <- df_med_object$Nplus
+  }
+  data.frame(Parameter = par, res, stringsAsFactors = FALSE)
+}
+
+get_tissue <- function(par){
+  ifelse(par %in% "HG", "Filet", "Lever")
+}
+
+```
+
+
+## Table of areas and years  
+```{r}
+xtabs(~Year + Uttaksområde, df_median)
+# xtabs(~Organ, df_median)
+```
+
+## Regression on 'df_median'
+```{r}
+
+# testing
+# debugonce(get_regression_statistics)
+# get_regression_statistics("HG", "Filet", c("Træna","Vikna")) 
+# get_regression_statistics("HG", get_tissue("HG"), c("Træna","Vikna")) 
+# get_regression_statistics("HCB") 
+
+# Doing regression for all
+sel_param <- c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7")
+
+nifes_regression_more <- sel_param %>% purrr::map_df(~get_regression_statistics(., get_tissue(.), "Møre"))
+nifes_regression_vikna <- sel_param %>% purrr::map_df(~get_regression_statistics(., get_tissue(.), c("Træna","Vikna")))
+nifes_regression_vestfjorden <- sel_param %>% purrr::map_df(~get_regression_statistics(., get_tissue(.), c("Vestfjorden")))
+
+nifes_regression <- bind_rows(
+  data.frame(STATION_NAME = "Møre", nifes_regression_more, stringsAsFactors = FALSE),
+  data.frame(STATION_NAME = "Helgeland", nifes_regression_vikna, stringsAsFactors = FALSE),
+  data.frame(STATION_NAME = "Lofoten", nifes_regression_vestfjorden, stringsAsFactors = FALSE)
+)
+
+# Interpreting table (adding 'trend_text')
+nifes_regression$trend_text <- ifelse(nifes_regression$N < 5, "Too little data", "")
+sel <- with(nifes_regression, N >= 5 & Nplus < 5)
+nifes_regression$trend_text[sel] <- "Too few data above LOQ"
+sel <- with(nifes_regression, Model_used %in% c("Linear", "Nonlinear") & Dir_change == "Up")
+nifes_regression$trend_text[sel] <- "Trend up"
+sel <- with(nifes_regression, Model_used %in% c("Linear", "Nonlinear") & Dir_change == "Down")
+nifes_regression$trend_text[sel] <- "Trend down"
+sel <- with(nifes_regression, Model_used %in% c("Linear", "Nonlinear") & Dir_change == "")
+nifes_regression$trend_text[sel] <- "No trend"
+
+# Adding trend
+# Based on "18_Time_series_write_to_Excel_functions.R"
+df_symbol_to_trend <- tibble(
+  trend_symbol = c("§", "«", "¢", "é", "ê"),
+  trend_text = c("Too little data", "Too few data above LOQ", "No trend", "Trend up", "Trend down"),
+  trend = c(0,0,1,2,3)
+  )
+
+# Table for adding trend (same as above)
+nifes_regression <- left_join(nifes_regression, df_symbol_to_trend[,c("trend_text", "trend")])
+
+# Change name (for later combining with NIVA data)
+nifes_regression <- rename(nifes_regression, PARAM = Parameter)
+
+
+```
+
+
+```{r}
+write.csv(nifes_regression, "Data/02_nifes_regression.csv", quote = FALSE, row.names = FALSE)
+```
+

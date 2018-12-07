@@ -282,7 +282,10 @@ Note that we use Flag = "" for data over LOQ (not ">" as in the original script)
 ```{r}
 df_median <- df_nifes_cod2 %>% 
   group_by(Year, Uttaksområde, Organ, Parameter) %>%
-  summarise(Conc = median(Conc, na.rm = TRUE), N = n(), Over_LOQ = sum(Flag %in% ""))
+  summarise(Conc = median(Conc, na.rm = TRUE), N = n(), Over_LOQ = sum(Flag %in% ""),
+            LONGITUDE = median(LONGITUDE, na.rm = TRUE),
+            LATITUDE = median(LATITUDE, na.rm = TRUE)
+            )
 head(df_median, 3)
 
 # Change parameter names (only those needed for indicators)
@@ -311,6 +314,9 @@ if (save_data){
   saveRDS(df_nifes_cod2, "Data/01_df_nifes_cod2.rds")
   saveRDS(df_median, "Data/01_df_median.rds")
 }
+
+# df_median <- readRDS("Data/01_df_median.rds")
+# xtabs(~Parameter + Organ, df_median)
 
 ```
 

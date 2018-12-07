@@ -1,0 +1,221 @@
+---
+title: "Get NIVA data"
+output: html_document
+---
+
+
+
+## Packages + functions  
+```{r}
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(ggplot2)
+
+```
+
+## Data
+### Read main NIVA data  
+Only like 10 seconds (3-4 minutes if column types is not given)  
+__NOTE hard-coded ranges for excel sheet (both no. of columns and rows); 2 places__
+```{r}
+# Define column types for faster reading + fewer (or none) errors
+
+
+# Column types, all columns
+coltypes = c(rep("text",18),                  # PARAM - Backgr_stations
+             rep("numeric", 4),               # Backgr_Nstat - Q95
+             rep(c("numeric","text"),38),     # Data 1980 - 2017 (2 columns per year) [W - CS]
+             rep(c("text","numeric","numeric","numeric","numeric"),2),  # Ant.prøver - EQS threshold, 2016+2017 [CV-DD]
+             "text",                                          # OC 
+             rep(c(rep("numeric",10), "text"),2),             # Trend p(long) - Trends, 2017+2016 [DF-EA]
+             "text", rep("numeric",2), rep("text", 6),        # Last_two_years - Trends.2016.old [EB - EJ]
+             rep(c("logical","text"),38),                     # Less-than columns (2 columns per year) [EK - HF]
+             "text", "text"                                   # Trends.2017 V13 - V13 wrong [HG - HH]
+             )
+
+# Column types, until column DP only
+coltypes = c(rep("text",18),                  # PARAM - Backgr_stations
+             rep("numeric", 4),               # Backgr_Nstat - Q95
+             rep(c("numeric","text"),38),     # Data 1980 - 2017 (2 columns per year) [W - CS]
+             rep(c("text","numeric","numeric","numeric","numeric"),2),  # Ant.prøver - EQS threshold, 2016+2017 [CV-DD]
+             "text",                                          # OC 
+             rep("numeric",10), "text"                        # Trend p(long) - Trends, 2017 only [DF-DP]
+             )
+
+# write.csv2(coltypes, "clipboard", row.names = FALSE, col.names = FALSE)
+
+fn <- "C:/Data/seksjon 212/Milkys_2018/Big_excel_table/Data_xl_lessthans_ver14_bluered.xlsm"
+data_xl <- read_excel(fn,
+                      range = "A1:DP29547",    # NOTE HARD-CODED RANGE  
+                      col_types = coltypes)
+
+# Read the single less-than value 
+data_xl_lessthans <- read_excel(fn,
+                      range = "HE1:HE29547",    # NOTE HARD-CODED RANGE  
+                      col_types = "logical")
+
+
+# dim(data_xl)
+# [1]  29546   216
+
+```
+
+### 'data_xl_sel' = selected rows of excel table
+```{r}
+species <- "Gadus morhua"
+#
+# Muscle data (Hg)
+#
+tissue <- "Muskel"
+sel_param <- c("HG")
+sel_records1 <- with(data_xl, PARAM %in% sel_param & 
+                              TISSUE_NAME %in% tissue & 
+                              LATIN_NAME %in% species & 
+                              Basis == "WW" & !is.na(Klasse.2017))
+
+#
+# Liver data (the rest)
+#
+tissue <- "Lever"
+sel_param <- c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7")
+sel_records2 <- with(data_xl, PARAM %in% sel_param & 
+                              TISSUE_NAME %in% tissue & 
+                              LATIN_NAME %in% species & 
+                              Basis == "WW" & !is.na(Klasse.2017))
+
+# Combine muscel and liver data
+sel_records <- sel_records1 | sel_records2
+sum(sel_records1)  # 16
+sum(sel_records2)  # 71
+sum(sel_records)   # 87
+
+# Select rows
+data_xl_sel <- data_xl[sel_records,]
+
+# Add less-thans
+data_xl_sel <- bind_cols(data_xl_sel, data_xl_lessthans[sel_records,])
+
+# remove data_xl
+rm(data_xl)
+
+```
+
+
+
+### Stations
+```{r}
+# Station names + coordinates
+folder_milkys <- "H:/Documents/seksjon 212/Milkys 2017/Analyse"
+df_stations <- read_excel(paste0(folder_milkys, '/Stasjonsfiler/Milkys_koordinater_Sammenligning_NOG_0410_2017_forR.xlsx'), sheet = "for_R")
+colnames(df_stations)[1:3] <- c("LATITUDE", "LONGITUDE", "STATION_CODENAME")
+df_stations$STATION_CODE <- stringr::str_extract(df_stations$STATION_CODENAME, "([^[[:blank:]]]+)") 
+df_stations$STATION_NAME <- stringr::str_extract(df_stations$STATION_CODENAME, "(?<=[[:blank:]]).*")
+df_stations <- df_stations[,c("STATION_CODE", "STATION_NAME", "LONGITUDE", "LATITUDE")]
+head(df_stations)
+
+```
+
+### Limits
+```{r}
+# Limits for EQS and Mattrygghet (food safety)
+df_limits <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx")
+
+```
+
+
+## Make 'df_indicator'  
+```{r}
+df_indicator <- tibble(
+  PROJECT_ID = 3699,
+  LATIN_NAME = data_xl_sel[["LATIN_NAME"]],
+  STATION_CODE = data_xl_sel[["STATION_CODE"]])
+
+df_indicator <- left_join(df_indicator, df_stations, by = "STATION_CODE")
+df_indicator$PARAM <- data_xl_sel[["PARAM"]]
+df_indicator$N <- NA
+
+# View(df_indicator)
+nrow(df_indicator)
+# 87
+
+```
+
+
+## Add Conc value for check  
+To remove before export
+```{r}
+
+value_2017 <- data_xl_sel$Yr_2017
+
+# Less-thans are set a tad lower, to be put in the lower class
+sel2 <- !is.na(data_xl_sel$Lt_2017) & data_xl_sel$Lt_2017
+value_2017[sel2] <- value_2017[sel2] - 0.00001
+
+df_indicator$Conc <- value_2017
+
+```
+
+## Add SPECIES_ID, TISSUE_NAME, NIVA_CODE
+```{r}
+species_code <- 17
+
+df_indicator$SPECIES_ID <- species_code
+
+df_tissue_code <- tibble(
+  TISSUE_NAME = c("Whole soft body", "Muskel", "Lever"),
+  NIVA_CODE = c("SB","MU","LI")
+  )
+
+df_indicator$TISSUE_NAME <- data_xl_sel[["TISSUE_NAME"]]
+
+nrow(df_indicator)
+df_indicator <- left_join(df_indicator, df_tissue_code, by = "TISSUE_NAME")
+nrow(df_indicator)
+
+```
+
+## Add trend
+```{r}
+# Check 'set_symbol' function: 
+# source("18_Time_series_write_to_Excel_functions.R")
+# set_symbol
+df_symbol_to_trend <- tibble(
+  trend_symbol = c("§", "«", "¢", "é", "ê"),
+  trend_text = c("Too little data", "Too few data above LOQ", "No trend", "Trend up", "Trend down"),
+  trend = c(0,0,1,2,3)
+  )
+
+#
+# If Long-term trend:
+# df_indicator$trend_symbol <- substr(data_xl_sel[sel_records, "Trends.2017"], 1, 1)   # 1st symbol, e.g. the "ê" in ê/¢
+#
+# If 10 year trend:
+df_indicator$trend_symbol <- substr(data_xl_sel[["Trends.2017"]], 3, 3)     # 3rd symbol, e.g. the "¢" in ê/¢
+table(addNA(df_indicator$trend_symbol))
+
+nrow(df_indicator)
+df_indicator <- left_join(df_indicator, df_symbol_to_trend, by = "trend_symbol")
+nrow(df_indicator)
+
+# Check result
+table(addNA(df_indicator$trend))
+
+df_indicator$trend_symbol <- NULL
+df_indicator$trend_text <- NULL
+
+head(df_indicator, 3)
+
+```
+
+## Save  
+```{r}
+# Save indicator for NIVA data
+saveRDS(df_indicator, "Data/03_df_indicator_NIVA_only.rds")
+write.csv(df_indicator, "Data/03_df_indicator_NIVA_only.csv", quote = FALSE, row.names = FALSE)
+
+# Save selected excel data
+saveRDS(data_xl_sel, "Data/03_data_xl_sel.rds")
+
+```
+
