@@ -178,6 +178,14 @@ df_nifes_cod[sel,] %>% select(Parameter, Conc_chr, Conc_chr2, Conc, Flag) %>% he
 
 # Check one example where exponent value is used (3.3911910439999998E-3)
 df_nifes_cod %>% filter(Jnr %in% "2014-1753/21") %>% select(Parameter, Conc_chr, Conc)
+
+df_nifes_cod %>% filter(Parameter %in% "Sum PCB 7") %>%
+  ggplot(aes(År, Conc)) +
+  geom_jitter(width = 0.3) +
+  geom_smooth() +
+  facet_wrap(~Uttaksområde) +
+  coord_cartesian(ylim = c(0,800))   # Vikna has a single cod of 3255 ug/kg
+
 ```
 
 ## 7. Create df_nifes_cod2

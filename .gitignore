@@ -3,4 +3,6 @@
 .RData
 .Ruserdata
 *.html
-
+*.lnk
+Data/*.rds
+Data/*.RData

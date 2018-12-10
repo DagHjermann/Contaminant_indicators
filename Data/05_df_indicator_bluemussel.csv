@@ -1,0 +1,184 @@
+PROJECT_ID,LATIN_NAME,STATION_CODE,STATION_NAME,LONGITUDE,LATITUDE,PARAM,N,Conc,SPECIES_ID,TISSUE_NAME,NIVA_CODE,trend
+3699,Mytilus edulis,26A2,Vågsvåg, Outer Nordfjord,5.04878333333333,61.9362166666667,BDE6S,NA,0.1348,17,Whole soft body,SB,1
+3699,Mytilus edulis,28A2,NA,NA,NA,BDE6S,NA,0.088,17,Whole soft body,SB,0
+3699,Mytilus edulis,30A,Gressholmen,  Inner Oslofjord,10.711,59.88362,BDE6S,NA,0.0661,17,Whole soft body,SB,1
+3699,Mytilus edulis,36A,Færder, Outer Oslofjord,10.525,59.0274,BDE6S,NA,0.0387,17,Whole soft body,SB,0
+3699,Mytilus edulis,71A,Bjørkøya, Langesundfjord,9.75366666666667,59.0233333333333,BDE6S,NA,0.0494,17,Whole soft body,SB,1
+3699,Mytilus edulis,91A2,Ørland area, Outer Trondheimsfjord,9.56386,63.651438,BDE6S,NA,0.033,17,Whole soft body,SB,1
+3699,Mytilus edulis,97A2,Mjelle, Bodø area,14.621928,67.41271,BDE6S,NA,0.0554,17,Whole soft body,SB,1
+3699,Mytilus edulis,97A3,NA,NA,NA,BDE6S,NA,0.3794,17,Whole soft body,SB,0
+3699,Mytilus edulis,98A2,Svolvær airport area,14.6627,68.24917,BDE6S,NA,0.0259,17,Whole soft body,SB,1
+3699,Mytilus edulis,I023,Singlekalven, Hvaler,11.136779,59.095112,BDE6S,NA,0.0364,17,Whole soft body,SB,1
+3699,Mytilus edulis,I241,Nordnes, Bergen harbour,5.303955,60.4007721666667,BDE6S,NA,0.3388,17,Whole soft body,SB,1
+3699,Mytilus edulis,I714,Sylterøya, Langesundfjord,9.70384,59.0514,BDE6S,NA,0.0614,17,Whole soft body,SB,0
+3699,Mytilus edulis,10A2,Skallnes, Outer Varangerfjord,30.341745,70.137283,CB_S7,NA,1.34559,17,Whole soft body,SB,1
+3699,Mytilus edulis,11X,Brashavn, Outer Varangerfjord,29.741,69.8993,CB_S7,NA,1.46129,17,Whole soft body,SB,1
+3699,Mytilus edulis,15A,Gåsøya-Ullerøya, Farsund,6.9159,58.04605,CB_S7,NA,1.5215,17,Whole soft body,SB,1
+3699,Mytilus edulis,22A,Espevær, Outer Bømlafjord,5.15203,59.58711,CB_S7,NA,1.5889,17,Whole soft body,SB,1
+3699,Mytilus edulis,26A2,Vågsvåg, Outer Nordfjord,5.04878333333333,61.9362166666667,CB_S7,NA,1.844,17,Whole soft body,SB,2
+3699,Mytilus edulis,28A2,NA,NA,NA,CB_S7,NA,4.271,17,Whole soft body,SB,0
+3699,Mytilus edulis,30A,Gressholmen,  Inner Oslofjord,10.711,59.88362,CB_S7,NA,6.831,17,Whole soft body,SB,1
+3699,Mytilus edulis,31A,Solbergstrand, Mid Oslofjord,10.6515,59.6155,CB_S7,NA,2.051,17,Whole soft body,SB,1
+3699,Mytilus edulis,35A,Mølen, Mid Oslofjord,10.49499,59.48359,CB_S7,NA,1.703,17,Whole soft body,SB,1
+3699,Mytilus edulis,36A,Færder, Outer Oslofjord,10.525,59.0274,CB_S7,NA,1.4476,17,Whole soft body,SB,1
+3699,Mytilus edulis,51A,Byrkjenes, Inner Sørfjord,6.550954,60.084292,CB_S7,NA,1.6069,17,Whole soft body,SB,1
+3699,Mytilus edulis,52A,Eitrheimsneset, Inner Sørfjord,6.532933,60.096771,CB_S7,NA,1.956,17,Whole soft body,SB,1
+3699,Mytilus edulis,56A,Kvalnes, Mid Sørfjord,6.602,60.2205,CB_S7,NA,2.046,17,Whole soft body,SB,1
+3699,Mytilus edulis,57A,Krossanes, Outer Sørfjord,6.689524,60.387073,CB_S7,NA,1.6348,17,Whole soft body,SB,1
+3699,Mytilus edulis,63A,Ranaskjer, Ålvik, Hardangerfjord,6.40502,60.42096,CB_S7,NA,1.7683,17,Whole soft body,SB,1
+3699,Mytilus edulis,64A,Utne, Outer Sørfjord,6.6223,60.4239,CB_S7,NA,1.7897,17,Whole soft body,SB,1
+3699,Mytilus edulis,65A,Vikingneset, Mid Hardangerfjord,6.15266666666667,60.2423333333333,CB_S7,NA,1.5277,17,Whole soft body,SB,1
+3699,Mytilus edulis,69A,Terøya, Outer Hardangerfjord,5.7545,59.984,CB_S7,NA,1.3712,17,Whole soft body,SB,1
+3699,Mytilus edulis,76A2,Risøya, Risør,9.28104,58.7327,CB_S7,NA,1.4283,17,Whole soft body,SB,1
+3699,Mytilus edulis,91A2,Ørland area, Outer Trondheimsfjord,9.56386,63.651438,CB_S7,NA,2.959,17,Whole soft body,SB,1
+3699,Mytilus edulis,97A2,Mjelle, Bodø area,14.621928,67.41271,CB_S7,NA,1.3747,17,Whole soft body,SB,1
+3699,Mytilus edulis,97A3,NA,NA,NA,CB_S7,NA,2.471,17,Whole soft body,SB,0
+3699,Mytilus edulis,98A2,Svolvær airport area,14.6627,68.24917,CB_S7,NA,1.4432,17,Whole soft body,SB,1
+3699,Mytilus edulis,I023,Singlekalven, Hvaler,11.136779,59.095112,CB_S7,NA,1.9319,17,Whole soft body,SB,1
+3699,Mytilus edulis,I024,Kirkøy, Hvaler,10.987336,59.079053,CB_S7,NA,2.04,17,Whole soft body,SB,1
+3699,Mytilus edulis,I133,Odderøya, Kristiansand harbour,8.00166666666667,58.1316666666667,CB_S7,NA,2.223,17,Whole soft body,SB,1
+3699,Mytilus edulis,I241,Nordnes, Bergen harbour,5.303955,60.4007721666667,CB_S7,NA,5.762,17,Whole soft body,SB,1
+3699,Mytilus edulis,I301,Akershuskaia, Inner Oslofjord,10.7363333333333,59.9053333333333,CB_S7,NA,8.479,17,Whole soft body,SB,1
+3699,Mytilus edulis,I304,Gåsøya, Inner Oslofjord,10.589,59.8513333333333,CB_S7,NA,2.202,17,Whole soft body,SB,3
+3699,Mytilus edulis,I306,Håøya, Inner Oslofjord,10.5551666666667,59.7133333333333,CB_S7,NA,1.797,17,Whole soft body,SB,1
+3699,Mytilus edulis,10A2,Skallnes, Outer Varangerfjord,30.341745,70.137283,CD,NA,0.29,17,Whole soft body,SB,1
+3699,Mytilus edulis,11X,Brashavn, Outer Varangerfjord,29.741,69.8993,CD,NA,0.25,17,Whole soft body,SB,1
+3699,Mytilus edulis,15A,Gåsøya-Ullerøya, Farsund,6.9159,58.04605,CD,NA,0.14,17,Whole soft body,SB,1
+3699,Mytilus edulis,22A,Espevær, Outer Bømlafjord,5.15203,59.58711,CD,NA,0.093,17,Whole soft body,SB,1
+3699,Mytilus edulis,26A2,Vågsvåg, Outer Nordfjord,5.04878333333333,61.9362166666667,CD,NA,0.15,17,Whole soft body,SB,1
+3699,Mytilus edulis,28A2,NA,NA,NA,CD,NA,0.14,17,Whole soft body,SB,0
+3699,Mytilus edulis,30A,Gressholmen,  Inner Oslofjord,10.711,59.88362,CD,NA,0.18,17,Whole soft body,SB,3
+3699,Mytilus edulis,31A,Solbergstrand, Mid Oslofjord,10.6515,59.6155,CD,NA,0.19,17,Whole soft body,SB,1
+3699,Mytilus edulis,35A,Mølen, Mid Oslofjord,10.49499,59.48359,CD,NA,0.16,17,Whole soft body,SB,1
+3699,Mytilus edulis,36A,Færder, Outer Oslofjord,10.525,59.0274,CD,NA,0.16,17,Whole soft body,SB,0
+3699,Mytilus edulis,52A,Eitrheimsneset, Inner Sørfjord,6.532933,60.096771,CD,NA,0.45,17,Whole soft body,SB,1
+3699,Mytilus edulis,57A,Krossanes, Outer Sørfjord,6.689524,60.387073,CD,NA,0.22,17,Whole soft body,SB,3
+3699,Mytilus edulis,63A,Ranaskjer, Ålvik, Hardangerfjord,6.40502,60.42096,CD,NA,0.18,17,Whole soft body,SB,3
+3699,Mytilus edulis,64A,Utne, Outer Sørfjord,6.6223,60.4239,CD,NA,0.23,17,Whole soft body,SB,1
+3699,Mytilus edulis,65A,Vikingneset, Mid Hardangerfjord,6.15266666666667,60.2423333333333,CD,NA,0.14,17,Whole soft body,SB,3
+3699,Mytilus edulis,69A,Terøya, Outer Hardangerfjord,5.7545,59.984,CD,NA,0.13,17,Whole soft body,SB,3
+3699,Mytilus edulis,71A,Bjørkøya, Langesundfjord,9.75366666666667,59.0233333333333,CD,NA,0.21,17,Whole soft body,SB,1
+3699,Mytilus edulis,76A2,Risøya, Risør,9.28104,58.7327,CD,NA,0.11,17,Whole soft body,SB,1
+3699,Mytilus edulis,91A2,Ørland area, Outer Trondheimsfjord,9.56386,63.651438,CD,NA,0.16,17,Whole soft body,SB,1
+3699,Mytilus edulis,97A2,Mjelle, Bodø area,14.621928,67.41271,CD,NA,0.11,17,Whole soft body,SB,1
+3699,Mytilus edulis,97A3,NA,NA,NA,CD,NA,0.13,17,Whole soft body,SB,0
+3699,Mytilus edulis,98A2,Svolvær airport area,14.6627,68.24917,CD,NA,0.23,17,Whole soft body,SB,1
+3699,Mytilus edulis,I023,Singlekalven, Hvaler,11.136779,59.095112,CD,NA,0.2,17,Whole soft body,SB,1
+3699,Mytilus edulis,I024,Kirkøy, Hvaler,10.987336,59.079053,CD,NA,0.195,17,Whole soft body,SB,1
+3699,Mytilus edulis,I131A,Lastad, Søgne,7.7083,58.05557,CD,NA,0.14,17,Whole soft body,SB,1
+3699,Mytilus edulis,I133,Odderøya, Kristiansand harbour,8.00166666666667,58.1316666666667,CD,NA,0.21,17,Whole soft body,SB,1
+3699,Mytilus edulis,I241,Nordnes, Bergen harbour,5.303955,60.4007721666667,CD,NA,0.14,17,Whole soft body,SB,3
+3699,Mytilus edulis,I301,Akershuskaia, Inner Oslofjord,10.7363333333333,59.9053333333333,CD,NA,0.19,17,Whole soft body,SB,1
+3699,Mytilus edulis,I304,Gåsøya, Inner Oslofjord,10.589,59.8513333333333,CD,NA,0.23,17,Whole soft body,SB,2
+3699,Mytilus edulis,I306,Håøya, Inner Oslofjord,10.5551666666667,59.7133333333333,CD,NA,0.17,17,Whole soft body,SB,2
+3699,Mytilus edulis,I714,Sylterøya, Langesundfjord,9.70384,59.0514,CD,NA,0.23,17,Whole soft body,SB,0
+3699,Mytilus edulis,I964,NA,NA,NA,CD,NA,0.16,17,Whole soft body,SB,1
+3699,Mytilus edulis,I965,Moholmen, Inner Ranfjord,14.12537,66.31162,CD,NA,0.17,17,Whole soft body,SB,3
+3699,Mytilus edulis,I969,Bjørnbærviken,  Inner Ranfjord,14.0349,66.28022,CD,NA,0.13,17,Whole soft body,SB,1
+3699,Mytilus edulis,10A2,Skallnes, Outer Varangerfjord,30.341745,70.137283,DDEPP,NA,0.116,17,Whole soft body,SB,1
+3699,Mytilus edulis,11X,Brashavn, Outer Varangerfjord,29.741,69.8993,DDEPP,NA,0.09249,17,Whole soft body,SB,1
+3699,Mytilus edulis,22A,Espevær, Outer Bømlafjord,5.15203,59.58711,DDEPP,NA,0.153,17,Whole soft body,SB,1
+3699,Mytilus edulis,30A,Gressholmen,  Inner Oslofjord,10.711,59.88362,DDEPP,NA,0.27,17,Whole soft body,SB,1
+3699,Mytilus edulis,31A,Solbergstrand, Mid Oslofjord,10.6515,59.6155,DDEPP,NA,0.42,17,Whole soft body,SB,1
+3699,Mytilus edulis,36A,Færder, Outer Oslofjord,10.525,59.0274,DDEPP,NA,0.21,17,Whole soft body,SB,1
+3699,Mytilus edulis,51A,Byrkjenes, Inner Sørfjord,6.550954,60.084292,DDEPP,NA,2.37,17,Whole soft body,SB,1
+3699,Mytilus edulis,52A,Eitrheimsneset, Inner Sørfjord,6.532933,60.096771,DDEPP,NA,1.84,17,Whole soft body,SB,1
+3699,Mytilus edulis,56A,Kvalnes, Mid Sørfjord,6.602,60.2205,DDEPP,NA,16.3,17,Whole soft body,SB,1
+3699,Mytilus edulis,57A,Krossanes, Outer Sørfjord,6.689524,60.387073,DDEPP,NA,3.07,17,Whole soft body,SB,1
+3699,Mytilus edulis,63A,Ranaskjer, Ålvik, Hardangerfjord,6.40502,60.42096,DDEPP,NA,1.04,17,Whole soft body,SB,1
+3699,Mytilus edulis,64A,Utne, Outer Sørfjord,6.6223,60.4239,DDEPP,NA,4.82,17,Whole soft body,SB,1
+3699,Mytilus edulis,65A,Vikingneset, Mid Hardangerfjord,6.15266666666667,60.2423333333333,DDEPP,NA,0.652,17,Whole soft body,SB,1
+3699,Mytilus edulis,71A,Bjørkøya, Langesundfjord,9.75366666666667,59.0233333333333,DDEPP,NA,0.126,17,Whole soft body,SB,1
+3699,Mytilus edulis,76A2,Risøya, Risør,9.28104,58.7327,DDEPP,NA,0.319,17,Whole soft body,SB,0
+3699,Mytilus edulis,I133,Odderøya, Kristiansand harbour,8.00166666666667,58.1316666666667,DDEPP,NA,0.281,17,Whole soft body,SB,1
+3699,Mytilus edulis,I301,Akershuskaia, Inner Oslofjord,10.7363333333333,59.9053333333333,DDEPP,NA,0.508,17,Whole soft body,SB,1
+3699,Mytilus edulis,I304,Gåsøya, Inner Oslofjord,10.589,59.8513333333333,DDEPP,NA,0.154,17,Whole soft body,SB,1
+3699,Mytilus edulis,I714,Sylterøya, Langesundfjord,9.70384,59.0514,DDEPP,NA,0.119,17,Whole soft body,SB,0
+3699,Mytilus edulis,10A2,Skallnes, Outer Varangerfjord,30.341745,70.137283,HCB,NA,0.33599,17,Whole soft body,SB,1
+3699,Mytilus edulis,11X,Brashavn, Outer Varangerfjord,29.741,69.8993,HCB,NA,0.33799,17,Whole soft body,SB,1
+3699,Mytilus edulis,22A,Espevær, Outer Bømlafjord,5.15203,59.58711,HCB,NA,0.33899,17,Whole soft body,SB,0
+3699,Mytilus edulis,30A,Gressholmen,  Inner Oslofjord,10.711,59.88362,HCB,NA,0.33499,17,Whole soft body,SB,0
+3699,Mytilus edulis,31A,Solbergstrand, Mid Oslofjord,10.6515,59.6155,HCB,NA,0.34899,17,Whole soft body,SB,0
+3699,Mytilus edulis,36A,Færder, Outer Oslofjord,10.525,59.0274,HCB,NA,0.33799,17,Whole soft body,SB,0
+3699,Mytilus edulis,51A,Byrkjenes, Inner Sørfjord,6.550954,60.084292,HCB,NA,0.31599,17,Whole soft body,SB,1
+3699,Mytilus edulis,52A,Eitrheimsneset, Inner Sørfjord,6.532933,60.096771,HCB,NA,0.32599,17,Whole soft body,SB,1
+3699,Mytilus edulis,56A,Kvalnes, Mid Sørfjord,6.602,60.2205,HCB,NA,0.31399,17,Whole soft body,SB,2
+3699,Mytilus edulis,57A,Krossanes, Outer Sørfjord,6.689524,60.387073,HCB,NA,0.32699,17,Whole soft body,SB,1
+3699,Mytilus edulis,63A,Ranaskjer, Ålvik, Hardangerfjord,6.40502,60.42096,HCB,NA,0.34799,17,Whole soft body,SB,1
+3699,Mytilus edulis,65A,Vikingneset, Mid Hardangerfjord,6.15266666666667,60.2423333333333,HCB,NA,0.33099,17,Whole soft body,SB,1
+3699,Mytilus edulis,71A,Bjørkøya, Langesundfjord,9.75366666666667,59.0233333333333,HCB,NA,0.33999,17,Whole soft body,SB,1
+3699,Mytilus edulis,76A2,Risøya, Risør,9.28104,58.7327,HCB,NA,0.33099,17,Whole soft body,SB,0
+3699,Mytilus edulis,I133,Odderøya, Kristiansand harbour,8.00166666666667,58.1316666666667,HCB,NA,0.34199,17,Whole soft body,SB,1
+3699,Mytilus edulis,I301,Akershuskaia, Inner Oslofjord,10.7363333333333,59.9053333333333,HCB,NA,0.34099,17,Whole soft body,SB,1
+3699,Mytilus edulis,I304,Gåsøya, Inner Oslofjord,10.589,59.8513333333333,HCB,NA,0.33599,17,Whole soft body,SB,0
+3699,Mytilus edulis,I714,Sylterøya, Langesundfjord,9.70384,59.0514,HCB,NA,0.32099,17,Whole soft body,SB,0
+3699,Mytilus edulis,10A2,Skallnes, Outer Varangerfjord,30.341745,70.137283,HG,NA,0.009,17,Whole soft body,SB,1
+3699,Mytilus edulis,11X,Brashavn, Outer Varangerfjord,29.741,69.8993,HG,NA,0.01,17,Whole soft body,SB,1
+3699,Mytilus edulis,15A,Gåsøya-Ullerøya, Farsund,6.9159,58.04605,HG,NA,0.012,17,Whole soft body,SB,1
+3699,Mytilus edulis,22A,Espevær, Outer Bømlafjord,5.15203,59.58711,HG,NA,0.023,17,Whole soft body,SB,1
+3699,Mytilus edulis,26A2,Vågsvåg, Outer Nordfjord,5.04878333333333,61.9362166666667,HG,NA,0.023,17,Whole soft body,SB,1
+3699,Mytilus edulis,28A2,NA,NA,NA,HG,NA,0.03,17,Whole soft body,SB,0
+3699,Mytilus edulis,30A,Gressholmen,  Inner Oslofjord,10.711,59.88362,HG,NA,0.015,17,Whole soft body,SB,1
+3699,Mytilus edulis,31A,Solbergstrand, Mid Oslofjord,10.6515,59.6155,HG,NA,0.015,17,Whole soft body,SB,1
+3699,Mytilus edulis,35A,Mølen, Mid Oslofjord,10.49499,59.48359,HG,NA,0.014,17,Whole soft body,SB,1
+3699,Mytilus edulis,36A,Færder, Outer Oslofjord,10.525,59.0274,HG,NA,0.009,17,Whole soft body,SB,1
+3699,Mytilus edulis,51A,Byrkjenes, Inner Sørfjord,6.550954,60.084292,HG,NA,0.041,17,Whole soft body,SB,1
+3699,Mytilus edulis,52A,Eitrheimsneset, Inner Sørfjord,6.532933,60.096771,HG,NA,0.031,17,Whole soft body,SB,2
+3699,Mytilus edulis,56A,Kvalnes, Mid Sørfjord,6.602,60.2205,HG,NA,0.041,17,Whole soft body,SB,1
+3699,Mytilus edulis,57A,Krossanes, Outer Sørfjord,6.689524,60.387073,HG,NA,0.033,17,Whole soft body,SB,1
+3699,Mytilus edulis,63A,Ranaskjer, Ålvik, Hardangerfjord,6.40502,60.42096,HG,NA,0.02,17,Whole soft body,SB,1
+3699,Mytilus edulis,64A,Utne, Outer Sørfjord,6.6223,60.4239,HG,NA,0.017,17,Whole soft body,SB,1
+3699,Mytilus edulis,65A,Vikingneset, Mid Hardangerfjord,6.15266666666667,60.2423333333333,HG,NA,0.022,17,Whole soft body,SB,1
+3699,Mytilus edulis,69A,Terøya, Outer Hardangerfjord,5.7545,59.984,HG,NA,0.016,17,Whole soft body,SB,1
+3699,Mytilus edulis,71A,Bjørkøya, Langesundfjord,9.75366666666667,59.0233333333333,HG,NA,0.032,17,Whole soft body,SB,1
+3699,Mytilus edulis,76A2,Risøya, Risør,9.28104,58.7327,HG,NA,0.018,17,Whole soft body,SB,1
+3699,Mytilus edulis,91A2,Ørland area, Outer Trondheimsfjord,9.56386,63.651438,HG,NA,0.013,17,Whole soft body,SB,1
+3699,Mytilus edulis,97A2,Mjelle, Bodø area,14.621928,67.41271,HG,NA,0.018,17,Whole soft body,SB,1
+3699,Mytilus edulis,97A3,NA,NA,NA,HG,NA,0.01,17,Whole soft body,SB,0
+3699,Mytilus edulis,98A2,Svolvær airport area,14.6627,68.24917,HG,NA,0.021,17,Whole soft body,SB,1
+3699,Mytilus edulis,I023,Singlekalven, Hvaler,11.136779,59.095112,HG,NA,0.019,17,Whole soft body,SB,1
+3699,Mytilus edulis,I024,Kirkøy, Hvaler,10.987336,59.079053,HG,NA,0.03,17,Whole soft body,SB,1
+3699,Mytilus edulis,I131A,Lastad, Søgne,7.7083,58.05557,HG,NA,0.015,17,Whole soft body,SB,1
+3699,Mytilus edulis,I133,Odderøya, Kristiansand harbour,8.00166666666667,58.1316666666667,HG,NA,0.025,17,Whole soft body,SB,1
+3699,Mytilus edulis,I241,Nordnes, Bergen harbour,5.303955,60.4007721666667,HG,NA,0.021,17,Whole soft body,SB,1
+3699,Mytilus edulis,I301,Akershuskaia, Inner Oslofjord,10.7363333333333,59.9053333333333,HG,NA,0.012,17,Whole soft body,SB,1
+3699,Mytilus edulis,I304,Gåsøya, Inner Oslofjord,10.589,59.8513333333333,HG,NA,0.016,17,Whole soft body,SB,2
+3699,Mytilus edulis,I306,Håøya, Inner Oslofjord,10.5551666666667,59.7133333333333,HG,NA,0.016,17,Whole soft body,SB,2
+3699,Mytilus edulis,I714,Sylterøya, Langesundfjord,9.70384,59.0514,HG,NA,0.033,17,Whole soft body,SB,0
+3699,Mytilus edulis,I964,NA,NA,NA,HG,NA,0.013,17,Whole soft body,SB,1
+3699,Mytilus edulis,I965,Moholmen, Inner Ranfjord,14.12537,66.31162,HG,NA,0.01,17,Whole soft body,SB,1
+3699,Mytilus edulis,I969,Bjørnbærviken,  Inner Ranfjord,14.0349,66.28022,HG,NA,0.007,17,Whole soft body,SB,1
+3699,Mytilus edulis,10A2,Skallnes, Outer Varangerfjord,30.341745,70.137283,PB,NA,0.12,17,Whole soft body,SB,3
+3699,Mytilus edulis,11X,Brashavn, Outer Varangerfjord,29.741,69.8993,PB,NA,0.058,17,Whole soft body,SB,1
+3699,Mytilus edulis,15A,Gåsøya-Ullerøya, Farsund,6.9159,58.04605,PB,NA,0.21,17,Whole soft body,SB,1
+3699,Mytilus edulis,22A,Espevær, Outer Bømlafjord,5.15203,59.58711,PB,NA,0.18,17,Whole soft body,SB,3
+3699,Mytilus edulis,26A2,Vågsvåg, Outer Nordfjord,5.04878333333333,61.9362166666667,PB,NA,0.23,17,Whole soft body,SB,1
+3699,Mytilus edulis,28A2,NA,NA,NA,PB,NA,0.19,17,Whole soft body,SB,0
+3699,Mytilus edulis,30A,Gressholmen,  Inner Oslofjord,10.711,59.88362,PB,NA,0.9,17,Whole soft body,SB,2
+3699,Mytilus edulis,31A,Solbergstrand, Mid Oslofjord,10.6515,59.6155,PB,NA,0.17,17,Whole soft body,SB,1
+3699,Mytilus edulis,35A,Mølen, Mid Oslofjord,10.49499,59.48359,PB,NA,0.12,17,Whole soft body,SB,3
+3699,Mytilus edulis,36A,Færder, Outer Oslofjord,10.525,59.0274,PB,NA,0.13,17,Whole soft body,SB,0
+3699,Mytilus edulis,52A,Eitrheimsneset, Inner Sørfjord,6.532933,60.096771,PB,NA,1.9,17,Whole soft body,SB,1
+3699,Mytilus edulis,57A,Krossanes, Outer Sørfjord,6.689524,60.387073,PB,NA,0.54,17,Whole soft body,SB,1
+3699,Mytilus edulis,63A,Ranaskjer, Ålvik, Hardangerfjord,6.40502,60.42096,PB,NA,0.34,17,Whole soft body,SB,3
+3699,Mytilus edulis,64A,Utne, Outer Sørfjord,6.6223,60.4239,PB,NA,0.25,17,Whole soft body,SB,1
+3699,Mytilus edulis,65A,Vikingneset, Mid Hardangerfjord,6.15266666666667,60.2423333333333,PB,NA,0.32,17,Whole soft body,SB,1
+3699,Mytilus edulis,69A,Terøya, Outer Hardangerfjord,5.7545,59.984,PB,NA,0.13,17,Whole soft body,SB,3
+3699,Mytilus edulis,71A,Bjørkøya, Langesundfjord,9.75366666666667,59.0233333333333,PB,NA,0.43,17,Whole soft body,SB,1
+3699,Mytilus edulis,76A2,Risøya, Risør,9.28104,58.7327,PB,NA,0.21,17,Whole soft body,SB,1
+3699,Mytilus edulis,91A2,Ørland area, Outer Trondheimsfjord,9.56386,63.651438,PB,NA,0.19,17,Whole soft body,SB,1
+3699,Mytilus edulis,97A2,Mjelle, Bodø area,14.621928,67.41271,PB,NA,1.3,17,Whole soft body,SB,1
+3699,Mytilus edulis,97A3,NA,NA,NA,PB,NA,0.23,17,Whole soft body,SB,0
+3699,Mytilus edulis,98A2,Svolvær airport area,14.6627,68.24917,PB,NA,0.17,17,Whole soft body,SB,1
+3699,Mytilus edulis,I023,Singlekalven, Hvaler,11.136779,59.095112,PB,NA,0.067,17,Whole soft body,SB,1
+3699,Mytilus edulis,I024,Kirkøy, Hvaler,10.987336,59.079053,PB,NA,0.325,17,Whole soft body,SB,1
+3699,Mytilus edulis,I131A,Lastad, Søgne,7.7083,58.05557,PB,NA,0.27,17,Whole soft body,SB,1
+3699,Mytilus edulis,I133,Odderøya, Kristiansand harbour,8.00166666666667,58.1316666666667,PB,NA,2.8,17,Whole soft body,SB,1
+3699,Mytilus edulis,I241,Nordnes, Bergen harbour,5.303955,60.4007721666667,PB,NA,0.63,17,Whole soft body,SB,3
+3699,Mytilus edulis,I301,Akershuskaia, Inner Oslofjord,10.7363333333333,59.9053333333333,PB,NA,0.3,17,Whole soft body,SB,1
+3699,Mytilus edulis,I304,Gåsøya, Inner Oslofjord,10.589,59.8513333333333,PB,NA,0.38,17,Whole soft body,SB,1
+3699,Mytilus edulis,I306,Håøya, Inner Oslofjord,10.5551666666667,59.7133333333333,PB,NA,0.17,17,Whole soft body,SB,1
+3699,Mytilus edulis,I714,Sylterøya, Langesundfjord,9.70384,59.0514,PB,NA,0.18,17,Whole soft body,SB,0
+3699,Mytilus edulis,I964,NA,NA,NA,PB,NA,0.73,17,Whole soft body,SB,3
+3699,Mytilus edulis,I965,Moholmen, Inner Ranfjord,14.12537,66.31162,PB,NA,1.8,17,Whole soft body,SB,3
+3699,Mytilus edulis,I969,Bjørnbærviken,  Inner Ranfjord,14.0349,66.28022,PB,NA,0.22,17,Whole soft body,SB,3

@@ -17,6 +17,11 @@ library(tidyr)
 library(readxl)
 library(ggplot2)
 
+
+# File name for export
+fn <- "Data_export/GaduMor_2018_withNIFES_ver3.csv"
+overwrite <- FALSE
+
 ```
 
 ## Data
@@ -268,7 +273,17 @@ vars <- c("PROJECT_ID", "STATION_CODE", "STATION_NAME",
 sel <- with(df_indicator2, !(PARAM == "HG" & TISSUE_NAME == "Lever"))
 
 # setwd("H:/Documents/seksjon 212/Indikator 2018/Analyse")
-write.csv2(df_indicator2[sel,vars], file = "Data_export/GaduMor_2018_withNIFES_ver2.csv", row.names = FALSE, na = "")
+
+#
+# E
+if (overwrite | !file.exists(fn)){
+  write.csv2(df_indicator2[sel,vars], file = fn, row.names = FALSE, na = "")
+  cat("Data written to file", fn, "\n")
+} else {
+  cat("File", fn, "exists, data not saved.\nSet 'overwrite <- TRUE' to overwrite file.\n")
+}
+
+
 
 # df_indicator2 <- read.csv2(file = "Data_export/GaduMor_2018_withNIFES_ver1.csv")
 
