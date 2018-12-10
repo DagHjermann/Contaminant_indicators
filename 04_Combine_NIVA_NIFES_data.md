@@ -11,17 +11,38 @@ output:
 
 
 ## Packages + functions  
-```{r}
+
+```r
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 library(tidyr)
 library(readxl)
 library(ggplot2)
-
 ```
 
 ## Data
 Indicators from NIVA serves as the starting point for combining the data  
-```{r}
+
+```r
 # NIVA medians
 data_xl_sel <- readRDS("Data/03_data_xl_sel.rds")
 
@@ -46,7 +67,8 @@ sel_param <- c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7")
 
 
 ## Make 'df_nifes_finalyear'   
-```{r}
+
+```r
 df_median <- df_median %>%
   mutate(TISSUE_NAME =
            case_when(Organ %in% "Filet" ~ "Muskel",
@@ -64,6 +86,13 @@ df_median <- df_median %>%
   )
 
 sel <- df_median$Uttaksområde %in% "Møre"; sum(sel)
+```
+
+```
+## [1] 294
+```
+
+```r
 df_median$STATION_NAME[sel] <- "Møre"
 
 
@@ -86,14 +115,30 @@ df_nifes_pos <- df_median %>%
 
 df_nifes_finalyear <- 
   df_nifes_finalyear %>% left_join(df_nifes_pos)
+```
 
+```
+## Joining, by = "STATION_NAME"
+```
+
+```r
 xtabs(~Parameter + TISSUE_NAME, df_nifes_finalyear)  
+```
 
+```
+##          TISSUE_NAME
+## Parameter Lever Muskel
+##     BDE6S     3      0
+##     CB_S7     3      0
+##     CD        3      3
+##     HG        3      3
+##     PB        3      3
 ```
 
 
 ## Make 'df_indicator_nifes'
-```{r}
+
+```r
 df_indicator_nifes <- tibble(
        PROJECT_ID = 9999,
        LATIN_NAME = "Gadus morhua",
@@ -118,43 +163,93 @@ nifes_regression <- nifes_regression %>%
 
 # xtabs(~STATION_NAME, nifes_regression)
 nrow(df_indicator_nifes)
-df_indicator_nifes <- left_join(df_indicator_nifes, nifes_regression[,c("PARAM", "TISSUE_NAME", "STATION_NAME", "trend")])
-nrow(df_indicator_nifes)
+```
 
+```
+## [1] 24
+```
+
+```r
+df_indicator_nifes <- left_join(df_indicator_nifes, nifes_regression[,c("PARAM", "TISSUE_NAME", "STATION_NAME", "trend")])
+```
+
+```
+## Joining, by = c("STATION_NAME", "PARAM", "TISSUE_NAME")
+```
+
+```r
+nrow(df_indicator_nifes)
+```
+
+```
+## [1] 24
+```
+
+```r
 # Check
 # df_indicator_nifes %>% select(STATION_NAME, LATITUDE, Conc, NIVA_CODE, trend) %>% View()
 # df_indicator %>% select(STATION_NAME, LATITUDE, Conc, NIVA_CODE, trend) %>% View()
-
 ```
 
 ## Combine NIVA and NIFES data
-```{r}
 
+```r
 df_indicator2 <- bind_rows(df_indicator, df_indicator_nifes)
 df_indicator2 %>% head(2)
-nrow(df_indicator2)  # 111
+```
 
+<div data-pagedtable="false">
+  <script data-pagedtable-source type="application/json">
+{"columns":[{"label":["PROJECT_ID"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["LATIN_NAME"],"name":[2],"type":["chr"],"align":["left"]},{"label":["STATION_CODE"],"name":[3],"type":["chr"],"align":["left"]},{"label":["STATION_NAME"],"name":[4],"type":["chr"],"align":["left"]},{"label":["LONGITUDE"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["LATITUDE"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["PARAM"],"name":[7],"type":["chr"],"align":["left"]},{"label":["N"],"name":[8],"type":["int"],"align":["right"]},{"label":["Conc"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["SPECIES_ID"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["TISSUE_NAME"],"name":[11],"type":["chr"],"align":["left"]},{"label":["NIVA_CODE"],"name":[12],"type":["chr"],"align":["left"]},{"label":["trend"],"name":[13],"type":["dbl"],"align":["right"]}],"data":[{"1":"3699","2":"Gadus morhua","3":"13B","4":"Kristiansand harbour area","5":"7.988500","6":"58.13283","7":"BDE6S","8":"NA","9":"7.72805","10":"17","11":"Lever","12":"LI","13":"3"},{"1":"3699","2":"Gadus morhua","3":"23B","4":"Bømlo, Outer Selbjørnfjord","5":"5.108565","6":"59.89562","7":"BDE6S","8":"NA","9":"4.07700","10":"17","11":"Lever","12":"LI","13":"3"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+
+```r
+nrow(df_indicator2)  # 111
+```
+
+```
+## [1] 111
+```
+
+```r
 # Check liver
 # xtabs(~STATION_NAME + PARAM, df_indicator2 %>% filter(TISSUE_NAME == "Lever"))  # 94
-
 ```
 
 ## Map data
-```{r}
+
+```r
 # Check that all stations have positions
 sum(is.na(df_indicator2$LATITUDE))
+```
 
+```
+## [1] 0
+```
+
+```r
 df_indicator2 %>%
   count(STATION_NAME, LATITUDE,  LONGITUDE) %>%
   arrange(LATITUDE)
+```
 
+<div data-pagedtable="false">
+  <script data-pagedtable-source type="application/json">
+{"columns":[{"label":["STATION_NAME"],"name":[1],"type":["chr"],"align":["left"]},{"label":["LATITUDE"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["LONGITUDE"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["n"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"Skågskjera, Farsund","2":"58.05138","3":"6.746898","4":"6"},{"1":"Kristiansand harbour area","2":"58.13283","3":"7.988500","4":"5"},{"1":"Tjøme, Outer Oslofjord","2":"59.04050","3":"10.435833","4":"7"},{"1":"Stathelle area, Langesundfjord","2":"59.04650","3":"9.702750","4":"3"},{"1":"Kirkøy, Hvaler","2":"59.06482","3":"10.973540","4":"4"},{"1":"Inner Oslofjord","2":"59.81265","3":"10.551829","4":"7"},{"1":"Bømlo, Outer Selbjørnfjord","2":"59.89562","3":"5.108565","4":"7"},{"1":"Inner Sørfjord","2":"60.09727","3":"6.539719","4":"7"},{"1":"Bergen harbour area","2":"60.39664","3":"5.270690","4":"5"},{"1":"Ålesund harbour area","2":"62.46778","3":"6.068617","4":"5"},{"1":"Møre","2":"62.88917","3":"6.450000","4":"8"},{"1":"Trondheim harbour","2":"63.44562","3":"10.371726","4":"5"},{"1":"Helgeland","2":"65.11000","3":"11.045000","4":"8"},{"1":"Sandnessjøen area","2":"66.04437","3":"12.503554","4":"4"},{"1":"Lofoten","2":"67.82000","3":"14.125000","4":"8"},{"1":"Austnesfjord, Lofoten","2":"68.18577","3":"14.708138","4":"7"},{"1":"Tromsø harbour area","2":"69.65300","3":"18.974000","4":"5"},{"1":"Kjøfjord, Outer Varangerfjord","2":"69.81623","3":"29.760200","4":"6"},{"1":"Hammerfest harbour area","2":"70.65000","3":"23.633333","4":"4"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+
+```r
 plot(LATITUDE ~ LONGITUDE, df_indicator2)
 maps::map(regions = "Norway", add = TRUE, col = "brown")
 ```
 
-## Filter df_indicator2 by position
-```{r}
+![](04_Combine_NIVA_NIFES_data_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
+## Filter df_indicator2 by position
+
+```r
 df_indicator2 <- df_indicator2 %>% 
   filter(LATITUDE > 62 & LONGITUDE < 22.2)
 
@@ -167,12 +262,17 @@ df_indicator2 <- df_indicator2 %>%
   mutate(STATION_NAME = factor(STATION_NAME, levels = tab$STATION_NAME))
 
 tab 
-
-
 ```
 
+<div data-pagedtable="false">
+  <script data-pagedtable-source type="application/json">
+{"columns":[{"label":["STATION_NAME"],"name":[1],"type":["chr"],"align":["left"]},{"label":["LATITUDE"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["LONGITUDE"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["n"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"Ålesund harbour area","2":"62.46778","3":"6.068617","4":"5"},{"1":"Møre","2":"62.88917","3":"6.450000","4":"8"},{"1":"Trondheim harbour","2":"63.44562","3":"10.371726","4":"5"},{"1":"Helgeland","2":"65.11000","3":"11.045000","4":"8"},{"1":"Sandnessjøen area","2":"66.04437","3":"12.503554","4":"4"},{"1":"Lofoten","2":"67.82000","3":"14.125000","4":"8"},{"1":"Austnesfjord, Lofoten","2":"68.18577","3":"14.708138","4":"7"},{"1":"Tromsø harbour area","2":"69.65300","3":"18.974000","4":"5"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+
 ## Proref, EQS and mattrygghet
-```{r}
+
+```r
 # Get PROREF (Q95) and EQS
 df_q95 <- data_xl_sel[data_xl_sel$Basis %in% "WW", c("PARAM", "LATIN_NAME", "TISSUE_NAME", "Q95", "EQS")] %>%
   group_by(PARAM, LATIN_NAME, TISSUE_NAME) %>%
@@ -183,11 +283,38 @@ df_q95 <- data_xl_sel[data_xl_sel$Basis %in% "WW", c("PARAM", "LATIN_NAME", "TIS
 
 # add PROREF and EQS thresholds
 nrow(df_indicator2) # 94
-df_indicator2 <- left_join(df_indicator2, df_q95)
-nrow(df_indicator2) # 94
+```
 
+```
+## [1] 50
+```
+
+```r
+df_indicator2 <- left_join(df_indicator2, df_q95)
+```
+
+```
+## Joining, by = c("LATIN_NAME", "PARAM", "TISSUE_NAME")
+```
+
+```r
+nrow(df_indicator2) # 94
+```
+
+```
+## [1] 50
+```
+
+```r
 # change EQS threshold for Hg (by mail from Norman; from 1.00 to 0.67)
 sel <- df_indicator2$PARAM %in% "CB_S7"; sum(sel) 
+```
+
+```
+## [1] 8
+```
+
+```r
 df_indicator2$EQS_threshold[sel] <- 0.67
 
 # Classes changed - original classes were: c(-999999,1,2,5,10,20,999999)
@@ -197,6 +324,17 @@ df_indicator2$KLASSE <- with(df_indicator2,
                              )
 
 xtabs(~KLASSE + PARAM, df_indicator2)
+```
+
+```
+##       PARAM
+## KLASSE BDE6S CB_S7 CD DDEPP HCB HG PB
+##      1     7     7  8     1   1  3  8
+##      2     0     1  0     0   0  1  0
+##      3     0     0  0     0   0  4  0
+```
+
+```r
 #       PARAM
 # KLASSE BDE6S CB_S7 CD DDEPP HCB HG PB
 #      1     7     7  8     1   1  3  8
@@ -211,35 +349,55 @@ df_indicator2$EQS <- with(df_indicator2,
                           )
 
 xtabs(~addNA(EQS) + PARAM, df_indicator2)
+```
+
+```
+##           PARAM
+## addNA(EQS) BDE6S CB_S7 CD DDEPP HCB HG PB
+##       1        0     0  0     1   1  0  0
+##       2        7     8  0     0   0  8  0
+##       <NA>     0     0 11     0   0  3 11
+```
+
+```r
 #           PARAM
 # addNA(EQS) BDE6S CB_S7 CD DDEPP HCB HG PB
 #       1        0     0  0     1   1  0  0
 #       2        7     8  0     0   0  8  0
 #       <NA>     0     0 11     0   0  3 11
-      
-
-
-
 ```
 
 ## Add SPECIES_ID
-```{r}
 
+```r
 species_code <- 17
 df_indicator2$SPECIES_ID <- species_code
-
 ```
 
 ## Add food limit  
 1 = below limit, 2 = above limit
-```{r}
 
+```r
 nrow(df_indicator2)
+```
+
+```
+## [1] 50
+```
+
+```r
 df_indicator2 <- left_join(
   df_indicator2, 
   subset(df_limits, select = c(PARAM, LATIN_NAME, NIVA_CODE, Mattrygghet)), 
   by = c("PARAM", "LATIN_NAME", "NIVA_CODE"))
 nrow(df_indicator2)
+```
+
+```
+## [1] 50
+```
+
+```r
 # 96
 
 df_indicator2$Mattrygghet <- cut(with(df_indicator2, Conc/Mattrygghet),
@@ -247,15 +405,35 @@ df_indicator2$Mattrygghet <- cut(with(df_indicator2, Conc/Mattrygghet),
                                  right = FALSE, labels = FALSE)
 
 xtabs(~addNA(Mattrygghet) + PARAM + TISSUE_NAME, df_indicator2)
+```
 
+```
+## , , TISSUE_NAME = Lever
+## 
+##                   PARAM
+## addNA(Mattrygghet) BDE6S CB_S7 CD DDEPP HCB HG PB
+##               1        0     4  0     0   0  0  0
+##               2        0     4  0     0   0  0  0
+##               <NA>     7     0  8     1   1  3  8
+## 
+## , , TISSUE_NAME = Muskel
+## 
+##                   PARAM
+## addNA(Mattrygghet) BDE6S CB_S7 CD DDEPP HCB HG PB
+##               1        0     0  3     0   0  8  3
+##               2        0     0  0     0   0  0  0
+##               <NA>     0     0  0     0   0  0  0
+```
+
+```r
 # tail(df_indicator2)
-
 ```
 
 ## Save and export  
 * On 'data': save with all variables   
 * On 'Data_export': pick selected variables  
-```{r}
+
+```r
 # Save with all variables
 saveRDS(df_indicator2, file = "Data/04_df_indicator2_cod_ver1.RData")
 
@@ -271,13 +449,13 @@ sel <- with(df_indicator2, !(PARAM == "HG" & TISSUE_NAME == "Lever"))
 write.csv2(df_indicator2[sel,vars], file = "Data_export/GaduMor_2018_withNIFES_ver2.csv", row.names = FALSE, na = "")
 
 # df_indicator2 <- read.csv2(file = "Data_export/GaduMor_2018_withNIFES_ver1.csv")
-
 ```
 
 ## Checks
 ### Plot 1
 trend: 0 = no trend calculated, 1 = zero time trend, 2 = up, 3 = down  
-```{r}
+
+```r
 df <- df_indicator2 %>%
   mutate(Time_trend =
            case_when(trend %in% 0 ~ "Not calc.",
@@ -296,8 +474,11 @@ df %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
 ```
 
+![](04_Combine_NIVA_NIFES_data_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+
 ### Plot 2
-```{r}
+
+```r
 df %>%
   filter(PARAM %in% unique(PARAM)[4:7]) %>%
   ggplot(aes(STATION_NAME, Conc, fill = Time_trend)) + 
@@ -307,9 +488,12 @@ df %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
 ```
 
+![](04_Combine_NIVA_NIFES_data_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+
 ### Plot 3 - mattrygghet
 trend: 0 = no trend calculated, 1 = zero time trend, 2 = up, 3 = down  
-```{r}
+
+```r
 df %>%
   filter(!is.na(Mattrygghet)) %>%
   ggplot(aes(STATION_NAME, Conc, fill = factor(Mattrygghet))) + 
@@ -318,3 +502,5 @@ df %>%
   facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
 ```
+
+![](04_Combine_NIVA_NIFES_data_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
