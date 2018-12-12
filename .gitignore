@@ -6,3 +6,7 @@
 *.lnk
 Data/*.rds
 Data/*.RData
+Data_export/*
+*.RData
+Old/*
+Indikatorer - HI og NIVA .docx
