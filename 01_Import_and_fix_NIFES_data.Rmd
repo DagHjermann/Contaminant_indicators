@@ -101,6 +101,10 @@ colnumber_unit <- which(substr(colnames(dat2),1,5) %in% "Enhet")
 colnumber_conc <- colnumber_unit - 1
 colnumber_meta <- 1:(colnumber_conc[1]-1)
 
+# These have no "unit" columns and are added later
+colnumber_conc_extra <- 
+  which(colnames(dat2) %in% c("HCB", "o,p'-DDD", "o,p'-DDE", "o,p'-DDT", "p,p'-DDD", "p,p'-DDE", "p,p'-DDT"))
+
 # colnames(dat2)[colnumber_meta]
 # colnames(dat2)[colnumber_conc]
 # colnames(dat2)[colnumber_unit]
@@ -109,7 +113,7 @@ colnumber_meta <- 1:(colnumber_conc[1]-1)
 ### Make concentration data
 ```{r}
 dat2_conc <- dat2[c(colnumber_meta, colnumber_conc)] %>%
-  gather("Parameter", "Conc_chr", `Totalfett Etylacetat`:`Sum PBDE 7`) %>%                             # Note hard-coded column names
+  gather("Parameter", "Conc_chr", `Totalfett Etylacetat`:`Sum PBDE 7`) %>%           # Note hard-coded column names
   as.data.frame()
 
 # Check first and second character of value. The "<" is always in the first
@@ -139,6 +143,7 @@ dat2_unit <- dat2_unit %>%
   as.data.frame()
 
 nrow(dat2_unit)
+
 ```
 
 ### Put dat2_conc and dat2_unit together
@@ -151,6 +156,35 @@ if (!is.na(check) & check == 0){
 }
 ```
 
+### Add concentration data from the parameters without unit columns
+```{r}
+dat2_conc_extra <- dat2[c(colnumber_meta, colnumber_conc_extra)] %>% 
+  gather("Parameter", "Conc_chr", HCB:`p,p'-DDT`) %>%           # Note hard-coded column names
+  as.data.frame()
+
+# Check first and second character of value. The "<" is always in the first
+table(substr(dat2_conc_extra$Conc_chr, 1, 1))
+table(substr(dat2_conc_extra$Conc_chr, 2, 2))
+
+# Remove less-than sign and make Conc variabøe
+dat2_conc_extra$Conc_chr2 <- sub("<", "", dat2_conc_extra$Conc_chr, fixed = TRUE)
+dat2_conc_extra$Conc <- as.numeric(dat2_conc_extra$Conc_chr2)
+
+# Find less-thans and make Flag variable
+dat2_conc_extra$Flag <- ifelse(substr(dat2_conc_extra$Conc_chr, 1, 1) %in% "<", "<", "")
+
+nrow(dat2_conc_extra)
+
+# xtabs(~Unit, dat2_tall)
+
+dat2_conc_extra$Unit <- "µg/kg"
+
+# Add to dat2_tall (if not already there)
+if (!"HCB" %in% unique(dat2_tall$Parameter))
+  dat2_tall <- bind_rows(dat2_tall, dat2_conc_extra)
+```
+
+
 ## 5. Put dat1_tall and dat2_tall together
 ```{r}
 df_nifes_cod <- bind_rows(dat1_tall, dat2_tall)
@@ -159,11 +193,15 @@ nrow(df_nifes_cod)
 
 ## 6. Check data
 ```{r}
-# Missing Conc values
+# Missing Conc values (loist of parameters)
+tab <- xtabs(~Parameter + is.na(Conc), df_nifes_cod)
+tab[tab[,2] > 0,]
+
+# Missing Conc values (example)
 sel <- is.na(df_nifes_cod$Conc); sum(sel)
 df_nifes_cod[sel,] %>% select(Parameter, Conc_chr, Conc_chr2, Conc, Flag) %>% head()
 
-# Missing Conc but unmissing Conc_chr values
+# Missing Conc but unmissing Conc_chr values (should be zero!)
 sel <- is.na(df_nifes_cod$Conc) & !is.na(df_nifes_cod$Conc_chr); sum(sel)
 
 # Check one example where second character = " "
@@ -245,8 +283,8 @@ df_nifes_cod_PBDE6 <- df_nifes_cod_PBDE6[,colnames(df_nifes_cod)] %>% as.data.fr
 # Add to dataset, create 'df_nifes_cod2'
 #
 df_nifes_cod2 <- rbind(df_nifes_cod, df_nifes_cod_PBDE6, stringsAsFactors = FALSE)
-nrow(df_nifes_cod)  # 36569
-nrow(df_nifes_cod2) # 36946
+nrow(df_nifes_cod)  # 39208
+nrow(df_nifes_cod2) # 39585
 
 ```
 
@@ -303,14 +341,14 @@ sel <- df_median$Parameter %in% "Hg"; sum(sel)
 df_median$Parameter[sel] <- "HG"
 sel <- df_median$Parameter %in% "Pb"; sum(sel)
 df_median$Parameter[sel] <- "PB"
-sel <- df_median$Parameter %in% "HCB"; sum(sel)    # None
-sel <- df_median$Parameter %in% "BDE6S"; sum(sel)  # OK, doesn't need to be changed
-sel <- df_median$Parameter %in% "pp-DDE"; sum(sel)  # None 
+sel <- df_median$Parameter %in% "p,p'-DDE"; sum(sel)  # None 
 df_median$Parameter[sel] <- "DDEPP"
 sel <- df_median$Parameter %in% "Sum PCB 7"; sum(sel)   # 8
 df_median$Parameter[sel] <- "CB_S7"
+sel <- df_median$Parameter %in% "HCB"; sum(sel)    # OK, doesn't need to be changed
+sel <- df_median$Parameter %in% "BDE6S"; sum(sel)  # OK, doesn't need to be changed
 
-# HCB, pp-DDE
+# Check all
 cat("Parameters:\n", table(df_median$Parameter) %>% names() %>% paste(collapse = "; "))
 ```
 
