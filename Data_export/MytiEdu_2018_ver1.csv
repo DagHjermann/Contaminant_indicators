@@ -1,0 +1,22 @@
+"PROJECT_ID";"STATION_CODE";"STATION_NAME";"LONGITUDE";"LATITUDE";"PARAM";"N";"KLASSE";"SPECIES_ID";"trend";"NIVA_CODE";"EQS";"Mattrygghet"
+3699;"91A2";"Ørland area, Outer Trondheimsfjord";9,56386;63,651438;"BDE6S";;1;17;1;"SB";2;
+3699;"97A2";"Mjelle, Bodø area";14,621928;67,41271;"BDE6S";;1;17;1;"SB";2;
+3699;"98A2";"Svolvær airport area";14,6627;68,24917;"BDE6S";;1;17;1;"SB";2;
+3699;"91A2";"Ørland area, Outer Trondheimsfjord";9,56386;63,651438;"CB_S7";;3;17;1;"SB";2;1
+3699;"97A2";"Mjelle, Bodø area";14,621928;67,41271;"CB_S7";;2;17;1;"SB";2;1
+3699;"98A2";"Svolvær airport area";14,6627;68,24917;"CB_S7";;2;17;1;"SB";2;1
+3699;"91A2";"Ørland area, Outer Trondheimsfjord";9,56386;63,651438;"CD";;1;17;1;"SB";;1
+3699;"97A2";"Mjelle, Bodø area";14,621928;67,41271;"CD";;1;17;1;"SB";;1
+3699;"98A2";"Svolvær airport area";14,6627;68,24917;"CD";;2;17;1;"SB";;1
+3699;"I965";"Moholmen, Inner Ranfjord";14,12537;66,31162;"CD";;1;17;3;"SB";;1
+3699;"I969";"Bjørnbærviken,  Inner Ranfjord";14,0349;66,28022;"CD";;1;17;1;"SB";;1
+3699;"91A2";"Ørland area, Outer Trondheimsfjord";9,56386;63,651438;"HG";;2;17;1;"SB";1;
+3699;"97A2";"Mjelle, Bodø area";14,621928;67,41271;"HG";;2;17;1;"SB";1;
+3699;"98A2";"Svolvær airport area";14,6627;68,24917;"HG";;3;17;1;"SB";2;
+3699;"I965";"Moholmen, Inner Ranfjord";14,12537;66,31162;"HG";;2;17;1;"SB";1;
+3699;"I969";"Bjørnbærviken,  Inner Ranfjord";14,0349;66,28022;"HG";;1;17;1;"SB";1;
+3699;"91A2";"Ørland area, Outer Trondheimsfjord";9,56386;63,651438;"PB";;1;17;1;"SB";;1
+3699;"97A2";"Mjelle, Bodø area";14,621928;67,41271;"PB";;3;17;1;"SB";;1
+3699;"98A2";"Svolvær airport area";14,6627;68,24917;"PB";;1;17;1;"SB";;1
+3699;"I965";"Moholmen, Inner Ranfjord";14,12537;66,31162;"PB";;3;17;3;"SB";;1
+3699;"I969";"Bjørnbærviken,  Inner Ranfjord";14,0349;66,28022;"PB";;2;17;3;"SB";;1
