@@ -1,0 +1,290 @@
+---
+title: "Plots"
+output: word_document
+---
+
+
+### Packages + functions  
+```{r, echo = FALSE, results='hide'}
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(ggplot2)
+
+
+# File name for export
+fn <- "Data_export/GaduMor_2018_withNIFES_ver4.csv"
+
+```
+
+### Data
+```{r, echo = FALSE}
+df_indicator2 <- readRDS(file = "Data/04_df_indicator2_cod_ver4.RData")
+
+df_indicator_bm <- readRDS(file = "Data/05_df_indicator_bluemussel_ver1.RData")
+
+data_xl_sel <- readRDS("Data/03_data_xl_sel.rds")
+
+# Station names + coordinates
+folder_milkys <- "H:/Documents/seksjon 212/Milkys 2017/Analyse"
+df_stations <- read_excel(paste0(folder_milkys, '/Stasjonsfiler/Milkys_koordinater_Sammenligning_NOG_0410_2017_forR.xlsx'), sheet = "for_R")
+colnames(df_stations)[1:3] <- c("LATITUDE", "LONGITUDE", "STATION_CODENAME")
+df_stations$STATION_CODE <- stringr::str_extract(df_stations$STATION_CODENAME, "([^[[:blank:]]]+)") 
+df_stations$STATION_NAME <- stringr::str_extract(df_stations$STATION_CODENAME, "(?<=[[:blank:]]).*")
+df_stations <- df_stations[,c("STATION_CODE", "STATION_NAME", "LONGITUDE", "LATITUDE")]
+```
+
+## Cod (NIVA and HI)
+### Plots, metals  
+Codes for trend: 0 = no trend calculated, 1 = zero time trend, 2 = up, 3 = down  
+```{r, echo = FALSE, fig.width = 8}
+df <- df_indicator2 %>%
+  filter(!(PARAM == "HG" & TISSUE_NAME == "Lever")) %>%
+  mutate(Time_trend =
+           case_when(trend %in% 0 ~ "Not calc.",
+                     trend %in% 1 ~ "No trend",
+                     trend %in% 2 ~ "Down",
+                     trend %in% 3 ~ "Up")
+         ) %>%
+  mutate(Time_trend = factor(Time_trend, levels = c("Not calc.", "No trend", "Down", "Up")),
+         Mattrygghet = factor(Mattrygghet, levels = 1:2),
+         EQS = factor(EQS, levels = 1:2))
+
+# Fill = trend
+gg1 <- df %>%
+  dplyr::filter(PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = Time_trend)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("grey30", "orange", "green", "red"), drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+# Fill = Mattrygghet
+gg2 <- df %>%
+  dplyr::filter(PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = Mattrygghet)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("green", "red"), na.value = "grey30", drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+# Fill = EQS
+gg3 <- df %>%
+  dplyr::filter(PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = EQS)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("green", "red"), na.value = "grey30", drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+# ggsave()
+
+gg1
+gg2
+gg3
+```
+
+
+### Plots, non-metals
+```{r, echo = FALSE, fig.width = 8}
+
+
+gg4 <- df %>%
+  dplyr::filter(!PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = Time_trend)) + 
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = c("grey30", "orange", "green", "red"), drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+
+# Fill = Mattrygghet
+gg5 <- df %>%
+  dplyr::filter(!PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = Mattrygghet)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("green", "red"), na.value = "grey30", drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+# Fill = EQS
+gg6 <- df %>%
+  dplyr::filter(!PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = EQS)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("green", "red"), na.value = "grey30", drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+gg4
+gg5
+gg6
+```
+
+
+## Graphs for blue mussel  
+### Plots, metals  
+Codes for trend: 0 = no trend calculated, 1 = zero time trend, 2 = up, 3 = down  
+```{r, echo = FALSE, fig.width = 8}
+df <- df_indicator_bm %>%
+  dplyr::filter(!(PARAM == "HG" & TISSUE_NAME == "Lever")) %>%
+  mutate(Time_trend =
+           case_when(trend %in% 0 ~ "Not calc.",
+                     trend %in% 1 ~ "No trend",
+                     trend %in% 2 ~ "Down",
+                     trend %in% 3 ~ "Up")
+         ) %>%
+  mutate(Time_trend = factor(Time_trend, levels = c("Not calc.", "No trend", "Down", "Up")),
+         Mattrygghet = factor(Mattrygghet, levels = 1:2),
+         EQS = factor(EQS, levels = 1:2))
+
+# Fill = trend
+gg1 <- df %>%
+  dplyr::filter(PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = Time_trend)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("grey30", "orange", "green", "red"), drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+# Fill = Mattrygghet
+gg2 <- df %>%
+  dplyr::filter(PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = Mattrygghet)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("green", "red"), na.value = "grey30", drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+# Fill = EQS
+gg3 <- df %>%
+  dplyr::filter(PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = EQS)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("green", "red"), na.value = "grey30", drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+# ggsave()
+
+gg1
+gg2
+gg3
+```
+
+### Plots, non-metals
+```{r, echo = FALSE, fig.width = 8}
+gg4 <- df %>%
+  dplyr::filter(!PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = Time_trend)) + 
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = c("grey30", "orange", "green", "red"), drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+
+# Fill = Mattrygghet
+gg5 <- df %>%
+  dplyr::filter(!PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = Mattrygghet)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("green", "red"), na.value = "grey30", drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+# Fill = EQS
+gg6 <- df %>%
+  dplyr::filter(!PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = EQS)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("green", "red"), na.value = "grey30", drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+gg4
+gg5
+gg6
+```
+
+## Plot time series of medians  
+
+### NIVA data
+
+### NIVA + HI data
+```{r, echo = FALSE}
+colsel1 <- which(colnames(data_xl_sel) %in% c("PARAM", "STATION_CODE", "Station.Name", "TISSUE_NAME"))
+colsel2 <- which(substr(colnames(data_xl_sel),1,4) %in% "Yr_2")
+colsel <- c(colsel1, colsel2)
+# colnames(data_xl_sel)[colsel]
+
+dat_niva <- data_xl_sel[,colsel] %>%
+  gather("Year", "Conc", Yr_2000:Yr_2017) %>%
+  mutate(Year = as.numeric(sub("Yr_", "", Year))) %>%
+  left_join(df_stations, by = "STATION_CODE")
+
+# NIFES medians
+dat_hi <- readRDS("Data/01_df_median.rds") %>%
+  as.data.frame()
+
+dat_hi$Station.Name <- ""
+sel <- dat_hi$Uttaksområde %in% "Møre"; sum(sel)
+dat_hi$Station.Name[sel] <- "Møre"
+sel <- dat_hi$Uttaksområde %in% c("Træna","Vikna"); sum(sel)
+dat_hi$Station.Name[sel] <- "Helgeland"
+sel <- dat_hi$Uttaksområde %in% "Vestfjorden"; sum(sel)
+dat_hi$Station.Name[sel] <- "Vestfjorden"
+
+# Change coordinates to mean coordinates
+dat_hi <- dat_hi %>%
+  group_by(Station.Name) %>%
+  mutate(LONGITUDE = mean(LONGITUDE, na.rm = TRUE),
+         LATITUDE = mean(LATITUDE, na.rm = TRUE),
+         TISSUE_NAME = ifelse(Organ == "Filet", "Muskel", "Lever")) %>%
+  rename("PARAM" = "Parameter") %>%
+  filter(PARAM %in% c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7"))
+
+
+cols <- c("Station.Name", "LONGITUDE", "LATITUDE", "TISSUE_NAME", "PARAM", "Year", "Conc")
+dat <- bind_rows(dat_niva[,cols], dat_hi[,cols])
+```
+
+### Plot liver concentrations
+```{r, echo = FALSE, fig.width=8}
+
+tissue <- "Lever"
+dat %>%
+  filter(LATITUDE > 62 & LONGITUDE < 22.2) %>%
+  filter(TISSUE_NAME %in% tissue) %>%
+  mutate(Station.Name = sub("\\(.+", "", Station.Name)) %>%   # remove the parantheses in the name
+  ggplot(aes(Year, Conc, color = Station.Name)) +
+    geom_smooth(method = "lm", se = FALSE) +
+    geom_point() +
+    facet_wrap(~PARAM, scales = "free_y") +
+    scale_y_log10() +
+    theme(legend.position = "bottom") +
+    labs(title = tissue)
+
+
+
+```
+
+
+```{r, echo = FALSE, fig.width=8}
+
+tissue <- "Muskel"
+dat %>%
+  filter(LATITUDE > 62 & LONGITUDE < 22.2) %>%
+  filter(TISSUE_NAME %in% tissue) %>%
+  mutate(Station.Name = sub("\\(.+", "", Station.Name)) %>%   # remove the parantheses in the name
+  ggplot(aes(Year, Conc, color = Station.Name)) +
+    geom_smooth(method = "lm", se = FALSE) +
+    geom_point() +
+    facet_wrap(~PARAM, scales = "free_y") +
+    scale_y_log10() +
+    theme(legend.position = "bottom") +
+    labs(title = tissue)
+
+
+
+```
+

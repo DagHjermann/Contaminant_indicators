@@ -133,17 +133,31 @@ write.csv(nifes_regression, "Data/02_nifes_regression.csv", quote = FALSE, row.n
 
 ## Plots
 ```{r}
-df_median %>%
-  filter(Parameter %in% sel_param) %>%
-  mutate(Station = 
-           case_when( 
-             Uttaksområde %in% "Møre" ~ "Møre", 
-             Uttaksområde %in% c("Træna","Vikna") ~ "Helgeland", 
-             Uttaksområde %in% "Vestfjorden" ~ "Lofoten"
-             )
-  ) %>%
-  ggplot(aes(Year, Conc, color = Organ)) +
-    geom_line() + geom_point() +
-    facet_grid(Parameter ~ Station, scales = "free_y")
+df <- df_median
+
+df$Station <- ""
+sel <- df_median$Uttaksområde %in% "Møre"; sum(sel)
+df$Station[sel] <- "Møre"
+sel <- df_median$Uttaksområde %in% c("Træna","Vikna"); sum(sel)
+df$Station[sel] <- "Helgeland"
+sel <- df_median$Uttaksområde %in% "Vestfjorden"; sum(sel)
+df$Station[sel] <- "Lofoten"
+
+df <- df %>%
+  filter(Parameter %in% sel_param)
+xtabs(~Parameter + Station, df)
+
+ggplot(df, aes(Year, Conc, color = Organ)) +
+  geom_line() + geom_point() +
+  facet_grid(Parameter ~ Station, scales = "free_y") +
+  scale_x_continuous(breaks = seq(2010, 2016, 2))
+
+?
+iconv("Møre", "", "UTF-8")
+iconv("Møre", "UTF-8")
+
+sel <- df_median$Uttaksområde %in% "Møre"; sum(sel)
+
+# sum(df_median$Uttaksområde %in% "Møre")
 ```
 

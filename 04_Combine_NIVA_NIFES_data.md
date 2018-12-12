@@ -37,6 +37,11 @@ library(dplyr)
 library(tidyr)
 library(readxl)
 library(ggplot2)
+
+
+# File name for export
+fn <- "Data_export/GaduMor_2018_withNIFES_ver4.csv"
+overwrite <- FALSE
 ```
 
 ## Data
@@ -89,7 +94,7 @@ sel <- df_median$Uttaksområde %in% "Møre"; sum(sel)
 ```
 
 ```
-## [1] 294
+## [1] 315
 ```
 
 ```r
@@ -131,6 +136,8 @@ xtabs(~Parameter + TISSUE_NAME, df_nifes_finalyear)
 ##     BDE6S     3      0
 ##     CB_S7     3      0
 ##     CD        3      3
+##     DDEPP     3      0
+##     HCB       3      0
 ##     HG        3      3
 ##     PB        3      3
 ```
@@ -166,7 +173,7 @@ nrow(df_indicator_nifes)
 ```
 
 ```
-## [1] 24
+## [1] 30
 ```
 
 ```r
@@ -182,7 +189,7 @@ nrow(df_indicator_nifes)
 ```
 
 ```
-## [1] 24
+## [1] 30
 ```
 
 ```r
@@ -209,7 +216,7 @@ nrow(df_indicator2)  # 111
 ```
 
 ```
-## [1] 111
+## [1] 117
 ```
 
 ```r
@@ -236,7 +243,7 @@ df_indicator2 %>%
 
 <div data-pagedtable="false">
   <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["STATION_NAME"],"name":[1],"type":["chr"],"align":["left"]},{"label":["LATITUDE"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["LONGITUDE"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["n"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"Skågskjera, Farsund","2":"58.05138","3":"6.746898","4":"6"},{"1":"Kristiansand harbour area","2":"58.13283","3":"7.988500","4":"5"},{"1":"Tjøme, Outer Oslofjord","2":"59.04050","3":"10.435833","4":"7"},{"1":"Stathelle area, Langesundfjord","2":"59.04650","3":"9.702750","4":"3"},{"1":"Kirkøy, Hvaler","2":"59.06482","3":"10.973540","4":"4"},{"1":"Inner Oslofjord","2":"59.81265","3":"10.551829","4":"7"},{"1":"Bømlo, Outer Selbjørnfjord","2":"59.89562","3":"5.108565","4":"7"},{"1":"Inner Sørfjord","2":"60.09727","3":"6.539719","4":"7"},{"1":"Bergen harbour area","2":"60.39664","3":"5.270690","4":"5"},{"1":"Ålesund harbour area","2":"62.46778","3":"6.068617","4":"5"},{"1":"Møre","2":"62.88917","3":"6.450000","4":"8"},{"1":"Trondheim harbour","2":"63.44562","3":"10.371726","4":"5"},{"1":"Helgeland","2":"65.11000","3":"11.045000","4":"8"},{"1":"Sandnessjøen area","2":"66.04437","3":"12.503554","4":"4"},{"1":"Lofoten","2":"67.82000","3":"14.125000","4":"8"},{"1":"Austnesfjord, Lofoten","2":"68.18577","3":"14.708138","4":"7"},{"1":"Tromsø harbour area","2":"69.65300","3":"18.974000","4":"5"},{"1":"Kjøfjord, Outer Varangerfjord","2":"69.81623","3":"29.760200","4":"6"},{"1":"Hammerfest harbour area","2":"70.65000","3":"23.633333","4":"4"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["STATION_NAME"],"name":[1],"type":["chr"],"align":["left"]},{"label":["LATITUDE"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["LONGITUDE"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["n"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"Skågskjera, Farsund","2":"58.05138","3":"6.746898","4":"6"},{"1":"Kristiansand harbour area","2":"58.13283","3":"7.988500","4":"5"},{"1":"Tjøme, Outer Oslofjord","2":"59.04050","3":"10.435833","4":"7"},{"1":"Stathelle area, Langesundfjord","2":"59.04650","3":"9.702750","4":"3"},{"1":"Kirkøy, Hvaler","2":"59.06482","3":"10.973540","4":"4"},{"1":"Inner Oslofjord","2":"59.81265","3":"10.551829","4":"7"},{"1":"Bømlo, Outer Selbjørnfjord","2":"59.89562","3":"5.108565","4":"7"},{"1":"Inner Sørfjord","2":"60.09727","3":"6.539719","4":"7"},{"1":"Bergen harbour area","2":"60.39664","3":"5.270690","4":"5"},{"1":"Ålesund harbour area","2":"62.46778","3":"6.068617","4":"5"},{"1":"Møre","2":"62.88917","3":"6.450000","4":"10"},{"1":"Trondheim harbour","2":"63.44562","3":"10.371726","4":"5"},{"1":"Helgeland","2":"65.11000","3":"11.045000","4":"10"},{"1":"Sandnessjøen area","2":"66.04437","3":"12.503554","4":"4"},{"1":"Lofoten","2":"67.82000","3":"14.125000","4":"10"},{"1":"Austnesfjord, Lofoten","2":"68.18577","3":"14.708138","4":"7"},{"1":"Tromsø harbour area","2":"69.65300","3":"18.974000","4":"5"},{"1":"Kjøfjord, Outer Varangerfjord","2":"69.81623","3":"29.760200","4":"6"},{"1":"Hammerfest harbour area","2":"70.65000","3":"23.633333","4":"4"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 
@@ -266,7 +273,7 @@ tab
 
 <div data-pagedtable="false">
   <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["STATION_NAME"],"name":[1],"type":["chr"],"align":["left"]},{"label":["LATITUDE"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["LONGITUDE"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["n"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"Ålesund harbour area","2":"62.46778","3":"6.068617","4":"5"},{"1":"Møre","2":"62.88917","3":"6.450000","4":"8"},{"1":"Trondheim harbour","2":"63.44562","3":"10.371726","4":"5"},{"1":"Helgeland","2":"65.11000","3":"11.045000","4":"8"},{"1":"Sandnessjøen area","2":"66.04437","3":"12.503554","4":"4"},{"1":"Lofoten","2":"67.82000","3":"14.125000","4":"8"},{"1":"Austnesfjord, Lofoten","2":"68.18577","3":"14.708138","4":"7"},{"1":"Tromsø harbour area","2":"69.65300","3":"18.974000","4":"5"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["STATION_NAME"],"name":[1],"type":["chr"],"align":["left"]},{"label":["LATITUDE"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["LONGITUDE"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["n"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"Ålesund harbour area","2":"62.46778","3":"6.068617","4":"5"},{"1":"Møre","2":"62.88917","3":"6.450000","4":"10"},{"1":"Trondheim harbour","2":"63.44562","3":"10.371726","4":"5"},{"1":"Helgeland","2":"65.11000","3":"11.045000","4":"10"},{"1":"Sandnessjøen area","2":"66.04437","3":"12.503554","4":"4"},{"1":"Lofoten","2":"67.82000","3":"14.125000","4":"10"},{"1":"Austnesfjord, Lofoten","2":"68.18577","3":"14.708138","4":"7"},{"1":"Tromsø harbour area","2":"69.65300","3":"18.974000","4":"5"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 
@@ -286,7 +293,7 @@ nrow(df_indicator2) # 94
 ```
 
 ```
-## [1] 50
+## [1] 56
 ```
 
 ```r
@@ -302,7 +309,7 @@ nrow(df_indicator2) # 94
 ```
 
 ```
-## [1] 50
+## [1] 56
 ```
 
 ```r
@@ -329,8 +336,8 @@ xtabs(~KLASSE + PARAM, df_indicator2)
 ```
 ##       PARAM
 ## KLASSE BDE6S CB_S7 CD DDEPP HCB HG PB
-##      1     7     7  8     1   1  3  8
-##      2     0     1  0     0   0  1  0
+##      1     7     7  8     4   3  3  8
+##      2     0     1  0     0   1  1  0
 ##      3     0     0  0     0   0  4  0
 ```
 
@@ -354,8 +361,8 @@ xtabs(~addNA(EQS) + PARAM, df_indicator2)
 ```
 ##           PARAM
 ## addNA(EQS) BDE6S CB_S7 CD DDEPP HCB HG PB
-##       1        0     0  0     1   1  0  0
-##       2        7     8  0     0   0  8  0
+##       1        0     0  0     4   2  0  0
+##       2        7     8  0     0   2  8  0
 ##       <NA>     0     0 11     0   0  3 11
 ```
 
@@ -382,7 +389,7 @@ nrow(df_indicator2)
 ```
 
 ```
-## [1] 50
+## [1] 56
 ```
 
 ```r
@@ -394,7 +401,7 @@ nrow(df_indicator2)
 ```
 
 ```
-## [1] 50
+## [1] 56
 ```
 
 ```r
@@ -414,7 +421,7 @@ xtabs(~addNA(Mattrygghet) + PARAM + TISSUE_NAME, df_indicator2)
 ## addNA(Mattrygghet) BDE6S CB_S7 CD DDEPP HCB HG PB
 ##               1        0     4  0     0   0  0  0
 ##               2        0     4  0     0   0  0  0
-##               <NA>     7     0  8     1   1  3  8
+##               <NA>     7     0  8     4   4  3  8
 ## 
 ## , , TISSUE_NAME = Muskel
 ## 
@@ -435,7 +442,7 @@ xtabs(~addNA(Mattrygghet) + PARAM + TISSUE_NAME, df_indicator2)
 
 ```r
 # Save with all variables
-saveRDS(df_indicator2, file = "Data/04_df_indicator2_cod_ver1.RData")
+saveRDS(df_indicator2, file = "Data/04_df_indicator2_cod_ver4.RData")
 
 # Save with selected variables
 vars <- c("PROJECT_ID", "STATION_CODE", "STATION_NAME", 
@@ -446,61 +453,132 @@ vars <- c("PROJECT_ID", "STATION_CODE", "STATION_NAME",
 sel <- with(df_indicator2, !(PARAM == "HG" & TISSUE_NAME == "Lever"))
 
 # setwd("H:/Documents/seksjon 212/Indikator 2018/Analyse")
-write.csv2(df_indicator2[sel,vars], file = "Data_export/GaduMor_2018_withNIFES_ver2.csv", row.names = FALSE, na = "")
 
+#
+# E
+if (overwrite | !file.exists(fn)){
+  write.csv2(df_indicator2[sel,vars], file = fn, row.names = FALSE, na = "")
+  cat("Data written to file", fn, "\n")
+} else {
+  cat("File", fn, "exists, data not saved.\nSet 'overwrite <- TRUE' to overwrite file.\n")
+}
+```
+
+```
+## File Data_export/GaduMor_2018_withNIFES_ver4.csv exists, data not saved.
+## Set 'overwrite <- TRUE' to overwrite file.
+```
+
+```r
 # df_indicator2 <- read.csv2(file = "Data_export/GaduMor_2018_withNIFES_ver1.csv")
 ```
 
 ## Checks
-### Plot 1
+### Plots, metals
 trend: 0 = no trend calculated, 1 = zero time trend, 2 = up, 3 = down  
 
 ```r
 df <- df_indicator2 %>%
+  filter(!(PARAM == "HG" & TISSUE_NAME == "Lever")) %>%
   mutate(Time_trend =
            case_when(trend %in% 0 ~ "Not calc.",
                      trend %in% 1 ~ "No trend",
                      trend %in% 2 ~ "Down",
                      trend %in% 3 ~ "Up")
          ) %>%
-  mutate(Time_trend = factor(Time_trend, levels = c("Not calc.", "No trend", "Down", "Up")))
+  mutate(Time_trend = factor(Time_trend, levels = c("Not calc.", "No trend", "Down", "Up")),
+         Mattrygghet = factor(Mattrygghet, levels = 1:2),
+         EQS = factor(EQS, levels = 1:2))
 
-df %>%
-  filter(PARAM %in% unique(PARAM)[1:3]) %>%
-  ggplot(aes(STATION_NAME, Conc, fill = factor(Time_trend))) + 
+# Fill = trend
+gg1 <- df %>%
+  filter(PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = Time_trend)) + 
   geom_col() + 
-  scale_fill_manual(values = c("grey30", "orange", "green", "red")) +
+  scale_fill_manual(values = c("grey30", "orange", "green", "red"), drop = FALSE) +
   facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+# Fill = Mattrygghet
+gg2 <- df %>%
+  filter(PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = Mattrygghet)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("green", "red"), na.value = "grey30", drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+# Fill = EQS
+gg3 <- df %>%
+  filter(PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = EQS)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("green", "red"), na.value = "grey30", drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+# ggsave()
+
+gg1
 ```
 
 ![](04_Combine_NIVA_NIFES_data_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 
-### Plot 2
+```r
+gg2
+```
+
+![](04_Combine_NIVA_NIFES_data_files/figure-html/unnamed-chunk-12-2.png)<!-- -->
 
 ```r
-df %>%
-  filter(PARAM %in% unique(PARAM)[4:7]) %>%
+gg3
+```
+
+![](04_Combine_NIVA_NIFES_data_files/figure-html/unnamed-chunk-12-3.png)<!-- -->
+
+### Plots, non-metals
+
+```r
+gg4 <- df %>%
+  filter(!PARAM %in% c("HG", "PB", "CD")) %>%
   ggplot(aes(STATION_NAME, Conc, fill = Time_trend)) + 
   geom_bar(stat = "identity") + 
-  scale_fill_manual(values = c("grey30", "orange", "green", "red")) +
+  scale_fill_manual(values = c("grey30", "orange", "green", "red"), drop = FALSE) +
   facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+
+# Fill = Mattrygghet
+gg5 <- df %>%
+  filter(!PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = Mattrygghet)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("green", "red"), na.value = "grey30", drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+# Fill = EQS
+gg6 <- df %>%
+  filter(!PARAM %in% c("HG", "PB", "CD")) %>%
+  ggplot(aes(STATION_NAME, Conc, fill = EQS)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("green", "red"), na.value = "grey30", drop = FALSE) +
+  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
+gg4
 ```
 
 ![](04_Combine_NIVA_NIFES_data_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
-### Plot 3 - mattrygghet
-trend: 0 = no trend calculated, 1 = zero time trend, 2 = up, 3 = down  
-
 ```r
-df %>%
-  filter(!is.na(Mattrygghet)) %>%
-  ggplot(aes(STATION_NAME, Conc, fill = factor(Mattrygghet))) + 
-  geom_col() + 
-  scale_fill_manual(values = c("green", "red")) +
-  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+gg5
 ```
 
-![](04_Combine_NIVA_NIFES_data_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](04_Combine_NIVA_NIFES_data_files/figure-html/unnamed-chunk-13-2.png)<!-- -->
+
+```r
+gg6
+```
+
+![](04_Combine_NIVA_NIFES_data_files/figure-html/unnamed-chunk-13-3.png)<!-- -->
