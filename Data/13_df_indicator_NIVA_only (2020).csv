@@ -1,0 +1,28 @@
+PROJECT_ID,LATIN_NAME,STATION_CODE,SPECIES_ID,TISSUE_NAME,PARAM,Conc,N,LATITUDE,LONGITUDE,STATION_NAME,NIVA_CODE,trend
+3699,Gadus morhua,19B,17,Liver,BDE6S,0.977,NA,78.17,13.46,Isfjorden, Svalbard,LI,0
+3699,Gadus morhua,43B2,17,Liver,BDE6S,1.6714,NA,69.653,18.974,Tromsø harbour area,LI,3
+3699,Gadus morhua,98B1,17,Liver,BDE6S,7.7013,NA,68.18577,14.708138,Austnesfjord, Lofoten,LI,1
+3699,Gadus morhua,10B,17,Liver,CB_S7,69.24,NA,69.81623,29.7602,Kjøfjord, Outer Varangerfjord,LI,1
+3699,Gadus morhua,19B,17,Liver,CB_S7,26.395,NA,78.17,13.46,Isfjorden, Svalbard,LI,0
+3699,Gadus morhua,43B2,17,Liver,CB_S7,39.182,NA,69.653,18.974,Tromsø harbour area,LI,1
+3699,Gadus morhua,45B2,17,Liver,CB_S7,77.747,NA,70.65,23.6333333333333,Hammerfest harbour area,LI,3
+3699,Gadus morhua,98B1,17,Liver,CB_S7,115.263,NA,68.18577,14.708138,Austnesfjord, Lofoten,LI,2
+3699,Gadus morhua,10B,17,Liver,CD,0.19,NA,69.81623,29.7602,Kjøfjord, Outer Varangerfjord,LI,1
+3699,Gadus morhua,19B,17,Liver,CD,0.11,NA,78.17,13.46,Isfjorden, Svalbard,LI,0
+3699,Gadus morhua,43B2,17,Liver,CD,0.15,NA,69.653,18.974,Tromsø harbour area,LI,1
+3699,Gadus morhua,45B2,17,Liver,CD,0.11,NA,70.65,23.6333333333333,Hammerfest harbour area,LI,1
+3699,Gadus morhua,98B1,17,Liver,CD,0.0415,NA,68.18577,14.708138,Austnesfjord, Lofoten,LI,1
+3699,Gadus morhua,10B,17,Liver,DDEPP,17,NA,69.81623,29.7602,Kjøfjord, Outer Varangerfjord,LI,1
+3699,Gadus morhua,98B1,17,Liver,DDEPP,46.8,NA,68.18577,14.708138,Austnesfjord, Lofoten,LI,1
+3699,Gadus morhua,10B,17,Liver,HCB,9.485,NA,69.81623,29.7602,Kjøfjord, Outer Varangerfjord,LI,1
+3699,Gadus morhua,98B1,17,Liver,HCB,9.66,NA,68.18577,14.708138,Austnesfjord, Lofoten,LI,1
+3699,Gadus morhua,10B,17,Muscle,HG,0.033,NA,69.81623,29.7602,Kjøfjord, Outer Varangerfjord,MU,1
+3699,Gadus morhua,19B,17,Muscle,HG,0.032,NA,78.17,13.46,Isfjorden, Svalbard,MU,0
+3699,Gadus morhua,43B2,17,Muscle,HG,0.034,NA,69.653,18.974,Tromsø harbour area,MU,1
+3699,Gadus morhua,45B2,17,Muscle,HG,0.042,NA,70.65,23.6333333333333,Hammerfest harbour area,MU,1
+3699,Gadus morhua,98B1,17,Muscle,HG,0.07,NA,68.18577,14.708138,Austnesfjord, Lofoten,MU,1
+3699,Gadus morhua,10B,17,Liver,PB,0.038,NA,69.81623,29.7602,Kjøfjord, Outer Varangerfjord,LI,2
+3699,Gadus morhua,19B,17,Liver,PB,0.039,NA,78.17,13.46,Isfjorden, Svalbard,LI,0
+3699,Gadus morhua,43B2,17,Liver,PB,0.048,NA,69.653,18.974,Tromsø harbour area,LI,2
+3699,Gadus morhua,45B2,17,Liver,PB,0.02999,NA,70.65,23.6333333333333,Hammerfest harbour area,LI,0
+3699,Gadus morhua,98B1,17,Liver,PB,0.02999,NA,68.18577,14.708138,Austnesfjord, Lofoten,LI,0

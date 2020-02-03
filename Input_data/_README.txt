@@ -1,7 +1,14 @@
 Files:
-  Data kysttorsk NH nov. 2018.xlsx
-  GaduMor_2018_withNIFES_ver4.xlsx
-Origin: Attachments from the mail below.
+  - Data until 2018, Norskehavet (for 2019 report/maps, script 01-04):
+    - Data kysttorsk NH nov. 2018.xlsx
+    - GaduMor_2018_withNIFES_ver4.xlsx
+    Origin: Attachments from mail 1 below.
+
+  - Data until 2019, Barents (for 2020 report/maps, script 11-14):
+    - Cd Pb torsk lever 2006-2019 HI.xlsx
+    - Kvikksølv torskefilet Bhav 2006-2019.xlsx
+    - POPs torskelever Bhav 2006-2019.xlsx
+    Origin: Attachment from Norman (originally Sylvia) 20.01.2020 18:39
 
 
 From: Norman Whitaker Green 
