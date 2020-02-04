@@ -134,7 +134,7 @@ nifes_regression <- nifes_regression %>%
 ### Check
 ```{r}
 
-nifes_regression %>% select(Posisjon, PARAM, TISSUE_NAME, Nplus, Model_used, Dir_change, trend_text)
+nifes_regression %>% select(Posisjon, PARAM, TISSUE_NAME, Nplus, Model_used, Dir_change, trend_text)  # %>% View()
 
 ```
 
