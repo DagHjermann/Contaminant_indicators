@@ -77,10 +77,23 @@ sel_records2 <- with(data_xl, PARAM %in% sel_param &
                               LATIN_NAME %in% species & 
                               Basis == "WW" & !is.na(Klasse.2017))
 
+
+#
+# Blue mussel
+#
+species <- "Mytilus edulis"
+tissue <- "Whole soft body"
+sel_param <- c("HG", "CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7")
+sel_records3 <- with(data_xl, PARAM %in% sel_param & 
+                              TISSUE_NAME %in% tissue & 
+                              LATIN_NAME %in% species & 
+                              Basis == "WW" & !is.na(Klasse.2017))
+
 # Combine muscel and liver data
-sel_records <- sel_records1 | sel_records2
+sel_records <- sel_records1 | sel_records2 | sel_records3
 sum(sel_records1)  # 17
 sum(sel_records2)  # 75
+sum(sel_records3)  # 75
 sum(sel_records)   # 92
 
 # Select rows
@@ -112,7 +125,7 @@ data_stations <- readxl::read_excel("../Milkys/Input_data/Kartbase.xlsx") %>%
 data_stations <- data_stations %>% 
   filter(LATITUDE > 68) %>%
   # no blue mussel, flatfish or snail stations
-  filter(!(grepl("A", STATION_CODE) | grepl("X", STATION_CODE) | grepl("F", STATION_CODE) | grepl("G", STATION_CODE)))
+  filter(!(grepl("F", STATION_CODE) | grepl("G", STATION_CODE)))
 
 data_stations
 
@@ -164,10 +177,10 @@ df_indicator <- tibble(
 #
 # Add station position + name
 #
-nrow(df_indicator)  # 92
+nrow(df_indicator)  # 275
 df_indicator <- df_indicator %>% 
   inner_join(data_stations, by = "STATION_CODE")
-nrow(df_indicator)  # 27
+nrow(df_indicator)  # 44
 
 
 ```
@@ -220,9 +233,11 @@ head(df_indicator, 3)
 overwrite <- FALSE
 
 if (overwrite){
-  # Save indicator for NIVA data
+
+    # Save indicator for NIVA data
   saveRDS(df_indicator, "Data/13_df_indicator_NIVA_only (2020).rds")
-  write.csv(df_indicator, "Data/13_df_indicator_NIVA_only (2020).csv", quote = FALSE, row.names = FALSE)
+  write.csv(df_indicator, "Data/13_df_indicator_NIVA_only (2020).csv", 
+            quote = FALSE, row.names = FALSE)
   
   # Save selected excel data
   saveRDS(data_xl_sel, "Data/13_data_xl_sel (2020).rds")

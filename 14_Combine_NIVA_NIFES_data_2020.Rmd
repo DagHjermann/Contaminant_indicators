@@ -24,10 +24,11 @@ library(ggplot2)
 
 
 # File name for export
-fn <- "Data_export/GaduMor_2020_withNIFES_ver02"
+fn <- "Data_export/GaduMor_2020_withNIFES_ver03"
 fn_csv <- paste0(fn, ".csv")
 fn_xlsx <- paste0(fn, ".xlsx")
 overwrite <- FALSE
+#overwrite <- TRUE
 
 ```
 
@@ -52,7 +53,7 @@ nifes_regression <- readRDS("Data/12_nifes_regression (2020).rds")
 df_limits <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx")
 
 # Parameters
-sel_param <- c("CD", "HG", "PB", "HCB", "DDEPP", "CB_S7")
+sel_param <- c("CD", "HG", "PB", "HCB", "DDEPP", "CB_S7", "BDE6S")
 
 ```
 
@@ -126,9 +127,10 @@ nifes_regression <- nifes_regression %>%
 
 # xtabs(~STATION_NAME, nifes_regression)
 nrow(df_indicator_nifes)
-df_indicator_nifes <- left_join(df_indicator_nifes, 
-                                nifes_regression[,c("PARAM", "TISSUE_NAME", "STATION_NAME", "trend")],
-                                by = c("STATION_NAME", "PARAM", "TISSUE_NAME"))
+df_indicator_nifes <- left_join(
+  df_indicator_nifes, 
+  nifes_regression[,c("PARAM", "TISSUE_NAME", "STATION_NAME", "trend")],
+  by = c("STATION_NAME", "PARAM", "TISSUE_NAME"))
 nrow(df_indicator_nifes)
 
 # Check
@@ -257,7 +259,7 @@ df_indicator2 <- df_indicator2 %>%
   arrange(PARAM,LONGITUDE,LATITUDE)
 
 # Save with all variables
-saveRDS(df_indicator2, file = "Data/14_df_indicator2_cod_ver01 (2020.rds")
+saveRDS(df_indicator2, file = "Data/14_df_indicator2_cod_ver03 (2020.rds")
 
 # Save with selected variables
 vars <- c("PROJECT_ID", "STATION_CODE", "STATION_NAME", 

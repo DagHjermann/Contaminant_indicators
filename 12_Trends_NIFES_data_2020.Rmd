@@ -83,7 +83,7 @@ xtabs(~Year + TISSUE_NAME + Art, df_median)
 ### Make table for regression  
 ```{r}
 # Doing regression for all
-sel_param <- c("CD", "HG", "PB", "HCB", "DDEPP", "CB_S7", "DDEPP")
+sel_param <- c("CD", "HG", "PB", "HCB", "DDEPP", "CB_S7", "DDEPP", "BDE6S")
 
 timeseries <- df_median %>%
   filter(Parameter %in% sel_param) %>%

@@ -38,7 +38,7 @@ fn <- "Input_data/Kvikksølv torskefilet Bhav 2006-2019.xlsx"
 dat2 <- read_excel(fn, col_types = "text") %>%
   rename(Prøvenr. = `Prøve nr.`)      # fix this column name (equal to dat1)
 
-fn <- "Input_data/POPs torskelever Bhav 2006-2019.xlsx"
+fn <- "Input_data/POPs torskelever Bhav 2006-2019 med PBDE.xlsx"
 # excel_sheets(fn)
 dat3 <- read_excel(fn, col_types = "text") %>%
   rename(Prøvenr. = `Prøve nr.`)      # fix this column name (equal to dat1)
@@ -220,6 +220,28 @@ xtabs(~Year + Organ + Art, df_nifes_cod)
 
 ```
 
+
+###  Add BDE6S
+```{r}
+
+pars_bde6s <- c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154")
+
+df_nifes_cod_extra <- df_nifes_cod %>%
+  filter(Parameter %in% pars_bde6s) %>%
+  group_by(Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ) %>%
+  summarise(Conc = sum(Conc)) %>%
+  mutate(Parameter = "BDE6S")
+
+if (!"BDE6S" %in% unique(df_nifes_cod$Parameter)){
+  df_nifes_cod <- bind_rows(
+    df_nifes_cod,
+    df_nifes_cod_extra
+  )
+}
+
+```
+
+
 ## 7. Checks
 ```{r}
 
@@ -235,7 +257,7 @@ Annual medians of the most important parameters
 
 df_nifes_cod %>%
   filter(Parameter %in% c("Cd", "Pb", "Hg", "PCB-118", "Sum PCB 7", 
-                          "Hexachlorobenzene (HCB)", "pp-DDE")) %>%
+                          "Hexachlorobenzene (HCB)", "pp-DDE", "PBDE 47", "BDE6S")) %>%
   group_by(Year, Posisjon, Parameter, Organ) %>%
   mutate(Conc_median = median(Conc)) %>%
   ggplot(aes(Year, Conc_median, color = Posisjon)) +
@@ -256,12 +278,14 @@ df_median <- df_nifes_cod %>%
   summarise(Conc = median(Conc), 
             Conc_min = min(Conc), Conc_max = max(Conc),
             N = n(), Over_LOQ = sum(Flag %in% "")
-            )
+            ) %>%
+  ungroup()
 
 
 # set parameter names
 df_median <- df_median %>%
   mutate(Parameter = sub("PCB-", "CB", Parameter, fixed = TRUE)) %>% # xtabs(~Parameter, .)
+  mutate(Parameter = sub("PBDE ", "BDE", Parameter, fixed = TRUE)) %>% # xtabs(~Parameter, .)
   mutate(Parameter = case_when(
     Parameter %in% "Cd" ~ "CD",
     Parameter %in% "Pb" ~ "PB",
@@ -278,6 +302,7 @@ unique(df_median$Parameter)
 # Check all
 # cat("Parameters:\n", table(df_median$Parameter) %>% names() %>% paste(collapse = "; "))
 ```
+
 
 ## 10. Save 
 ```{r}
