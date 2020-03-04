@@ -222,14 +222,23 @@ xtabs(~Year + Organ + Art, df_nifes_cod)
 
 
 ###  Add BDE6S
+
+#### Add sum
 ```{r}
+
+df_nifes_cod_BACKUP <- df_nifes_cod
+# If error, restore the original
+# df_nifes_cod <- df_nifes_cod_BACKUP
 
 pars_bde6s <- c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154")
 
 df_nifes_cod_extra <- df_nifes_cod %>%
   filter(Parameter %in% pars_bde6s) %>%
-  group_by(Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ) %>%
-  summarise(Conc = sum(Conc)) %>%
+  group_by(Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ, Prøvenr.) %>%
+  summarise(Conc = sum(Conc),
+            Flag = ifelse(sum(Flag %in% "") > 1, "", "<")
+            ) %>%
+  ungroup() %>%
   mutate(Parameter = "BDE6S")
 
 if (!"BDE6S" %in% unique(df_nifes_cod$Parameter)){
@@ -238,6 +247,26 @@ if (!"BDE6S" %in% unique(df_nifes_cod$Parameter)){
     df_nifes_cod_extra
   )
 }
+
+```
+
+#### Check individual BDE and the sum  
+```{r}
+
+df_nifes_cod %>%
+  filter(Parameter %in% c(pars_bde6s, "BDE6S")) %>%
+  ggplot(aes(Year, Conc, color = Posisjon)) +
+  geom_jitter(size = 1) +
+  facet_wrap(vars(Parameter))
+
+df_nifes_cod %>%
+  filter(Parameter %in% c(pars_bde6s, "BDE6S")) %>% 
+  group_by(Parameter, Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ) %>%
+  summarise(Above_LOQ = mean(Flag %in% "")) %>%
+  ggplot(aes(Year, Above_LOQ, color = Posisjon)) +
+  geom_point() +
+  facet_wrap(vars(Parameter))
+
 
 ```
 
