@@ -44,10 +44,11 @@ library(ggplot2)
 
 
 # File name for export
-fn <- "Data_export/GaduMor_2020_withNIFES_ver01"
+fn <- "Data_export/GaduMor_2020_withNIFES_ver06"
 fn_csv <- paste0(fn, ".csv")
 fn_xlsx <- paste0(fn, ".xlsx")
 overwrite <- FALSE
+#overwrite <- TRUE
 ```
 
 ## Data
@@ -71,7 +72,7 @@ nifes_regression <- readRDS("Data/12_nifes_regression (2020).rds")
 df_limits <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx")
 
 # Parameters
-sel_param <- c("CD", "HG", "PB", "HCB", "DDEPP", "CB_S7")
+sel_param <- c("CD", "HG", "PB", "HCB", "DDEPP", "CB_S7", "BDE6S")
 ```
 
 
@@ -122,6 +123,7 @@ xtabs(~Parameter + TISSUE_NAME, df_nifes_finalyear)
 ```
 ##          TISSUE_NAME
 ## Parameter Liver Muscle
+##     BDE6S     3      0
 ##     CB_S7     3      0
 ##     CD        3      0
 ##     DDEPP     3      0
@@ -163,18 +165,19 @@ nrow(df_indicator_nifes)
 ```
 
 ```
-## [1] 18
+## [1] 21
 ```
 
 ```r
-df_indicator_nifes <- left_join(df_indicator_nifes, 
-                                nifes_regression[,c("PARAM", "TISSUE_NAME", "STATION_NAME", "trend")],
-                                by = c("STATION_NAME", "PARAM", "TISSUE_NAME"))
+df_indicator_nifes <- left_join(
+  df_indicator_nifes, 
+  nifes_regression[,c("PARAM", "TISSUE_NAME", "STATION_NAME", "trend")],
+  by = c("STATION_NAME", "PARAM", "TISSUE_NAME"))
 nrow(df_indicator_nifes)
 ```
 
 ```
-## [1] 18
+## [1] 21
 ```
 
 ```r
@@ -201,7 +204,7 @@ nrow(df_indicator2)  # 45
 ```
 
 ```
-## [1] 45
+## [1] 65
 ```
 
 ```r
@@ -228,7 +231,7 @@ df_indicator2 %>%
 
 <div data-pagedtable="false">
   <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["STATION_NAME"],"name":[1],"type":["chr"],"align":["left"]},{"label":["LATITUDE"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["LONGITUDE"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["n"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"Austnesfjord, Lofoten","2":"68.18577","3":"14.70814","4":"7"},{"1":"Tromsø harbour area","2":"69.65300","3":"18.97400","4":"5"},{"1":"Kjøfjord, Outer Varangerfjord","2":"69.81623","3":"29.76020","4":"6"},{"1":"Hammerfest harbour area","2":"70.65000","3":"23.63333","4":"4"},{"1":"71,60N 21,30E","2":"71.60000","3":"21.30000","4":"6"},{"1":"72,80N 32,92E","2":"72.80000","3":"32.92000","4":"6"},{"1":"74,53N 19,93E","2":"74.53000","3":"19.93000","4":"6"},{"1":"Isfjorden, Svalbard","2":"78.17000","3":"13.46000","4":"5"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["STATION_NAME"],"name":[1],"type":["chr"],"align":["left"]},{"label":["LATITUDE"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["LONGITUDE"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["n"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"Austnesfjord, Lofoten","2":"68.18577","3":"14.70814","4":"7"},{"1":"Svolvær airport area","2":"68.24917","3":"14.66270","4":"5"},{"1":"Tromsø harbour area","2":"69.65300","3":"18.97400","4":"5"},{"1":"Kjøfjord, Outer Varangerfjord","2":"69.81623","3":"29.76020","4":"6"},{"1":"Brashavn, Outer Varangerfjord","2":"69.89930","3":"29.74100","4":"6"},{"1":"Skallnes, Outer Varangerfjord","2":"70.13728","3":"30.34174","4":"6"},{"1":"Hammerfest harbour area","2":"70.65000","3":"23.63333","4":"4"},{"1":"71,60N 21,30E","2":"71.60000","3":"21.30000","4":"7"},{"1":"72,80N 32,92E","2":"72.80000","3":"32.92000","4":"7"},{"1":"74,53N 19,93E","2":"74.53000","3":"19.93000","4":"7"},{"1":"Isfjorden, Svalbard","2":"78.17000","3":"13.46000","4":"5"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 
@@ -255,7 +258,7 @@ nrow(df_indicator2) # 94
 ```
 
 ```
-## [1] 45
+## [1] 65
 ```
 
 ```r
@@ -266,7 +269,7 @@ nrow(df_indicator2) # 94
 ```
 
 ```
-## [1] 45
+## [1] 65
 ```
 
 ```r
@@ -275,7 +278,7 @@ sel <- df_indicator2$PARAM %in% "CB_S7"; sum(sel)
 ```
 
 ```
-## [1] 8
+## [1] 11
 ```
 
 ```r
@@ -293,9 +296,9 @@ xtabs(~KLASSE + PARAM, df_indicator2)
 ```
 ##       PARAM
 ## KLASSE BDE6S CB_S7 CD DDEPP HCB HG PB
-##      1     3     8  4     5   2  7  8
-##      2     0     0  3     0   3  1  0
-##      3     0     0  1     0   0  0  0
+##      1     7     8  4     7   2  9 11
+##      2     0     2  5     0   3  2  0
+##      3     0     1  2     0   2  0  0
 ```
 
 ```r
@@ -318,9 +321,9 @@ xtabs(~addNA(EQS) + PARAM, df_indicator2)
 ```
 ##           PARAM
 ## addNA(EQS) BDE6S CB_S7 CD DDEPP HCB HG PB
-##       1        0     0  0     5   2  1  0
-##       2        3     8  0     0   3  7  0
-##       <NA>     0     0  8     0   0  0  8
+##       1        0     0  0     7   4  4  0
+##       2        7    11  0     0   3  7  0
+##       <NA>     0     0 11     0   0  0 11
 ```
 
 ```r
@@ -346,7 +349,7 @@ nrow(df_indicator2)
 ```
 
 ```
-## [1] 45
+## [1] 65
 ```
 
 ```r
@@ -358,7 +361,7 @@ nrow(df_indicator2)
 ```
 
 ```
-## [1] 45
+## [1] 65
 ```
 
 ```r
@@ -377,7 +380,7 @@ xtabs(~addNA(Mattrygghet) + PARAM + TISSUE_NAME, df_indicator2)
 ##                   PARAM
 ## addNA(Mattrygghet) BDE6S CB_S7 CD DDEPP HCB HG PB
 ##               1        0     8  0     0   0  0  0
-##               <NA>     3     0  8     5   5  0  8
+##               <NA>     6     0  8     5   5  0  8
 ## 
 ## , , TISSUE_NAME = Muscle
 ## 
@@ -385,6 +388,13 @@ xtabs(~addNA(Mattrygghet) + PARAM + TISSUE_NAME, df_indicator2)
 ## addNA(Mattrygghet) BDE6S CB_S7 CD DDEPP HCB HG PB
 ##               1        0     0  0     0   0  8  0
 ##               <NA>     0     0  0     0   0  0  0
+## 
+## , , TISSUE_NAME = Whole soft body
+## 
+##                   PARAM
+## addNA(Mattrygghet) BDE6S CB_S7 CD DDEPP HCB HG PB
+##               1        0     3  3     0   0  3  3
+##               <NA>     1     0  0     2   2  0  0
 ```
 
 ```r
@@ -401,7 +411,7 @@ df_indicator2 <- df_indicator2 %>%
   arrange(PARAM,LONGITUDE,LATITUDE)
 
 # Save with all variables
-saveRDS(df_indicator2, file = "Data/14_df_indicator2_cod_ver01 (2020.rds")
+saveRDS(df_indicator2, file = "Data/14_df_indicator2_cod_ver03 (2020.rds")
 
 # Save with selected variables
 vars <- c("PROJECT_ID", "STATION_CODE", "STATION_NAME", 
@@ -414,7 +424,7 @@ sum(sel)
 ```
 
 ```
-## [1] 45
+## [1] 65
 ```
 
 ```r
@@ -445,7 +455,7 @@ write_safe(df_indicator2[sel,vars], filename = fn_csv, save_function = write.csv
 ```
 
 ```
-## File Data_export/GaduMor_2020_withNIFES_ver01.csv exists, data not saved.
+## File Data_export/GaduMor_2020_withNIFES_ver06.csv exists, data not saved.
 ## Set 'overwrite = TRUE' to overwrite file anyway.
 ```
 
@@ -456,7 +466,7 @@ write_safe(df_indicator2[sel,vars], filename = fn_xlsx, save_function = openxlsx
 ```
 
 ```
-## File Data_export/GaduMor_2020_withNIFES_ver01.xlsx exists, data not saved.
+## File Data_export/GaduMor_2020_withNIFES_ver06.xlsx exists, data not saved.
 ## Set 'overwrite = TRUE' to overwrite file anyway.
 ```
 

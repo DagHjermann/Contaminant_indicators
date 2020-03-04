@@ -24,7 +24,7 @@ library(ggplot2)
 
 
 # File name for export
-fn <- "Data_export/GaduMor_2020_withNIFES_ver03"
+fn <- "Data_export/GaduMor_2020_withNIFES_ver06"
 fn_csv <- paste0(fn, ".csv")
 fn_xlsx <- paste0(fn, ".xlsx")
 overwrite <- FALSE
