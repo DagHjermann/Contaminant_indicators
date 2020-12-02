@@ -1,0 +1,113 @@
+PROJECT_ID,LATIN_NAME,STATION_CODE,SPECIES_ID,TISSUE_NAME,PARAM,Conc,N,LATITUDE,LONGITUDE,STATION_NAME,NIVA_CODE,trend
+3699,Gadus morhua,02B,17,Liver,CD,0.014,NA,59.06482,10.97354,Kirkøy, Hvaler,LI,1
+3699,Gadus morhua,13B,17,Liver,CD,0.039,NA,58.1328333333333,7.9885,Kristiansand harbour area,LI,1
+3699,Gadus morhua,15B,17,Liver,CD,0.021,NA,58.051384,6.746898,Skågskjera, Farsund,LI,1
+3699,Gadus morhua,23B,17,Liver,CD,0.038,NA,59.895618,5.108565,Bømlo, Outer Selbjørnfjord,LI,1
+3699,Gadus morhua,24B,17,Liver,CD,0.02,NA,60.39664,5.27069,Bergen harbour area,LI,1
+3699,Gadus morhua,30B,17,Liver,CD,0.081,NA,59.812653,10.551829,Inner Oslofjord,LI,1
+3699,Gadus morhua,36B,17,Liver,CD,0.035,NA,59.0405,10.4358333333333,Tjøme, Outer Oslofjord,LI,1
+3699,Gadus morhua,53B,17,Liver,CD,0.028,NA,60.09727,6.539719,Inner Sørfjord,LI,3
+3699,Gadus morhua,71B,17,Liver,CD,0.03,NA,59.0465,9.70275,Stathelle area, Langesundfjord,LI,1
+3699,Gadus morhua,02B,17,Muscle,HG,0.088,NA,59.06482,10.97354,Kirkøy, Hvaler,MU,1
+3699,Gadus morhua,13B,17,Muscle,HG,0.13,NA,58.1328333333333,7.9885,Kristiansand harbour area,MU,2
+3699,Mytilus edulis,15A,17,Whole soft body,HG,0.009,NA,58.04605,6.9159,Gåsøya-Ullerøya, Farsund,SB,1
+3699,Gadus morhua,15B,17,Muscle,HG,0.13,NA,58.051384,6.746898,Skågskjera, Farsund,MU,2
+3699,Mytilus edulis,22A,17,Whole soft body,HG,0.016,NA,59.58711,5.15203,Espevær, Outer Bømlafjord,SB,1
+3699,Gadus morhua,23B,17,Muscle,HG,0.13,NA,59.895618,5.108565,Bømlo, Outer Selbjørnfjord,MU,2
+3699,Gadus morhua,24B,17,Muscle,HG,0.075,NA,60.39664,5.27069,Bergen harbour area,MU,1
+3699,Mytilus edulis,30A,17,Whole soft body,HG,0.018,NA,59.88362,10.711,Gressholmen, Inner Oslofjord,SB,1
+3699,Gadus morhua,30B,17,Muscle,HG,0.19,NA,59.812653,10.551829,Inner Oslofjord,MU,1
+3699,Mytilus edulis,31A,17,Whole soft body,HG,0.014,NA,59.6155,10.6515,Solbergstrand, Mid Oslofjord,SB,1
+3699,Mytilus edulis,36A,17,Whole soft body,HG,0.012,NA,59.0274,10.525,Færder, Outer Oslofjord,SB,1
+3699,Gadus morhua,36B,17,Liver,HG,NA,NA,59.0405,10.4358333333333,Tjøme, Outer Oslofjord,LI,0
+3699,Gadus morhua,36B,17,Muscle,HG,0.14,NA,59.0405,10.4358333333333,Tjøme, Outer Oslofjord,MU,1
+3699,Gadus morhua,53B,17,Muscle,HG,0.12,NA,60.09727,6.539719,Inner Sørfjord,MU,1
+3699,Mytilus edulis,56A,17,Whole soft body,HG,0.051,NA,60.2205,6.602,Kvalnes, Mid Sørfjord,SB,1
+3699,Mytilus edulis,57A,17,Whole soft body,HG,0.044,NA,60.387073,6.689524,Krossanes, Outer Sørfjord,SB,1
+3699,Mytilus edulis,64A,17,Whole soft body,HG,0.02,NA,60.4239,6.6223,Utne, Outer Sørfjord,SB,1
+3699,Mytilus edulis,65A,17,Whole soft body,HG,0.017,NA,60.2423333333333,6.15266666666667,Vikingneset, Mid Hardangerfjord,SB,1
+3699,Gadus morhua,71B,17,Muscle,HG,0.11,NA,59.0465,9.70275,Stathelle area, Langesundfjord,MU,1
+3699,Mytilus edulis,76A2,17,Whole soft body,HG,0.01,NA,58.7327,9.28104,Risøya, Risør,SB,1
+3699,Mytilus edulis,I023,17,Whole soft body,HG,0.014,NA,59.095112,11.136779,Singlekalven, Hvaler,SB,3
+3699,Mytilus edulis,I024,17,Whole soft body,HG,0.0175,NA,59.079053,10.987336,Kirkøy, Hvaler,SB,1
+3699,Mytilus edulis,I131A,17,Whole soft body,HG,0.01,NA,58.05557,7.7083,Lastad, Søgne,SB,1
+3699,Mytilus edulis,I133,17,Whole soft body,HG,0.017,NA,58.1316666666667,8.00166666666667,Odderøya, Kristiansand harbour,SB,1
+3699,Mytilus edulis,I241,17,Whole soft body,HG,0.014,NA,60.4007721666667,5.303955,Nordnes, Bergen harbour,SB,1
+3699,Mytilus edulis,I301,17,Whole soft body,HG,0.009,NA,59.9053333333333,10.7363333333333,Akershuskaia, Inner Oslofjord,SB,1
+3699,Mytilus edulis,I304,17,Whole soft body,HG,0.0105,NA,59.8513333333333,10.589,Gåsøya, Inner Oslofjord,SB,1
+3699,Gadus morhua,02B,17,Liver,PB,0.006,NA,59.06482,10.97354,Kirkøy, Hvaler,LI,0
+3699,Gadus morhua,13B,17,Liver,PB,0.014,NA,58.1328333333333,7.9885,Kristiansand harbour area,LI,1
+3699,Gadus morhua,15B,17,Liver,PB,0.008,NA,58.051384,6.746898,Skågskjera, Farsund,LI,0
+3699,Gadus morhua,23B,17,Liver,PB,0.006,NA,59.895618,5.108565,Bømlo, Outer Selbjørnfjord,LI,1
+3699,Gadus morhua,24B,17,Liver,PB,0.011,NA,60.39664,5.27069,Bergen harbour area,LI,1
+3699,Gadus morhua,30B,17,Liver,PB,0.096,NA,59.812653,10.551829,Inner Oslofjord,LI,1
+3699,Gadus morhua,36B,17,Liver,PB,0.013,NA,59.0405,10.4358333333333,Tjøme, Outer Oslofjord,LI,1
+3699,Gadus morhua,53B,17,Liver,PB,0.043,NA,60.09727,6.539719,Inner Sørfjord,LI,1
+3699,Gadus morhua,71B,17,Liver,PB,0.017,NA,59.0465,9.70275,Stathelle area, Langesundfjord,LI,1
+3699,Gadus morhua,02B,17,Liver,CB_S7,182.788,NA,59.06482,10.97354,Kirkøy, Hvaler,LI,3
+3699,Gadus morhua,13B,17,Liver,CB_S7,837.19,NA,58.1328333333333,7.9885,Kristiansand harbour area,LI,1
+3699,Mytilus edulis,15A,17,Whole soft body,CB_S7,1.823,NA,58.04605,6.9159,Gåsøya-Ullerøya, Farsund,SB,1
+3699,Gadus morhua,15B,17,Liver,CB_S7,100.027,NA,58.051384,6.746898,Skågskjera, Farsund,LI,1
+3699,Mytilus edulis,22A,17,Whole soft body,CB_S7,1.743,NA,59.58711,5.15203,Espevær, Outer Bømlafjord,SB,1
+3699,Gadus morhua,23B,17,Liver,CB_S7,146.67,NA,59.895618,5.108565,Bømlo, Outer Selbjørnfjord,LI,1
+3699,Gadus morhua,24B,17,Liver,CB_S7,2120.45,NA,60.39664,5.27069,Bergen harbour area,LI,1
+3699,Mytilus edulis,30A,17,Whole soft body,CB_S7,7.045,NA,59.88362,10.711,Gressholmen, Inner Oslofjord,SB,1
+3699,Gadus morhua,30B,17,Liver,CB_S7,1836.5,NA,59.812653,10.551829,Inner Oslofjord,LI,1
+3699,Mytilus edulis,31A,17,Whole soft body,CB_S7,1.817,NA,59.6155,10.6515,Solbergstrand, Mid Oslofjord,SB,1
+3699,Mytilus edulis,36A,17,Whole soft body,CB_S7,1.68,NA,59.0274,10.525,Færder, Outer Oslofjord,SB,1
+3699,Gadus morhua,36B,17,Liver,CB_S7,324.1855,NA,59.0405,10.4358333333333,Tjøme, Outer Oslofjord,LI,1
+3699,Gadus morhua,53B,17,Liver,CB_S7,580,NA,60.09727,6.539719,Inner Sørfjord,LI,1
+3699,Mytilus edulis,56A,17,Whole soft body,CB_S7,1.5245,NA,60.2205,6.602,Kvalnes, Mid Sørfjord,SB,2
+3699,Mytilus edulis,57A,17,Whole soft body,CB_S7,1.5123,NA,60.387073,6.689524,Krossanes, Outer Sørfjord,SB,2
+3699,Mytilus edulis,64A,17,Whole soft body,CB_S7,1.5082,NA,60.4239,6.6223,Utne, Outer Sørfjord,SB,1
+3699,Mytilus edulis,65A,17,Whole soft body,CB_S7,1.5061,NA,60.2423333333333,6.15266666666667,Vikingneset, Mid Hardangerfjord,SB,2
+3699,Mytilus edulis,76A2,17,Whole soft body,CB_S7,1.5669,NA,58.7327,9.28104,Risøya, Risør,SB,1
+3699,Mytilus edulis,I023,17,Whole soft body,CB_S7,1.755,NA,59.095112,11.136779,Singlekalven, Hvaler,SB,1
+3699,Mytilus edulis,I024,17,Whole soft body,CB_S7,1.7985,NA,59.079053,10.987336,Kirkøy, Hvaler,SB,1
+3699,Mytilus edulis,I133,17,Whole soft body,CB_S7,2.037,NA,58.1316666666667,8.00166666666667,Odderøya, Kristiansand harbour,SB,1
+3699,Mytilus edulis,I241,17,Whole soft body,CB_S7,10.513,NA,60.4007721666667,5.303955,Nordnes, Bergen harbour,SB,1
+3699,Mytilus edulis,I301,17,Whole soft body,CB_S7,4.829,NA,59.9053333333333,10.7363333333333,Akershuskaia, Inner Oslofjord,SB,1
+3699,Mytilus edulis,I304,17,Whole soft body,CB_S7,2.0765,NA,59.8513333333333,10.589,Gåsøya, Inner Oslofjord,SB,1
+3699,Gadus morhua,15B,17,Liver,DDEPP,17.9,NA,58.051384,6.746898,Skågskjera, Farsund,LI,3
+3699,Mytilus edulis,22A,17,Whole soft body,DDEPP,0.766,NA,59.58711,5.15203,Espevær, Outer Bømlafjord,SB,2
+3699,Gadus morhua,23B,17,Liver,DDEPP,33.7,NA,59.895618,5.108565,Bømlo, Outer Selbjørnfjord,LI,1
+3699,Mytilus edulis,30A,17,Whole soft body,DDEPP,0.318,NA,59.88362,10.711,Gressholmen, Inner Oslofjord,SB,1
+3699,Gadus morhua,30B,17,Liver,DDEPP,152,NA,59.812653,10.551829,Inner Oslofjord,LI,1
+3699,Mytilus edulis,31A,17,Whole soft body,DDEPP,0.413,NA,59.6155,10.6515,Solbergstrand, Mid Oslofjord,SB,1
+3699,Mytilus edulis,36A,17,Whole soft body,DDEPP,0.155,NA,59.0274,10.525,Færder, Outer Oslofjord,SB,1
+3699,Gadus morhua,36B,17,Liver,DDEPP,46.2,NA,59.0405,10.4358333333333,Tjøme, Outer Oslofjord,LI,1
+3699,Gadus morhua,53B,17,Liver,DDEPP,521,NA,60.09727,6.539719,Inner Sørfjord,LI,1
+3699,Mytilus edulis,56A,17,Whole soft body,DDEPP,5.92,NA,60.2205,6.602,Kvalnes, Mid Sørfjord,SB,1
+3699,Mytilus edulis,57A,17,Whole soft body,DDEPP,2.79,NA,60.387073,6.689524,Krossanes, Outer Sørfjord,SB,1
+3699,Mytilus edulis,64A,17,Whole soft body,DDEPP,8.06,NA,60.4239,6.6223,Utne, Outer Sørfjord,SB,1
+3699,Mytilus edulis,65A,17,Whole soft body,DDEPP,1.43,NA,60.2423333333333,6.15266666666667,Vikingneset, Mid Hardangerfjord,SB,1
+3699,Mytilus edulis,76A2,17,Whole soft body,DDEPP,0.107,NA,58.7327,9.28104,Risøya, Risør,SB,1
+3699,Mytilus edulis,I133,17,Whole soft body,DDEPP,0.156,NA,58.1316666666667,8.00166666666667,Odderøya, Kristiansand harbour,SB,1
+3699,Mytilus edulis,I301,17,Whole soft body,DDEPP,0.201,NA,59.9053333333333,10.7363333333333,Akershuskaia, Inner Oslofjord,SB,1
+3699,Mytilus edulis,I304,17,Whole soft body,DDEPP,0.2495,NA,59.8513333333333,10.589,Gåsøya, Inner Oslofjord,SB,1
+3699,Gadus morhua,13B,17,Liver,BDE6S,8.368,NA,58.1328333333333,7.9885,Kristiansand harbour area,LI,1
+3699,Gadus morhua,23B,17,Liver,BDE6S,4.9378,NA,59.895618,5.108565,Bømlo, Outer Selbjørnfjord,LI,3
+3699,Gadus morhua,24B,17,Liver,BDE6S,36.776,NA,60.39664,5.27069,Bergen harbour area,LI,1
+3699,Mytilus edulis,30A,17,Whole soft body,BDE6S,0.0392,NA,59.88362,10.711,Gressholmen, Inner Oslofjord,SB,1
+3699,Gadus morhua,30B,17,Liver,BDE6S,24.08375,NA,59.812653,10.551829,Inner Oslofjord,LI,3
+3699,Mytilus edulis,36A,17,Whole soft body,BDE6S,0.0289,NA,59.0274,10.525,Færder, Outer Oslofjord,SB,1
+3699,Gadus morhua,36B,17,Liver,BDE6S,4.1244,NA,59.0405,10.4358333333333,Tjøme, Outer Oslofjord,LI,1
+3699,Gadus morhua,53B,17,Liver,BDE6S,16.7577,NA,60.09727,6.539719,Inner Sørfjord,LI,3
+3699,Mytilus edulis,I023,17,Whole soft body,BDE6S,0.0825,NA,59.095112,11.136779,Singlekalven, Hvaler,SB,1
+3699,Mytilus edulis,I241,17,Whole soft body,BDE6S,0.184,NA,60.4007721666667,5.303955,Nordnes, Bergen harbour,SB,3
+3699,Gadus morhua,15B,17,Liver,HCB,7.18,NA,58.051384,6.746898,Skågskjera, Farsund,LI,1
+3699,Mytilus edulis,22A,17,Whole soft body,HCB,0.33099,NA,59.58711,5.15203,Espevær, Outer Bømlafjord,SB,0
+3699,Gadus morhua,23B,17,Liver,HCB,9.5,NA,59.895618,5.108565,Bømlo, Outer Selbjørnfjord,LI,1
+3699,Mytilus edulis,30A,17,Whole soft body,HCB,0.33099,NA,59.88362,10.711,Gressholmen, Inner Oslofjord,SB,0
+3699,Gadus morhua,30B,17,Liver,HCB,5.57,NA,59.812653,10.551829,Inner Oslofjord,LI,1
+3699,Mytilus edulis,31A,17,Whole soft body,HCB,0.33099,NA,59.6155,10.6515,Solbergstrand, Mid Oslofjord,SB,0
+3699,Mytilus edulis,36A,17,Whole soft body,HCB,0.33799,NA,59.0274,10.525,Færder, Outer Oslofjord,SB,0
+3699,Gadus morhua,36B,17,Liver,HCB,5.72,NA,59.0405,10.4358333333333,Tjøme, Outer Oslofjord,LI,1
+3699,Gadus morhua,53B,17,Liver,HCB,9.79,NA,60.09727,6.539719,Inner Sørfjord,LI,1
+3699,Mytilus edulis,56A,17,Whole soft body,HCB,0.33299,NA,60.2205,6.602,Kvalnes, Mid Sørfjord,SB,0
+3699,Mytilus edulis,57A,17,Whole soft body,HCB,0.34199,NA,60.387073,6.689524,Krossanes, Outer Sørfjord,SB,0
+3699,Mytilus edulis,65A,17,Whole soft body,HCB,0.32899,NA,60.2423333333333,6.15266666666667,Vikingneset, Mid Hardangerfjord,SB,0
+3699,Mytilus edulis,76A2,17,Whole soft body,HCB,0.33999,NA,58.7327,9.28104,Risøya, Risør,SB,0
+3699,Mytilus edulis,I133,17,Whole soft body,HCB,0.33099,NA,58.1316666666667,8.00166666666667,Odderøya, Kristiansand harbour,SB,1
+3699,Mytilus edulis,I301,17,Whole soft body,HCB,0.32899,NA,59.9053333333333,10.7363333333333,Akershuskaia, Inner Oslofjord,SB,0
+3699,Mytilus edulis,I304,17,Whole soft body,HCB,0.49999,NA,59.8513333333333,10.589,Gåsøya, Inner Oslofjord,SB,0
