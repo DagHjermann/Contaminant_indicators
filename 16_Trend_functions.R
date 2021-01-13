@@ -354,8 +354,11 @@ data_for_excel <- function(df_med, station, yrs = 1990:2016){
   }
 
   
- 
-statistics_for_excel <- function(obj, regr_results, gam = FALSE){
+#
+# with ERROR in gam_p
+#
+
+statistics_for_excel_OLD <- function(obj, regr_results, gam = FALSE){
   if (sum(obj$sel_ts) > 0 & !gam){
     df_stat <- data.frame(
       Year1 = min(obj$df_med_st$YEAR[obj$sel_ts]),
@@ -381,7 +384,7 @@ statistics_for_excel <- function(obj, regr_results, gam = FALSE){
     SE1 <- head(regr_results$mod_nonlin$yFit$SE,1)
     SE2 <- tail(regr_results$mod_nonlin$yFit$SE,1)
     mean_SE <- sqrt(SE1^2 + SE2^2)
-    gam_p <- pt((x2-x1)/mean_SE, nrow(regr_results$mod_nonlin$yFit))
+    gam_p <- pt((x2-x1)/mean_SE, nrow(regr_results$mod_nonlin$yFit))   # WRONG!
     df_stat <- data.frame(
       Year1 = min(obj$df_med_st$YEAR[obj$sel_ts]),
       Year2 = max(obj$df_med_st$YEAR[obj$sel_ts]),
@@ -435,6 +438,105 @@ statistics_for_excel <- function(obj, regr_results, gam = FALSE){
   }
   df_stat
   }
+
+#
+# Called from 'calc_models_one_station2'  
+# Uses the medians (obj) + the results from calc_models_gam (regr_results)  
+#
+statistics_for_excel <- function(obj, regr_results, gam = FALSE){
+  if (sum(obj$sel_ts) > 0 & !(gam & regr_results$status == "GAM OK")){
+    df_stat <- data.frame(
+      Year1 = min(obj$df_med_st$MYEAR[obj$sel_ts]),
+      Year2 = max(obj$df_med_st$MYEAR[obj$sel_ts]),
+      N = obj$N,
+      Nplus = obj$Nplus,
+      Mean = mean(obj$df_med_st$Median, na.rm = TRUE),
+      p_linear = p_linear(regr_results$mod_lin),
+      p_nonlinear = NA,  # p_nonlinear(regr_results$mod_nonlin),
+      AICc_lin = regr_results$AICc[["linear"]],
+      AICc_nonlin = NA, # regr_results$AICc[["nonlinear"]],
+      Lin_slope = coef(regr_results$mod_lin)[2],
+      Lin_yr1 = head(regr_results$mod_lin$fitted, 1),
+      Lin_yr2 = tail(regr_results$mod_lin$fitted, 1),
+      Nonlin_yr1 = NA, # head(regr_results$mod_nonlin$yFit$Estimate, 1),
+      Nonlin_yr2 = NA, # tail(regr_results$mod_nonlin$yFit$Estimate, 1),
+      Over_LOQ_yr2 = tail(obj$df_med_st[obj$sel_ts, "Over_LOQ"], 1),
+      Status = regr_results$status,
+      stringsAsFactors = FALSE
+    )
+  } else if (sum(obj$sel_ts) > 0 & gam & regr_results$status == "GAM OK"){
+    # Calculate p-value for GAM model (gam_p)
+    x1 <- head(regr_results$mod_nonlin$yFit$Estimate,1)
+    x2 <- tail(regr_results$mod_nonlin$yFit$Estimate,1)
+    SE1 <- head(regr_results$mod_nonlin$yFit$SE,1)
+    SE2 <- tail(regr_results$mod_nonlin$yFit$SE,1)
+    mean_SE <- sqrt(SE1^2 + SE2^2)
+    n_fit <- nrow(regr_results$mod_nonlin$yFit)
+    gam_p <- 2*(1 - pt(abs(x2-x1)/(1.5*mean_SE), n_fit))
+    df_stat <- data.frame(
+      Year1 = min(obj$df_med_st$MYEAR[obj$sel_ts]),
+      Year2 = max(obj$df_med_st$MYEAR[obj$sel_ts]),
+      N = obj$N,
+      Nplus = obj$Nplus,
+      Mean = mean(obj$df_med_st$Median, na.rm = TRUE),
+      p_linear = p_linear(regr_results$mod_lin),
+      p_nonlinear = gam_p,
+      AICc_lin = regr_results$AICc[["linear"]],
+      AICc_nonlin = AICc(regr_results$mod_nonlin$model),
+      Lin_slope = coef(regr_results$mod_lin)[2],
+      Lin_yr1 = head(regr_results$mod_lin$fitted, 1),
+      Lin_yr2 = tail(regr_results$mod_lin$fitted, 1),
+      Nonlin_yr1 = head(regr_results$mod_nonlin$yFit$Estimate, 1),
+      Nonlin_yr2 = tail(regr_results$mod_nonlin$yFit$Estimate, 1),
+      Over_LOQ_yr2 = tail(obj$df_med_st[obj$sel_ts, "Over_LOQ"], 1),
+      Status = regr_results$status,
+      stringsAsFactors = FALSE
+    )
+    if (SE1 < 0.00001 & SE2 < 0.00001)
+      df_stat$Status <- "No variation in data"
+  } else {
+    df_stat <- data.frame(
+      Year1 = NA,
+      Year2 = NA,
+      N = obj$N,
+      Nplus = obj$Nplus,
+      Mean = mean(obj$df_med_st$Median, na.rm = TRUE),
+      p_linear = NA,
+      p_nonlinear = NA,
+      AICc_lin = NA,
+      AICc_nonlin = NA,
+      Lin_slope = NA,
+      Lin_yr1 = NA,
+      Lin_yr2 = NA,
+      Nonlin_yr1 = NA,
+      Nonlin_yr2 = NA,
+      Over_LOQ_yr2 = NA,
+      Status = regr_results$status,
+      stringsAsFactors = FALSE
+    )
+  }
+  df_stat$Model_used <- select_model(df_stat)
+  if (df_stat$Model_used == "Linear"){
+    df_stat$P_change <- df_stat$p_linear
+  } else if (df_stat$Model_used == "Nonlinear"){
+    df_stat$P_change <- df_stat$p_nonlinear
+  } else {
+    df_stat$P_change <- NA
+  }
+  if (df_stat$Status == "No variation in data"){
+    df_stat$Dir_change <- ""
+  } else if (df_stat$P_change < 0.05 & df_stat$Model_used == "Linear"){
+    df_stat$Dir_change <- ifelse(df_stat$Lin_slope > 0, "Up", "Down")
+  } else if (df_stat$P_change < 0.05 & df_stat$Model_used == "Nonlinear"){
+    df_stat$Dir_change <- ifelse(df_stat$Nonlin_yr2 > df_stat$Nonlin_yr1, "Up", "Down")
+  } else {
+    df_stat$Dir_change <- ""
+  }
+  if (is.na(df_stat$p_linear) & is.na(df_stat$p_nonlinear) & df_stat$Status != "No variation in data")
+    df_stat$Status <- "Linear regr. and GAM failed"
+  df_stat
+}
+
 
 
 select_model <- function(df_statistics){
