@@ -1,5 +1,5 @@
 ---
-title: "Get levels/trends fro bluemussel, 2021"
+title: "Get levels/trends for bluemussel, 2021"
 output: html_document
 ---
 
@@ -14,6 +14,8 @@ library(dplyr)
 library(tidyr)
 library(readxl)
 library(ggplot2)
+library(maps)
+library(mapdata)
 
 # File name for export
 fn_export <- "Data_export/MytiEdu_2020_ver1.csv"
@@ -118,11 +120,13 @@ check %>%
 
 ### 'data_xl_sel' = selected rows of excel table
 ```{r}
+
 species <- "Mytilus edulis"
+             
 #
 # Muscle data (Hg)
 #
-sel_param <- c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7")
+sel_param <- c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7", )
 sel_records <- with(data_xl, PARAM %in% sel_param & 
                              LATIN_NAME %in% species & 
                              Basis == "WW" & !is.na(`PROREF-class this year`))
@@ -199,9 +203,13 @@ df_tissue_code <- tibble(
 
 df_indicator$TISSUE_NAME <- data_xl_sel[["TISSUE_NAME"]]
 
-nrow(df_indicator)
+n1 <- nrow(df_indicator)
 df_indicator <- left_join(df_indicator, df_tissue_code, by = "TISSUE_NAME")
-nrow(df_indicator)
+n2 <- nrow(df_indicator)
+
+if (n2 != n1)
+  stop("Number of rows changed - check whether 'df_tissue_code' has only unique values")
+
 
 ```
 
@@ -263,19 +271,26 @@ df_indicator %>%
 
 plot(LATITUDE ~ LONGITUDE, df_indicator)
 maps::map(regions = "Norway", add = TRUE, col = "brown")
+
 ```
 
-## Filter df_indicator by position
+## Filter df_indicator by position    
+*Be sure to selet the right area*  
 ```{r}
 
+# Norskehavet
+# df_indicator <- df_indicator %>% 
+#   filter(LATITUDE > 62 & LONGITUDE < 22.2)
+
+# Nordsjøen
 df_indicator <- df_indicator %>% 
-  filter(LATITUDE > 62 & LONGITUDE < 22.2)
+  filter(LATITUDE < 62)
 
 tab <- df_indicator %>%
   count(STATION_NAME, LATITUDE,  LONGITUDE) %>%
-  arrange(LATITUDE) 
+  arrange(LONGITUDE) 
 
-# Make STATION_NAME a factor with order = latitude
+# Make STATION_NAME a factor with order = LONGITUDE
 df_indicator <- df_indicator %>% 
   mutate(STATION_NAME = factor(STATION_NAME, levels = tab$STATION_NAME))
 
@@ -284,7 +299,7 @@ tab
 
 ```
 ```{r}
-names(data_xl_sel)
+# names(data_xl_sel)
 ```
 
 ## Proref, EQS and mattrygghet
@@ -292,19 +307,26 @@ names(data_xl_sel)
 # Get PROREF (Q95) and EQS
 df_q95 <- data_xl_sel[data_xl_sel$Basis %in% "WW", c("PARAM", "LATIN_NAME", "TISSUE_NAME", "PROREF", "EQS-threshold last year")] %>%
   group_by(PARAM, LATIN_NAME, TISSUE_NAME) %>%
-  summarise(Q95 = first(`EQS-threshold last year`), EQS_threshold = first(`EQS-threshold last year`))
+  summarise(Q95 = first(`EQS-threshold last year`), EQS_threshold = first(`EQS-threshold last year`),
+            .groups = "drop")
 
 # Check
 # df_q95 %>% filter(PARAM == "HG")
 
 # add PROREF and EQS thresholds
-nrow(df_indicator) # 94
-df_indicator <- left_join(df_indicator, df_q95)
-nrow(df_indicator) # 94
+n1 <- nrow(df_indicator) # 94
+df_indicator <- left_join(df_indicator, df_q95, 
+                          by = c("LATIN_NAME", "PARAM", "TISSUE_NAME"))
+n2 <- nrow(df_indicator) # 94
+
+if (n2 != n1)
+  stop("Number of rows changed - check whether df_q95 has only unique values")
 
 # change EQS threshold for Hg (by mail from Norman; from 1.00 to 0.67)
-sel <- df_indicator$PARAM %in% "CB_S7"; sum(sel) 
+sel <- df_indicator$PARAM %in% "CB_S7" 
 df_indicator$EQS_threshold[sel] <- 0.67
+cat("Changed EQS threshold for Hg -", sum(sel), "records")
+
 
 # Classes changed - original classes were: c(-999999,1,2,5,10,20,999999)
 df_indicator$KLASSE <- with(df_indicator, 
@@ -312,6 +334,8 @@ df_indicator$KLASSE <- with(df_indicator,
                                  right = FALSE, labels = FALSE)
                              )
 
+cat("\n-------------------------------------------------\n")
+cat("Tabulate PROREF class \n")
 xtabs(~KLASSE + PARAM, df_indicator)
 # KLASSE BDE6S CB_S7 CD HG PB
 #      1     3     0  4  1  2
@@ -325,6 +349,8 @@ df_indicator$EQS <- with(df_indicator,
                               right = FALSE, labels = FALSE)
                           )
 
+cat("\n-------------------------------------------------\n")
+cat("Tabulate EQS class \n")
 xtabs(~addNA(EQS) + PARAM, df_indicator)
 
 # addNA(EQS) BDE6S CB_S7 CD HG PB
@@ -332,15 +358,13 @@ xtabs(~addNA(EQS) + PARAM, df_indicator)
 #       2        3     3  0  1  0
 #       <NA>     0     0  5  0  5
       
-
-
-
 ```
 
 ## Add SPECIES_ID
 ```{r}
 
-species_code <- 17
+# We just set it to NA for simplicity :-)
+species_code <- NA
 df_indicator$SPECIES_ID <- species_code
 
 ```
@@ -349,12 +373,16 @@ df_indicator$SPECIES_ID <- species_code
 1 = below limit, 2 = above limit
 ```{r}
 
-nrow(df_indicator)
+n1 <- nrow(df_indicator)
 df_indicator <- left_join(
   df_indicator, 
   subset(df_limits, select = c(PARAM, LATIN_NAME, NIVA_CODE, Mattrygghet)), 
   by = c("PARAM", "LATIN_NAME", "NIVA_CODE"))
-nrow(df_indicator)
+n2 <- nrow(df_indicator)
+
+if (n2 != n1)
+  stop("Number of rows changed - check whether 'df_limits' has only unique values")
+
 # 96
 
 df_indicator$Mattrygghet <- cut(with(df_indicator, Conc/Mattrygghet),
@@ -370,6 +398,7 @@ xtabs(~addNA(Mattrygghet) + PARAM + TISSUE_NAME, df_indicator)
 # tail(df_indicator)
 
 ```
+
 
 ## Save and export  
 * On 'data': save with all variables   
@@ -405,7 +434,7 @@ if (overwrite | !file.exists(fn_export)){
 ```
 
 ## Checks
-### Plot 1
+### Plot 1a
 trend: 0 = no trend calculated, 1 = zero time trend, 2 = up, 3 = down  
 ```{r}
 df <- df_indicator %>%
@@ -424,7 +453,10 @@ df %>%
   scale_fill_manual(values = c("grey30", "orange", "green", "red")) +
   facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
 ```
+
+
 
 ### Plot 2
 ```{r}
@@ -435,6 +467,20 @@ df %>%
   scale_fill_manual(values = c("grey30", "orange", "green", "red")) +
   facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+```
+### Plot 2b - maps     
+```{r}
+
+simple_map <- map_data("worldHires", c("Norway", "Sweden"))
+
+df %>%
+  ggplot(aes(LONGITUDE, LATITUDE, Conc, color = factor(Time_trend))) + 
+  annotation_map(simple_map, fill = "lightgreen") +
+  geom_point() +
+  scale_color_manual(values = c("grey30", "orange", "green", "red")) +
+  facet_wrap(~PARAM) +
+  coord_map("lambert", parameters = c(10.4, 59.3))
+
 ```
 
 ### Plot 3 - mattrygghet
@@ -447,5 +493,19 @@ df %>%
   scale_fill_manual(values = c("green", "red")) +
   facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+```
+### Plot 3b - maps     
+```{r}
+
+simple_map <- map_data("worldHires", c("Norway", "Sweden"))
+
+df %>%
+  ggplot(aes(LONGITUDE, LATITUDE, Conc, color = factor(Mattrygghet))) + 
+  annotation_map(simple_map, fill = "grey60") +
+  geom_point() +
+  scale_color_manual(values = c("green", "red")) +
+  facet_wrap(~PARAM) +
+  coord_map("lambert", parameters = c(10.4, 59.3))
+
 ```
 
