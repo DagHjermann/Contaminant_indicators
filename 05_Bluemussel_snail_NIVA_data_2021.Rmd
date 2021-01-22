@@ -5,7 +5,8 @@ output: html_document
 
 - The file is called *2021* to keep in line with the other 2021 files (done in late 2020 for publishing in 2021)  
 - Note the data is saved in a K folder called *2020*    
-- Note that this uses data until *2019*    
+- Note that this uses data until *2019*  
+- Resulting data is also copied to `K:\Avdeling\Mar\NOG\JMGdata\Kart\Indikatorer\2020\Grunnlagsdata` 
 
 
 ## Packages + functions  
@@ -18,7 +19,7 @@ library(maps)
 library(mapdata)
 
 # File name for export
-fn_export <- "Data_export/MytiEdu_2020_ver1.csv"
+fn_export <- "Data_export/MytiEdu_Snegl_2020_ver2.csv"
 overwrite <- FALSE
 
 ```
@@ -121,17 +122,19 @@ check %>%
 ### 'data_xl_sel' = selected rows of excel table
 ```{r}
 
-species <- "Mytilus edulis"
-             
-#
-# Muscle data (Hg)
-#
-sel_param <- c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7", )
+species <- c("Mytilus edulis", "Nucella lapillus", "N. lapillus / L. littorea")
+
+# Parameters             
+sel_param <- c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7", "TBT", "VDSI", "VDSI/Intersex")
+
+# Select records
 sel_records <- with(data_xl, PARAM %in% sel_param & 
                              LATIN_NAME %in% species & 
-                             Basis == "WW" & !is.na(`PROREF-class this year`))
+                             Basis == "WW" & !is.na(Yr_2019))
 
 sum(sel_records)   # 183
+sum(data_xl$STATION_CODE == "71G")
+sum(data_xl$STATION_CODE[sel_records] == "71G")
 
 # Select rows
 data_xl_sel <- data_xl[sel_records,]
@@ -286,13 +289,14 @@ maps::map(regions = "Norway", add = TRUE, col = "brown")
 df_indicator <- df_indicator %>% 
   filter(LATITUDE < 62)
 
+# 
 tab <- df_indicator %>%
   count(STATION_NAME, LATITUDE,  LONGITUDE) %>%
   arrange(LONGITUDE) 
 
 # Make STATION_NAME a factor with order = LONGITUDE
 df_indicator <- df_indicator %>% 
-  mutate(STATION_NAME = factor(STATION_NAME, levels = tab$STATION_NAME))
+  mutate(STATION_NAME = factor(STATION_NAME, levels = unique(tab$STATION_NAME)))
 
 tab 
 
@@ -304,10 +308,11 @@ tab
 
 ## Proref, EQS and mattrygghet
 ```{r}
+
 # Get PROREF (Q95) and EQS
 df_q95 <- data_xl_sel[data_xl_sel$Basis %in% "WW", c("PARAM", "LATIN_NAME", "TISSUE_NAME", "PROREF", "EQS-threshold last year")] %>%
   group_by(PARAM, LATIN_NAME, TISSUE_NAME) %>%
-  summarise(Q95 = first(`EQS-threshold last year`), EQS_threshold = first(`EQS-threshold last year`),
+  summarise(Q95 = first(`PROREF`), EQS_threshold = first(`EQS-threshold last year`),
             .groups = "drop")
 
 # Check
@@ -364,8 +369,14 @@ xtabs(~addNA(EQS) + PARAM, df_indicator)
 ```{r}
 
 # We just set it to NA for simplicity :-)
-species_code <- NA
-df_indicator$SPECIES_ID <- species_code
+
+df_indicator <- df_indicator %>%
+  mutate(SPECIES_ID = case_when(
+    LATIN_NAME %in% "Mytilus edulis" ~ "Blåskjell",
+    LATIN_NAME %in% "Nucella lapillus" ~ "Purpursnegl",
+    grepl("lapillus", LATIN_NAME) ~ "Purpursnegl/Strandsnegl")
+  )
+    
 
 ```
 
@@ -401,12 +412,15 @@ xtabs(~addNA(Mattrygghet) + PARAM + TISSUE_NAME, df_indicator)
 
 
 ## Save and export  
-* On 'data': save with all variables   
-* On 'Data_export': pick selected variables  
+* In folder 'data': save RDS file with all variables   
+* In folder 'Data_export': save csv file with selected variables (saved manually as Excel later)  
+* File name for csv/excel file (`fn_export`) set in the start of the script
+* The excel file is copied to `K:\Avdeling\Mar\NOG\JMGdata\Kart\Indikatorer\2020\Grunnlagsdata` 
 ```{r}
 
 # Save with all variables
 saveRDS(df_indicator, file = "Data/05_df_indicator_bluemussel_2021_ver1.RData")
+# df_indicator <- readRDS( file = "Data/05_df_indicator_bluemussel_2021_ver1.RData")
 
 # Save with selected variables
 vars <- c("PROJECT_ID", "STATION_CODE", "STATION_NAME", 
@@ -424,12 +438,17 @@ if (overwrite | !file.exists(fn_export)){
   write.csv2(df_indicator[sel,vars], file = fn_export, row.names = FALSE, na = "")
   cat("Data written to file", fn_export, "\n")
 } else {
-  cat("File", fn_export, "exists, data not saved.\nSet 'overwrite <- TRUE' to overwrite file.\n")
+  warning("File", fn_export, "exists, data not saved.\nSet 'overwrite <- TRUE' to overwrite file.\n")
 }
 
 
-
-# df_indicator <- read.csv2(file = "Data_export/GaduMor_2018_withNIFES_ver1.csv")
+# check
+if (FALSE){
+  df1 <- read.csv2(file = "Data_export/MytiEdu_Snegl_2020_ver1.csv")
+  df2 <- read.csv2(file = "Data_export/MytiEdu_Snegl_2020_ver2.csv")
+  xtabs(~STATION_CODE, df1)
+  xtabs(~STATION_CODE, df2)
+}
 
 ```
 
@@ -451,24 +470,27 @@ df %>%
   ggplot(aes(STATION_NAME, Conc, fill = factor(Time_trend))) + 
   geom_col() + 
   scale_fill_manual(values = c("grey30", "orange", "green", "red")) +
-  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  facet_wrap(~PARAM, scales = "free", nrow = 1) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
 
 ```
 
 
 
-### Plot 2
-```{r}
+### Plot 1b
+```{r, fig.width=9, fig.height=5}
 df %>%
-  filter(PARAM %in% unique(PARAM)[4:7]) %>%
+  filter(PARAM %in% unique(PARAM)[4:8]) %>%
   ggplot(aes(STATION_NAME, Conc, fill = Time_trend)) + 
   geom_bar(stat = "identity") + 
   scale_fill_manual(values = c("grey30", "orange", "green", "red")) +
-  facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
+  facet_wrap(~PARAM, scales = "free", nrow = 1) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
 ```
-### Plot 2b - maps     
+
+
+
+### Plot 2 - trend maps     
 ```{r}
 
 simple_map <- map_data("worldHires", c("Norway", "Sweden"))
@@ -486,6 +508,7 @@ df %>%
 ### Plot 3 - mattrygghet
 trend: 0 = no trend calculated, 1 = zero time trend, 2 = up, 3 = down  
 ```{r}
+
 df %>%
   filter(!is.na(Mattrygghet)) %>%
   ggplot(aes(STATION_NAME, Conc, fill = factor(Mattrygghet))) + 
@@ -493,6 +516,7 @@ df %>%
   scale_fill_manual(values = c("green", "red")) +
   facet_wrap(~paste(PARAM,TISSUE_NAME), scales = "free", nrow = 1) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.2))
+
 ```
 ### Plot 3b - maps     
 ```{r}
@@ -503,7 +527,7 @@ df %>%
   ggplot(aes(LONGITUDE, LATITUDE, Conc, color = factor(Mattrygghet))) + 
   annotation_map(simple_map, fill = "grey60") +
   geom_point() +
-  scale_color_manual(values = c("green", "red")) +
+  scale_color_manual(values = c("green", "red"), na.value = "grey20") +
   facet_wrap(~PARAM) +
   coord_map("lambert", parameters = c(10.4, 59.3))
 
