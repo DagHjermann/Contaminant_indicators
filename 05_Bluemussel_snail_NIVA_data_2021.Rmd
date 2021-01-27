@@ -11,6 +11,7 @@ output: html_document
 
 ## Packages + functions  
 ```{r}
+
 library(dplyr)
 library(tidyr)
 library(readxl)
@@ -19,7 +20,7 @@ library(maps)
 library(mapdata)
 
 # File name for export
-fn_export <- "Data_export/MytiEdu_Snegl_2020_ver2.csv"
+fn_export <- "Data_export/MytiEdu_Snegl_2020_ver3.csv"
 overwrite <- FALSE
 
 ```
@@ -97,10 +98,19 @@ names(data_xl) <- sub("^V1", "Yr_201", names(data_xl))
 names(data_xl)
 
 ```
+### Add VDSI for 36g Færder in 2019  
+```{r}
+
+sel <- with(data_xl, STATION_CODE == "36G" & grepl("VDSI", PARAM)); sum(sel)  
+
+data_xl$Yr_2019[sel] <- 0
+
+```
 
 
 ### Check if there is older data
 ```{r}
+
 check <- data_xl %>% 
   filter(
     PARAM %in% c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7") & 
