@@ -10,6 +10,10 @@ output:
 
 Based on code from '04_NIVA_data_with_NIFES_3.R' ("H:/Documents/seksjon 212/Indikator 2018/Analyse")  
 
+**NOTE 'revised_data' parameter** (set to TRUE/FALSE)  
+* Set to TRUE to use Sylvia's new data (on PCB) , sent in mail from Mroman 23.02.2021  
+* Using medians form script 11 (2021) saved in file named 'rev 19.02.2021'  
+* Results are saved in files named 'rev 19.02.2021'  
 
 ## 1. Packages + functions  
 ```{r, message=FALSE, results='hide'}
@@ -22,18 +26,31 @@ library(AICcmodavg)   # for AICc()
 
 source("00_functions.R")
 # source("16_Trend_functions.R")
-source('00_Trend_functions.R')
+source('16b_Trend_functions.R')
 
 ```
 
 ## 2. Data
 ```{r}
 
-df_median <- readRDS("Data/11_df_median (2021).rds") %>%
-  mutate(Posisjon = "Nordsjøen") %>%   # For 2021!
-  rename(TISSUE_NAME = Organ) %>%      # avoid a bunch of annoying error messages...
-  as.data.frame() 
+revised_data <- TRUE
+# revised_data <- FALSE
 
+if (revised_data){
+
+  df_median <- readRDS("Data/11_df_median (2021) rev 19.02.2021.rds") %>%
+    mutate(Posisjon = "Nordsjøen") %>%   # For 2021!
+    rename(TISSUE_NAME = Organ) %>%      # avoid a bunch of annoying error messages...
+    as.data.frame() 
+  
+} else {
+  
+  df_median <- readRDS("Data/11_df_median (2021).rds") %>%
+    mutate(Posisjon = "Nordsjøen") %>%   # For 2021!
+    rename(TISSUE_NAME = Organ) %>%      # avoid a bunch of annoying error messages...
+    as.data.frame() 
+
+}
 
 ```
 
@@ -47,7 +64,7 @@ From '04_NIVA_data_with_NIFES_3.R', but added 'areas' as input ('Uttaksområde')
 get_regression_statistics <- function(par, tissue, position){
   df_median_sel <- df_median  %>% 
     filter(Parameter %in% par & Posisjon %in% position & TISSUE_NAME %in% tissue & !is.na(Conc)) %>%
-    rename(MYEAR = Year, Median = Conc)
+    rename(YEAR = Year, Median = Conc)
   df_med_object <- df_median_sel %>% select_for_regr_a() %>% select_for_regr_b()
   modelresults <- try(calc_models_gam(df_med_object, log = TRUE))
   if (class(modelresults)[[1]] != "try-error"){
@@ -140,17 +157,51 @@ df_median %>%
 
 ```
 
+```{r}
+
+df_median2 <- df_median %>%
+  rename(PARAM = Parameter,
+         STATION_CODE = Posisjon,
+         MYEAR = Year,
+         Value = Conc) %>%
+  mutate(LATIN_NAME = "Gadus morhua",
+         Basis = "WW",
+         SD = 0)
+
+# debugonce(check_data)
+# debugonce(model_from_medians)
+# debugonce(calc_models_one_station2)
+# debugonce(calc_models_gam)
+# debugonce(statistics_for_excel)
+model_from_medians("CD", "Gadus morhua", "Lever", 
+                   "Nordsjøen", "WW", 1980:2020, df_median2)$statistics
+
+debugonce(model_from_medians)
+debugonce(plot_models_one_station)
+X <- model_from_medians("CD", "Gadus morhua", "Lever", 
+                   "Nordsjøen", "WW", 1980:2020, df_median2, plotname = "window", ggplot = FALSE)
+
+```
+
 
 ### Perform all regressions
 ```{r}
-
 # Perform all regressions
+# nifes_regression <- 1:nrow(timeseries) %>% purrr::map_dfr(
+#   ~ (
+#     timeseries$Parameter[.], 
+#     timeseries$TISSUE_NAME[.], 
+#     timeseries$Posisjon[.])
+#   )
+
 nifes_regression <- 1:nrow(timeseries) %>% purrr::map_dfr(
-  ~get_regression_statistics(
+  ~model_from_medians(
     timeseries$Parameter[.], 
-    timeseries$TISSUE_NAME[.], 
-    timeseries$Posisjon[.])
-  )
+    "Gadus morhua", 
+    timeseries$TISSUE_NAME[.],
+    timeseries$Posisjon[.], 
+    "WW", 
+    1980:2020, df_median2)$statistics)
 
 # Add 'trend_text'
 nifes_regression <- nifes_regression %>%
@@ -172,8 +223,8 @@ df_symbol_to_trend <- tibble(
   )
 
 nifes_regression <- nifes_regression %>%
-  left_join(df_symbol_to_trend[,c("trend_text", "trend")]) %>% # adding trend symbol
-  rename(PARAM = Parameter)   # To fit with NIVA data
+  left_join(df_symbol_to_trend[,c("trend_text", "trend")]) # adding trend symbol
+  # rename(PARAM = Parameter)   # To fit with NIVA data
 
 
 ```
@@ -181,7 +232,7 @@ nifes_regression <- nifes_regression %>%
 ### Check
 ```{r}
 
-nifes_regression %>% select(Posisjon, PARAM, TISSUE_NAME, Nplus, Model_used, Dir_change, trend_text)  # %>% View()
+nifes_regression %>% select(STATION_CODE, PARAM, TISSUE_NAME, Nplus, Model_used, Dir_change, trend_text)  # %>% View()
 
 ```
 
@@ -192,11 +243,16 @@ nifes_regression %>% select(Posisjon, PARAM, TISSUE_NAME, Nplus, Model_used, Dir
 ```{r}
 
 overwrite <- FALSE
+# overwrite <- TRUE
 
-if (overwrite){
+if (overwrite & !revised_data){
   saveRDS(nifes_regression, "Data/12_nifes_regression (2021).rds")
   write.csv(nifes_regression, "Data/12_nifes_regression (2021).csv", quote = FALSE, row.names = FALSE)
+} else if (overwrite & revised_data){
+  saveRDS(nifes_regression, "Data/12_nifes_regression (2021) rev 19.02.2021.rds")
+  write.csv(nifes_regression, "Data/12_nifes_regression (2021) rev 19.02.2021.csv", quote = FALSE, row.names = FALSE)
 }
+
 
 ```
 

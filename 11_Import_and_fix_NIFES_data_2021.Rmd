@@ -9,7 +9,11 @@ output:
     df_print: paged
 ---
 
-Based on code from '01_NIVA_data_with_NIFES_3.R' ("H:/Documents/seksjon 212/Indikator 2018/Analyse")  
+Based on code from '01_NIVA_data_with_NIFES_3.R' ("H:/Documents/seksjon 212/Indikator 2018/Analyse")   
+  
+**NOTE 'revised_data' parameter** (set to TRUE/FALSE)  
+* Set to TRUE to use Sylvia's new data (on PCB) , sent in mail from Mroman 23.02.2021  
+* Results are saved in files named 'rev 19.02.2021'  
 
 ## 1. Packages  
 ```{r setup, include=FALSE}
@@ -21,7 +25,7 @@ library(ggplot2)
 source("11_Import_and_fix_NIFES_data_2021_functions.R", encoding = "UTF-8")
 
 # save_data <- TRUE
-save_data <- FALSE
+save_data <- TRUE
 
 ```
 
@@ -29,7 +33,14 @@ save_data <- FALSE
 ```{r}
 dir("Input_data")
 
-fn <- "Input_data/Data torsk Nordsjøen 30.11.2020 til kart.xlsx"
+revised_data <- TRUE
+# revised_data <- FALSE
+
+if (revised_data){
+  fn <- "Input_data/Data torsk Nordsjøen 30.11.2020 til kart rev 19.02.2021.xlsx"
+} else {
+  fn <- "Input_data/Data torsk Nordsjøen 30.11.2020 til kart.xlsx"
+}
 # excel_sheets(fn)
 dat1 <- read_excel(fn, sheet = "Cd og Pb i lever", col_types = "text") %>%
   rename(
@@ -119,9 +130,48 @@ if (FALSE){
 
 ```{r}
 
+if (!revised_data){
+  
+  # PCB7 is twice:
+  names(dat3)[c(36,39)]  # [1] "PCB7"      "Sum PCB 7"
+  
+  # We delete the first (which has no associated unit column)
+  dat3$PCB7 <- NULL
+  
+} else {
+  
+  # PCB7 is twice:
+  names(dat3)[36:38]  # [1] "PCB7"  "Sum PCB 6"  "Enhet...38" 
+  
+  # Add unit column to the right of PCB7 (we re-use col 38)
+  # DO THIS ONLY ONCE!
+  dat3 <- dat3[c(1:36, 38, 37:ncol(dat3))]
+  
+  # Check
+  names(dat3)[36:39]  # [1] "PCB7" "Enhet...38" "Sum PCB 6"  "Enhet...38"
+
+  
+}
+
+# BOTH VERSIONS
 # 1. Cd and Pb: 15-18
 # 2. Hg: 29-30
-# 3. PCB-101 etc: 22-54 (conc. + unit) + 55-61 (conc. only)
+# 3. PCB-101 + PBDE: 22-53 (conc. + unit) + 54-60 (conc. only)
+
+if (FALSE){
+  # 1. Cd and Pb: 15-18
+  names(dat1)[c(15,17)]   # "Cd" "Pb"
+
+  # 2. Hg: 29-30
+  names(dat2)[29]         # "Hg"
+
+  # 3. PCB-101 etc: 22-54 (conc. + unit) + 55-61 (conc. only)
+  names(dat3)[seq(22,53,by = 2)]   # "PCB-101"   "PCB-118"   "PCB-138" .... "PBDE 183"
+  names(dat3)[seq(54,60,by = 1)]   # "HCB"    "op-DDD" "op-DDE" "op-DDT" "pp-DDD" "pp-DDE" "pp-DDT"
+
+}
+
+
 
 # debugonce(nifes_standardize_data)
 df1 <- nifes_standardize_data(dat1[c(1:10, 15:18)]) 
@@ -132,7 +182,8 @@ df2 <- nifes_standardize_data(dat2[c(1:10, 29:30)]) %>%
 
 df3a <- nifes_standardize_data(dat3[c(1:10, 22:54)])
 
-df3b <- dat3[c(1:10, 55:61)] %>%
+rm(df3b)
+df3b <- dat3[c(1:10, 55:60)] %>%
   pivot_longer(-(Jnr:Organ), names_to = "Parameter", values_to = "Conc_chr") %>%
   mutate(
       Conc = sub("<", "", Conc_chr, fixed = TRUE) %>% 
@@ -252,7 +303,7 @@ pars_bde6s <- c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154")
 df_nifes_cod_extra <- df_nifes_cod %>%
   filter(Parameter %in% pars_bde6s) %>% # xtabs(~Parameter, .)
   # group_by(Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ, Prøvenr.) %>%
-  group_by(Year, Art, Organ, Jnr, Prøvenr.) %>%
+  group_by(Year, Art, Organ, Jnr, Prøvenr., Uttaksområde) %>%
   summarise(Conc = sum(Conc),
             Flag = ifelse(sum(Flag %in% "") > 1, "", "<"),
             n_param = n(),
@@ -361,8 +412,13 @@ unique(df_median$Parameter)
 # dir.create("Data")
 
 if (save_data){
-  saveRDS(df_nifes_cod, "Data/11_df_nifes_cod (2021).rds")
-  saveRDS(df_median, "Data/11_df_median (2021).rds")
+  if (revised_data){
+    saveRDS(df_nifes_cod, "Data/11_df_nifes_cod (2021) rev 19.02.2021.rds")
+    saveRDS(df_median, "Data/11_df_median (2021) rev 19.02.2021.rds")
+  } else {
+    saveRDS(df_nifes_cod, "Data/11_df_nifes_cod (2021).rds")
+    saveRDS(df_median, "Data/11_df_median (2021).rds")
+  }
 }
 
 # df_median <- readRDS("Data/01_df_median.rds")
