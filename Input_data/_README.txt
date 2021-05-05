@@ -6,32 +6,42 @@ Files:
 
   - Data until 2019, Barents (for 2020 report/maps, script 11-14):
     - Cd Pb torsk lever 2006-2019 HI.xlsx
-    - Kvikksølv torskefilet Bhav 2006-2019.xlsx
+    - KvikksÃ¸lv torskefilet Bhav 2006-2019.xlsx
     - POPs torskelever Bhav 2006-2019.xlsx
     Origin: Attachment from Norman (originally Sylvia) 20.01.2020 18:39
 
+  - Data until 2020, Norskehavet (Norwegian Sea) 
+    - Data kysttorsk NH nov. 2018 per 160421.xlsx
+    Origin: Attachment from Sylvia 16.04.2021  
+    Kommentar fra Sylvia: det ser ut til at vi ikke fikk inn noe kysttorsk fra disse omrÃ¥dene verken i 
+     2019 eller 2020, og at de nyeste dataene vi har er fra 2018. Det eneste vi har som er nytt siden 
+     sist, er pesticidanalyser som ikke var ferdig ved forrige oppdatering, men som nÃ¥ er ferdig. 
+     Jeg har fylt ut i datasettet med de nye dataene pÃ¥ pesticider, ellers er alt annet gammelt nytt.
+     (gamle data kom i mail fra Norman 30.01.2019 )   
+
+ 
 
 From: Norman Whitaker Green 
 Sent: tirsdag 20. november 2018 12.40
-To: Jan Karud <jan.karud@niva.no>; Dag Øystein Hjermann <Dag.Hjermann@niva.no>
-Subject: Overvåkingsgruppe - indikatorer for Norskehavet: torsk og blåskjell.
+To: Jan Karud <jan.karud@niva.no>; Dag Ã˜ystein Hjermann <Dag.Hjermann@niva.no>
+Subject: OvervÃ¥kingsgruppe - indikatorer for Norskehavet: torsk og blÃ¥skjell.
 
 
 Hei begge to,
 
-Årets oppdatering gjelder kun Norskehavet, og det er kun torske- og blåskjell-indikatorer som er aktuelle. Blåskjell data er fra MILKYS, men torskedata er fra både MILKYS og HI. Nå har Sylvia fra HI (som nå omfatter NIFES hvor Sylvia har jobbet og fortsatt jobber med samme sakene) laget en datasett med deres data (se vedlagt EXCEL-fil «Data kysttorsk . . .). Disse må flettes sammen med MILKYS data akkurat som vi gjorde i fjor for Nordsjøen (se vedlagt EXCEL-fil «GaduMor_2018 . . .»). Resultat-kart skal ligner det vi gjorde for Nordsjøen (se eksempel for kvikksølv under):
+Ã…rets oppdatering gjelder kun Norskehavet, og det er kun torske- og blÃ¥skjell-indikatorer som er aktuelle. BlÃ¥skjell data er fra MILKYS, men torskedata er fra bÃ¥de MILKYS og HI. NÃ¥ har Sylvia fra HI (som nÃ¥ omfatter NIFES hvor Sylvia har jobbet og fortsatt jobber med samme sakene) laget en datasett med deres data (se vedlagt EXCEL-fil Â«Data kysttorsk . . .). Disse mÃ¥ flettes sammen med MILKYS data akkurat som vi gjorde i fjor for NordsjÃ¸en (se vedlagt EXCEL-fil Â«GaduMor_2018 . . .Â»). Resultat-kart skal ligner det vi gjorde for NordsjÃ¸en (se eksempel for kvikksÃ¸lv under):
  
 
 kilde 
 
-Sylvia skriver «Her kommer datasettet med miljøgifter i kysttorsk fra Norskehavet-området. Jeg har renset opp sånn at vi står igjen med bare kysttorsk, fra fire områder. Møre (Mørebanken) og Vikna er de to områdene der vi har prøvd å få prøver fra år etter år og derfor har best tidsserier. 
-Vi har hatt en del problemer med å få inn prøver av torsk fra Norskehavet. I 2017 fikk vi ingen. I 2018 har vi bare fått torsk fra Træna, som er en del lenger nord enn Vikna, men jeg tok de med likevel. Ellers har vi noen fra Vestfjorden som jeg mener skulle være kysttorsk. Så vi kunne kanskje laget tre eller fire punkter på kartet basert på denne inndelingen. Evt. bare ta med Vikna og Møre?»
+Sylvia skriver Â«Her kommer datasettet med miljÃ¸gifter i kysttorsk fra Norskehavet-omrÃ¥det. Jeg har renset opp sÃ¥nn at vi stÃ¥r igjen med bare kysttorsk, fra fire omrÃ¥der. MÃ¸re (MÃ¸rebanken) og Vikna er de to omrÃ¥dene der vi har prÃ¸vd Ã¥ fÃ¥ prÃ¸ver fra Ã¥r etter Ã¥r og derfor har best tidsserier. 
+Vi har hatt en del problemer med Ã¥ fÃ¥ inn prÃ¸ver av torsk fra Norskehavet. I 2017 fikk vi ingen. I 2018 har vi bare fÃ¥tt torsk fra TrÃ¦na, som er en del lenger nord enn Vikna, men jeg tok de med likevel. Ellers har vi noen fra Vestfjorden som jeg mener skulle vÃ¦re kysttorsk. SÃ¥ vi kunne kanskje laget tre eller fire punkter pÃ¥ kartet basert pÃ¥ denne inndelingen. Evt. bare ta med Vikna og MÃ¸re?Â»
 
-Jeg er noe usikkert hvordan vi koblet sammen HI og MILKYS data, men kanskje dere husker det? Det var i perioden 2 januar to 10.februar i år at vi gjennomført oppgaven hvis dere skal se på epost-vekslingene. Jeg er også usikkert om det er mulig for deg, Jan, å finne frem til datagrunnlaget uten hjelp fra Dag. Dag leder OSPAR MIMI-møte i København denne uken, og selv om han er nokså flink med multi-tasking er det sannsynlig han ikke prioritere dette før neste uke. 
+Jeg er noe usikkert hvordan vi koblet sammen HI og MILKYS data, men kanskje dere husker det? Det var i perioden 2 januar to 10.februar i Ã¥r at vi gjennomfÃ¸rt oppgaven hvis dere skal se pÃ¥ epost-vekslingene. Jeg er ogsÃ¥ usikkert om det er mulig for deg, Jan, Ã¥ finne frem til datagrunnlaget uten hjelp fra Dag. Dag leder OSPAR MIMI-mÃ¸te i KÃ¸benhavn denne uken, og selv om han er noksÃ¥ flink med multi-tasking er det sannsynlig han ikke prioritere dette fÃ¸r neste uke. 
 
-Kan dere to jobbe sammen for å få å lage data grunnlaget og deretter kartene?
+Kan dere to jobbe sammen for Ã¥ fÃ¥ Ã¥ lage data grunnlaget og deretter kartene?
 
-Vårt arbeid for dette er dekket, i hvert fall delvis, av GBs «nasjonale funksjoner», prosjekt nr. 40044 som Mats styrer.   
+VÃ¥rt arbeid for dette er dekket, i hvert fall delvis, av GBs Â«nasjonale funksjonerÂ», prosjekt nr. 40044 som Mats styrer.   
 
 Mvh
 
