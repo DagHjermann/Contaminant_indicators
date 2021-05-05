@@ -443,6 +443,61 @@ statistics_for_excel_OLD <- function(obj, regr_results, gam = FALSE){
 # Called from 'calc_models_one_station2'  
 # Uses the medians (obj) + the results from calc_models_gam (regr_results)  
 #
+# Calculate gam models
+# Based on 'models_yr', but it uses the entire input data for regression
+calc_models_gam <- function(obj, var_x = "MYEAR_regr", var_y = "Median", gam = FALSE, log = TRUE){
+  data <- obj$df_med_st[obj$sel_ts,]
+  data_pick <- data[, c(var_x, var_y)]
+  if (log)
+    data_pick[,2] <- log(data_pick[,2])
+  colnames(data_pick) <- c("x", "y")
+  if (sum(is.finite(data_pick$y)) > 0){
+    mod_gam <- try(GAM_trend_analysis(dataset = data_pick))
+    mod_lin <- lm(y~x, data = data_pick)
+    pr <- predict(mod_lin, se = TRUE)
+    dY <- -qt(0.025, nrow(data_pick))
+    mod_lin_yFit <- data.frame(Year = data_pick$x[!is.na(data_pick$y)], Estimate = pr$fit, SE = pr$se.fit, LowLimit = pr$fit - dY*pr$se.fit, HighLimit = pr$fit + dY*pr$se.fit)  
+    if (class(mod_gam)[1] != "try-error"){
+      result <- 
+        list(AIC = c(nonlinear = AIC(mod_gam$model),
+                     linear = AIC(mod_lin)),
+             AICc = c(nonlinear = AICc(mod_gam$model),
+                      linear = AICc(mod_lin)),
+             mod_nonlin = mod_gam,
+             mod_lin = mod_lin,
+             mod_lin_yFit = mod_lin_yFit,
+             status = "GAM OK",
+             data = data_pick,
+             stringsAsFactors = FALSE)
+    } else {
+      result <- 
+        list(AIC = c(nonlinear = NA,
+                     linear = AIC(mod_lin)),
+             AICc = c(nonlinear = NA,
+                      linear = AICc(mod_lin)),
+             mod_nonlin = NA,
+             mod_lin = mod_lin,
+             mod_lin_yFit = mod_lin_yFit,
+             status = "GAM failed",
+             data = data_pick,
+             stringsAsFactors = FALSE)
+    }
+  } else {
+    result <- list(AIC = c(nonlinear = NA,
+                           linear = NA),
+                   AICc = c(nonlinear = NA,
+                            linear = NA),
+                   mod_nonlin = NULL,
+                   mod_lin = NULL,
+                   mod_lin_yFit = NULL,
+                   mod_gam = NULL,
+                   status = "No qualified data",
+                   data = data_pick,
+                   stringsAsFactors = FALSE)
+  }  
+  result
+}
+
 statistics_for_excel <- function(obj, regr_results, gam = FALSE){
   if (sum(obj$sel_ts) > 0 & !(gam & regr_results$status == "GAM OK")){
     df_stat <- data.frame(
