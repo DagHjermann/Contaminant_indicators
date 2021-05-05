@@ -1,0 +1,181 @@
+---
+title: "NIFES data, calculate trends"
+output: 
+  html_document:
+    keep_md: true
+    toc: true
+    toc_float: true
+    
+---
+
+Based on code from script 12 version 'data_2020' ("H:/Documents/seksjon 212/Indikator 2018/Analyse")  
+  
+NOTE:  
+* uses '001_Add_trends_functions.R' from Milkys2 on jupyterhub  
+
+
+## 1. Packages + functions  
+```{r, message=FALSE, results='hide'}  
+
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(ggplot2)
+library(mgcv)         # for gam()
+library(AICcmodavg)   # for AICc()
+
+source("00_functions.R")
+
+# source("16_Trend_functions.R")
+# source("../Milkys2/001_Add_trends_functions.R", encoding = "UTF-8")  
+
+# NOTE that we use this script here - copied from Milkys2 on jupyterhub  
+source("001_Add_trends_functions.R")
+
+```
+
+## 2. Data
+```{r}
+
+df_median <- readRDS("Data/11_df_median (Norwegian Sea 2020).rds") %>%
+  rename(TISSUE_NAME = Organ) %>%   # avoid a bunch of annoying error messages...
+  as.data.frame() 
+
+```
+
+## 3. Regression   
+
+### Testing functions   
+```{r}
+df <- df_median %>%
+  mutate(MYEAR = Year,
+         PARAM = Parameter,
+         LATIN_NAME = "Gadus morhua",
+         STATION_CODE = Posisjon,
+         Basis = "WW",
+         Median = Conc)
+
+# debugonce(model_from_medians)
+# debugonce(calc_models_one_station2)
+# debugonce(calc_models_gam)
+m <- model_from_medians("HCB", "Gadus morhua", "Lever", "Helgeland", "WW", 1980:2019, df, 
+                     plotname = "window", ggplot = TRUE)
+
+
+```
+
+### Functions
+ 
+```{r}
+
+get_regression_statistics <- function(par, tissue, position, species = "Gadus morhua", data = df_median){
+  
+  df <- data %>%
+    mutate(MYEAR = Year,
+           PARAM = Parameter,
+           LATIN_NAME = "Gadus morhua",
+           STATION_CODE = Posisjon,
+           Basis = "WW",
+           Median = Conc)
+  
+  m <- model_from_medians(par, species, tissue, position, "WW", 1980:2020, df)
+  
+  m$statistics %>% 
+    rename(Posisjon = STATION_CODE)
+
+}
+
+# TEST
+# get_regression_statistics("HCB", "Lever", "Helgeland") %>% select(Posisjon, PARAM, TISSUE_NAME, Nplus, Model_used, Dir_change)  
+
+```
+
+
+
+### Table of areas and years  
+```{r}
+
+xtabs(~Year + Posisjon, df_median)
+# xtabs(~Organ, df_median)
+
+xtabs(~Year + TISSUE_NAME + Art, df_median)
+
+```
+
+## 4. Regression on 'df_median'  
+
+### Make table for regression  
+```{r}
+# Doing regression for all
+sel_param <- c("CD", "HG", "PB", "HCB", "DDEPP", "CB_S7", "DDEPP", "BDE6S")
+
+timeseries <- df_median %>%
+  filter(Parameter %in% sel_param) %>%
+  count(Posisjon, Parameter) %>%
+  mutate(TISSUE_NAME = "Lever")
+#  mutate(TISSUE_NAME = get_tissue(Parameter))
+
+timeseries
+  
+```
+
+### Perform all regressions
+```{r}
+
+# Perform all regressions
+nifes_regression <- 1:nrow(timeseries) %>% purrr::map_dfr(
+  ~get_regression_statistics(
+    timeseries$Parameter[.], 
+    timeseries$TISSUE_NAME[.], 
+    timeseries$Posisjon[.])
+  )
+
+# Add 'trend_text'
+nifes_regression <- nifes_regression %>%
+  mutate(trend_text = case_when(
+    N < 5 ~ "Too little data",
+    N >= 5 & Nplus < 5 ~ "Too few data above LOQ",
+    Model_used %in% c("Linear", "Nonlinear") & Dir_change == "Up" ~ "Trend up",
+    Model_used %in% c("Linear", "Nonlinear") & Dir_change == "Down" ~ "Trend down",
+    Model_used %in% c("Linear", "Nonlinear") & Dir_change == "" ~ "No trend",
+    ))
+
+
+# Adding trend symbol
+# Based on "18_Time_series_write_to_Excel_functions.R"
+df_symbol_to_trend <- tibble(
+  trend_symbol = c("§", "«", "¢", "é", "ê"),
+  trend_text = c("Too little data", "Too few data above LOQ", "No trend", "Trend up", "Trend down"),
+  trend = c(0,0,1,2,3)
+  )
+
+nifes_regression <- nifes_regression %>%
+  left_join(df_symbol_to_trend[,c("trend_text", "trend")]) # %>% # adding trend symbol
+  # rename(PARAM = Parameter)   # To fit with NIVA data - NOT NEEDED HERE
+
+
+```
+
+### Check
+```{r}
+
+nifes_regression %>% select(Posisjon, PARAM, TISSUE_NAME, Nplus, Model_used, Dir_change, trend_text)  # %>% View()
+
+```
+
+
+
+## 5. Save
+```{r}
+
+overwrite <- FALSE
+
+if (overwrite){
+  saveRDS(nifes_regression, "Data/12_nifes_regression (2021_NorwSea).rds")
+  write.csv(nifes_regression, "Data/12_nifes_regression (2021_NorwSea).csv", quote = FALSE, row.names = FALSE)
+}
+
+```
+
+
+
