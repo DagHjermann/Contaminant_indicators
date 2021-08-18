@@ -6,6 +6,7 @@ Creating indicator data (levels/trends) for contaminants in biota on the Norwegi
 * Note that resuts use   
     - limits from `Input_data/Grenseverdier_fra_Sylvia.xlsx` 
     - trend functions from `00_Trend_functions.R`  
+ Copied to `K:\Avdeling\Mar\NOG\JMGdata\Kart\Indikatorer` 
 
 ### Norskehavet - data until 2018, analysis 2019   
 * Script 01-04    
@@ -29,5 +30,7 @@ Creating indicator data (levels/trends) for contaminants in biota on the Norwegi
 * For blue mussel and snails (only NIVA data) we use script 05   
 
 ### Norwegian Sea (Norskehavet) - data until 2020       
-* script 11 marked '2021_NorwSea'     
+* script 11, 14, 21 marked '2021_NorwSea'
+* script 13 marked '2021'
+
 
