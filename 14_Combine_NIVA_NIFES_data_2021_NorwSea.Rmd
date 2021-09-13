@@ -403,12 +403,17 @@ df_compare <- df_compare[c(1,2,3,8,4,9,5,10,6,11,7)]
 
 # Write differences to file
 df_compare %>%
-  filter((KLASSE_prev != KLASSE) | (EQS_prev != EQS) | (Mattrygghet_prev != Mattrygghet)) %>%
-  openxlsx::write.xlsx(paste0(fn, "_differences.xlsx"))
+  filter((KLASSE_prev != KLASSE) | (EQS_prev != EQS) | (Mattrygghet_prev != Mattrygghet)) %>% # View("1")
+  openxlsx::write.xlsx(paste0(fn, "_differences_OLD.xlsx"))
+
+df_compare %>%
+  filter((KLASSE_prev != KLASSE) | (EQS_prev != EQS) | (Mattrygghet_prev != Mattrygghet) | (trend != trend_prev)) %>% # View("2")
+  openxlsx::write.xlsx(paste0(fn, "_differences_NEW.xlsx"))
+
 
 # Write differences below  
 df_compare %>%
-  filter((KLASSE_prev != KLASSE) | (EQS_prev != EQS) | (Mattrygghet_prev != Mattrygghet))
+  filter((KLASSE_prev != KLASSE) | (EQS_prev != EQS) | (Mattrygghet_prev != Mattrygghet) | (trend != trend_prev))
 
 ```
 
