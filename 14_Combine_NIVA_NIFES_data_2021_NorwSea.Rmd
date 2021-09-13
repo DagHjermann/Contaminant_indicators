@@ -35,7 +35,7 @@ library(ggplot2)
 
 
 # File name for export
-fn <- "Data_export/GaduMor_2021data_Norw_Sea_ver01"
+fn <- "Data_export/GaduMor_2021data_Norw_Sea_ver03"
 fn_csv <- paste0(fn, ".csv")
 fn_xlsx <- paste0(fn, ".xlsx")
 overwrite <- FALSE
@@ -191,7 +191,7 @@ nrow(df_indicator_nifes)
 
 df_indicator2 <- bind_rows(df_indicator, df_indicator_nifes)
 df_indicator2 %>% head(2)
-nrow(df_indicator2)  # 45
+nrow(df_indicator2)  # 47
 
 # Check liver
 # xtabs(~STATION_NAME + PARAM, df_indicator2 %>% filter(TISSUE_NAME == "Lever"))  # 94
@@ -214,7 +214,8 @@ maps::map(regions = "Norway", add = TRUE, col = "brown")
 
 ```
 
-## Proref, EQS and mattrygghet
+## Proref and EQS   
+- PROREF for Hg in liver taken to be the same as in muscle
 ```{r}
 
 # Get PROREF (Q95) and EQS
@@ -225,6 +226,13 @@ df_q95 <- data_xl_sel[data_xl_sel$Basis %in% "WW",
          TISSUE_NAME = Tissue) %>%
   group_by(PARAM, LATIN_NAME, TISSUE_NAME) %>%
   summarise(PROREF = first(PROREF), EQS_threshold = first(`EQS-threshold this year`))
+
+# Add PROREF for Hg in liver (taken to be the same as in muscle)
+sel1 <- df_q95$PARAM == "HG" & df_q95$LATIN_NAME == "Gadus morhua"
+sel2a <- sel1 & df_q95$TISSUE_NAME == "Muscle"
+sel2b <- sel1 & df_q95$TISSUE_NAME == "Liver"
+df_q95$PROREF[sel2b] <- df_q95$PROREF[sel2a]
+
 
 # Check
 # df_q95 %>% filter(PARAM == "HG")
@@ -283,9 +291,21 @@ df_indicator2 <- df_indicator2 %>%
 
 ```
 
-## Add food limit  
-1 = below limit, 2 = above limit
+## Add food limit (Mattrygghet)   
+1 = below limit, 2 = above limit   
+- food limit for Hg in liver taken to be the same as in muscle   
 ```{r}
+
+# Add food limit for Hg in liver (taken to be the same as in muscle)
+sel1 <- with(df_limits, PARAM == "HG" & LATIN_NAME == "Gadus morhua")
+if (sum(sel1) == 1){
+  df_limits_extra <- data.frame(PARAM = "HG", LATIN_NAME = "Gadus morhua", NIVA_CODE = "LI")
+  df_limits_extra$Mattrygghet <- df_limits$Mattrygghet[sel1]
+  df_limits <- bind_rows(df_limits, df_limits_extra)
+}
+
+# sel2a <- with(df_limits, PARAM == "HG" & LATIN_NAME == "Gadus morhua" & NIVA_CODE == "LI")
+# df_limits[sel2a,]
 
 nrow(df_indicator2)
 df_indicator2 <- left_join(
@@ -347,15 +367,21 @@ write_safe(df_indicator2[sel,vars], filename = fn_csv, save_function = write.csv
            overwrite = overwrite, row.names = FALSE, na = "")
 
 # Excel
-write_safe(df_indicator2[sel,vars], filename = fn_xlsx, save_function = ::write.xlsx,
+library(openxlsx)
+write_safe(df_indicator2[sel,vars], filename = fn_xlsx, save_function = write.xlsx,
            overwrite = overwrite)
 
 
 if (FALSE){
   
   # Read back
-  df_indicator2 <- read.csv(file = "Data_export/2021 report Norwegian Sea/GaduMor_2021data_Norw_Sea_ver01.csv")
-  
+  df_indicator2a <- read_excel("Data_export/2021 report Norwegian Sea/GaduMor_2021data_Norw_Sea_ver02.xlsx")
+  df_indicator2b <- read_excel("Data_export/2021 report Norwegian Sea/GaduMor_2021data_Norw_Sea_ver03.xlsx")
+  i <- "Mattrygghet"
+  sel <- addNA(df_indicator2a[[i]]) != addNA(df_indicator2b[[i]])
+  sum(sel)
+  bind_cols(df_indicator2a[[i]], df_indicator2b[[i]])[sel,]
+
   # You might want this:
   df_indicator2 <- df_indicator2 %>%
     mutate(Time_trend =
