@@ -29,14 +29,14 @@ df_median$TISSUE_NAME <- df_median$Organ   # avoid a bunch of annoying error mes
 ```
 
 ## Function for performing regression    
-From '04_NIVA_data_with_NIFES_3.R', but added 'areas' as input ('Uttaksområde')  
+From '04_NIVA_data_with_NIFES_3.R', but added 'areas' as input ('UttaksomrÃ¥de')  
 ```{r}
 #
 # Get regression for all
 #
 get_regression_statistics <- function(par, tissue, areas){
   df_median_sel <- df_median  %>% 
-    filter(Parameter %in% par & Uttaksområde %in% areas & Organ %in% tissue & !is.na(Conc)) %>%
+    filter(Parameter %in% par & UttaksomrÃ¥de %in% areas & Organ %in% tissue & !is.na(Conc)) %>%
     rename(YEAR = Year, Median = Conc)
   df_med_object <- df_median_sel %>% select_for_regr_a() %>% select_for_regr_b()
   modelresults <- try(calc_models_gam(df_med_object, log = TRUE))
@@ -59,7 +59,7 @@ get_tissue <- function(par){
 
 ## Table of areas and years  
 ```{r}
-xtabs(~Year + Uttaksområde, df_median)
+xtabs(~Year + UttaksomrÃ¥de, df_median)
 # xtabs(~Organ, df_median)
 ```
 
@@ -69,27 +69,27 @@ Note that we also combine areas and set names for the combined areas here
 
 # testing
 # debugonce(get_regression_statistics)
-# get_regression_statistics("HG", "Filet", c("Træna","Vikna")) 
-# get_regression_statistics("HG", get_tissue("HG"), c("Træna","Vikna")) 
+# get_regression_statistics("HG", "Filet", c("TrÃ¦na","Vikna")) 
+# get_regression_statistics("HG", get_tissue("HG"), c("TrÃ¦na","Vikna")) 
 # get_regression_statistics("HCB") 
-# get_regression_statistics("CD", "Filet", c("Træna","Vikna")) 
-# get_regression_statistics("CD", "Lever", c("Træna","Vikna")) 
+# get_regression_statistics("CD", "Filet", c("TrÃ¦na","Vikna")) 
+# get_regression_statistics("CD", "Lever", c("TrÃ¦na","Vikna")) 
 
 # Doing regression for all
 sel_param <- c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7")
 
-nifes_regression_more <- sel_param %>% purrr::map_df(~get_regression_statistics(., get_tissue(.), "Møre"))
-nifes_regression_vikna <- sel_param %>% purrr::map_df(~get_regression_statistics(., get_tissue(.), c("Træna","Vikna")))
+nifes_regression_more <- sel_param %>% purrr::map_df(~get_regression_statistics(., get_tissue(.), "MÃ¸re"))
+nifes_regression_vikna <- sel_param %>% purrr::map_df(~get_regression_statistics(., get_tissue(.), c("TrÃ¦na","Vikna")))
 nifes_regression_vestfjorden <- sel_param %>% purrr::map_df(~get_regression_statistics(., get_tissue(.), c("Vestfjorden")))
 
 # Add Cd and Pb in muscle
-nifes_regression_more_m <- c("CD", "PB") %>% purrr::map_df(~get_regression_statistics(., "Filet", "Møre"))
-nifes_regression_vikna_m <- c("CD", "PB") %>% purrr::map_df(~get_regression_statistics(., "Filet", c("Træna","Vikna")))
+nifes_regression_more_m <- c("CD", "PB") %>% purrr::map_df(~get_regression_statistics(., "Filet", "MÃ¸re"))
+nifes_regression_vikna_m <- c("CD", "PB") %>% purrr::map_df(~get_regression_statistics(., "Filet", c("TrÃ¦na","Vikna")))
 nifes_regression_vestfjorden_m <- c("CD", "PB") %>% purrr::map_df(~get_regression_statistics(., "Filet", c("Vestfjorden")))
 
 nifes_regression <- bind_rows(
-  data.frame(STATION_NAME = "Møre", nifes_regression_more, stringsAsFactors = FALSE),
-  data.frame(STATION_NAME = "Møre", nifes_regression_more_m, stringsAsFactors = FALSE),
+  data.frame(STATION_NAME = "MÃ¸re", nifes_regression_more, stringsAsFactors = FALSE),
+  data.frame(STATION_NAME = "MÃ¸re", nifes_regression_more_m, stringsAsFactors = FALSE),
   data.frame(STATION_NAME = "Helgeland", nifes_regression_vikna, stringsAsFactors = FALSE),
   data.frame(STATION_NAME = "Helgeland", nifes_regression_vikna_m, stringsAsFactors = FALSE),
   data.frame(STATION_NAME = "Lofoten", nifes_regression_vestfjorden, stringsAsFactors = FALSE),
@@ -110,7 +110,7 @@ nifes_regression$trend_text[sel] <- "No trend"
 # Adding trend
 # Based on "18_Time_series_write_to_Excel_functions.R"
 df_symbol_to_trend <- tibble(
-  trend_symbol = c("§", "«", "¢", "é", "ê"),
+  trend_symbol = c("Â§", "Â«", "Â¢", "Ã©", "Ãª"),
   trend_text = c("Too little data", "Too few data above LOQ", "No trend", "Trend up", "Trend down"),
   trend = c(0,0,1,2,3)
   )
@@ -136,11 +136,11 @@ write.csv(nifes_regression, "Data/02_nifes_regression.csv", quote = FALSE, row.n
 df <- df_median
 
 df$Station <- ""
-sel <- df_median$Uttaksområde %in% "Møre"; sum(sel)
-df$Station[sel] <- "Møre"
-sel <- df_median$Uttaksområde %in% c("Træna","Vikna"); sum(sel)
+sel <- df_median$UttaksomrÃ¥de %in% "MÃ¸re"; sum(sel)
+df$Station[sel] <- "MÃ¸re"
+sel <- df_median$UttaksomrÃ¥de %in% c("TrÃ¦na","Vikna"); sum(sel)
 df$Station[sel] <- "Helgeland"
-sel <- df_median$Uttaksområde %in% "Vestfjorden"; sum(sel)
+sel <- df_median$UttaksomrÃ¥de %in% "Vestfjorden"; sum(sel)
 df$Station[sel] <- "Lofoten"
 
 df <- df %>%
@@ -153,11 +153,11 @@ ggplot(df, aes(Year, Conc, color = Organ)) +
   scale_x_continuous(breaks = seq(2010, 2016, 2))
 
 ?
-iconv("Møre", "", "UTF-8")
-iconv("Møre", "UTF-8")
+iconv("MÃ¸re", "", "UTF-8")
+iconv("MÃ¸re", "UTF-8")
 
-sel <- df_median$Uttaksområde %in% "Møre"; sum(sel)
+sel <- df_median$UttaksomrÃ¥de %in% "MÃ¸re"; sum(sel)
 
-# sum(df_median$Uttaksområde %in% "Møre")
+# sum(df_median$UttaksomrÃ¥de %in% "MÃ¸re")
 ```
 
