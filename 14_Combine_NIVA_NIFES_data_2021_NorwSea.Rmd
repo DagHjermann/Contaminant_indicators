@@ -351,15 +351,39 @@ write_safe(df_indicator2[sel,vars], filename = fn_xlsx, save_function = ::write.
            overwrite = overwrite)
 
 
+if (FALSE){
+  
+  # Read back
+  df_indicator2 <- read.csv(file = "Data_export/2021 report Norwegian Sea/GaduMor_2021data_Norw_Sea_ver01.csv")
+  
+  # You might want this:
+  df_indicator2 <- df_indicator2 %>%
+    mutate(Time_trend =
+             case_when(trend %in% 0 ~ "Not calc.",
+                       trend %in% 1 ~ "No trend",
+                       trend %in% 2 ~ "Down",
+                       trend %in% 3 ~ "Up")
+    )
+  
+  # 72,80N 32,92E = Barents Sea east (check Norgeskart.no 72.80, 32.92)
+  # 71,60N 21,30E = Barents Sea west (check Norgeskart.no 71.60, 21.30, W of Tromsøflaket)
+  # 74,53N 19,93E = Barents Sea - E of Bear Island (check Norgeskart.no 74.53, 19.93)
 
-
-# df_indicator2 <- read.csv2(file = "Data_export/GaduMor_2018_withNIFES_ver1.csv")
+  # 72,80N 32,92E:
+  # https://norgeskart.no/#!?project=norgeskart&layers=1002&zoom=5&lat=8088736&lon=1175428&markerLat=8166177&markerLon=1083483
+  
+  df_indicator2b <- read_excel("Data_export/2021 report Norwegian Sea/GaduMor_2021data_Norw_Sea_ver02.xlsx")
+  
+  
+  
+}
 
 ```
 ## Compare with old file  
 ```{r}
 
-df_2021 <- read_xlsx(fn_xlsx)
+# df_2021 <- read_xlsx(fn_xlsx)
+df_2021 <- df_indicator2
 
 names(df_2021)
 names(df_2018)

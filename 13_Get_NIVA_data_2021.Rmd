@@ -289,5 +289,12 @@ if (overwrite){
   
 }
 
+if (FALSE) {
+  
+  df_indicator <- readRDS("Data/13_df_indicator_NIVA_only (2021_NorwSea).rds")
+
+  
+}
+
 ```
 

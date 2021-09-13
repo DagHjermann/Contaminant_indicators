@@ -1,5 +1,5 @@
 ---
-title: "Combine NIVA and NIFES data 2020"
+title: "Combine NIVA and NIFES data 2021 - Norwegian Sea"
 output: 
   html_document:
     keep_md: true
@@ -9,20 +9,14 @@ output:
     df_print: paged
 ---
 
-Combining medians from NIFES data (script 11), trends from NIFES data (script 12), and medians and trends from NIVA (script 13).
-Also adds limit values.
+Combining medians from   
+* NIFES data (script 11) - special script for 2021_NorwSea
+* Trends from NIFES data (script 12) - special script for 2021_NorwSea   
+* Medians and trends from NIVA (script 13) - same script as 2021 North Sea (set 'area' to "Norweegian Sea')  
+* In addition to merging the results, limit values are also added in this script    
   
-The resulting summary data (one line per time series, i.e. station/substance) are saved as csv and excel files. These are also copied to `K:\Avdeling\Mar\NOG\JMGdata\Kart\Indikatorer\2020`   
+The resulting summary data (one line per time series, i.e. station/substance) are saved as csv and excel files. These are also copied to `K:\Avdeling\Mar\NOG\JMGdata\Kart\Indikatorer\2020\Grunnlagsdata Norskehavet`      
 
-**NB! IKKE ENDRET ETTER MODIFISERING AV HI-(NIFES)DATA.** Se script 12 (2021) og 14 (2021) samt mail fra Sylvia 19.2.2021:  
-> Hei Norman,
-> Vi har fått de siste resultatene for PCB og PBDE i torskelever fra lab, og jeg ser at vi blir nødt til å oppdatere kartet for PCB.  
-> De prøvene fra 2019 som jeg sendte resultater for i november hadde uvanlig høye verdier for PCB, sånn at gjennomsnittet for PCB6   
-> ble over 200 ng/g, grenseverdien for mattrygghet. Nå som vi har fått resten av dataene både for 2019 og for 2020, blir 
-> gjennomsnittet for begge > årene under 200 ng/g. Det skal altså være grønn ring ytterst, ikke rød som det er i den 
-> nåværende figuren.    
-> Forholdet til både miljøkvalitetsstandard og PROREF er upåvirket. Or det er bare PCB som er påvirket av dette. 
-> Vedlagt finner du regneark oppdatert med de nyeste dataene inkludert.   
 
 
 ## Packages + functions  
