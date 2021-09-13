@@ -387,8 +387,8 @@ if (FALSE){
     mutate(Time_trend =
              case_when(trend %in% 0 ~ "Not calc.",
                        trend %in% 1 ~ "No trend",
-                       trend %in% 2 ~ "Down",
-                       trend %in% 3 ~ "Up")
+                       trend %in% 2 ~ "Up",
+                       trend %in% 3 ~ "Down")
     )
   
   # 72,80N 32,92E = Barents Sea east (check Norgeskart.no 72.80, 32.92)
@@ -455,8 +455,8 @@ df <- df_indicator2 %>%
   mutate(Time_trend =
            case_when(trend %in% 0 ~ "Not calc.",
                      trend %in% 1 ~ "No trend",
-                     trend %in% 2 ~ "Down",
-                     trend %in% 3 ~ "Up")
+                     trend %in% 2 ~ "Up",
+                     trend %in% 3 ~ "Down")
          ) %>%
   mutate(Time_trend = factor(Time_trend, levels = c("Not calc.", "No trend", "Down", "Up")),
          Mattrygghet = factor(Mattrygghet, levels = 1:2),
