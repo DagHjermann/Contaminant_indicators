@@ -20,7 +20,7 @@ library(maps)
 library(mapdata)
 
 # File name for export
-fn_export <- "Data_export/MytiEdu_Snegl_2020_ver3.csv"
+fn_export <- "Data_export/MytiEdu_Snegl_2020_ver4.csv"
 overwrite <- FALSE
 
 ```
@@ -287,6 +287,47 @@ maps::map(regions = "Norway", add = TRUE, col = "brown")
 
 ```
 
+## Add lacking coordinates  
+```{r}
+
+sel <- df_indicator$STATION_CODE == "227G"
+# df_indicator[sel,]
+
+df_indicator$LATITUDE[sel] <- 59.34028
+df_indicator$LONGITUDE[sel] <- 5.313600
+df_indicator$STATION_NAME[sel] <- "Espevær"
+
+
+sel <- df_indicator$STATION_CODE == "28A2"
+# df_indicator[sel,]
+
+df_indicator$LATITUDE[sel] <- 62.46425
+df_indicator$LONGITUDE[sel] <- 6.238633
+df_indicator$STATION_NAME[sel] <- "Ålesund havn"
+
+```
+
+## Check lacking coordinates   
+```{r}
+
+check <- df_indicator %>% 
+  filter(is.na(LATITUDE)) %>%
+  count(STATION_CODE, STATION_NAME)
+
+if (nrow(check) > 0){
+  warning("##### CHECK ", nrow(check), " STATIONS WITHOUT COORDINATES! ####### \nMust have coordinates for filtering.")
+}
+
+# 28A2 = Ålesund harbour
+# 97A3 = Bodø harbour
+
+# For checking:
+if (FALSE)
+  check
+
+```
+
+
 ## Filter df_indicator by position    
 *Be sure to selet the right area*  
 ```{r}
@@ -324,6 +365,11 @@ df_q95 <- data_xl_sel[data_xl_sel$Basis %in% "WW", c("PARAM", "LATIN_NAME", "TIS
   group_by(PARAM, LATIN_NAME, TISSUE_NAME) %>%
   summarise(Q95 = first(`PROREF`), EQS_threshold = first(`EQS-threshold last year`),
             .groups = "drop")
+
+# Set PROREF for VDSI/Intersex equal to the one of VDSI
+sel1 <- df_q95$PARAM == "VDSI"
+sel2 <- df_q95$PARAM == "VDSI/Intersex"
+df_q95$Q95[sel2] <- df_q95$Q95[sel1]
 
 # Check
 # df_q95 %>% filter(PARAM == "HG")
