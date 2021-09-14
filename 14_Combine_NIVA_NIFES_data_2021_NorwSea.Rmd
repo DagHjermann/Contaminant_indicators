@@ -186,7 +186,8 @@ nrow(df_indicator_nifes)
 
 ```
 
-## Combine NIVA and NIFES data
+## Combine NIVA and NIFES data  
+- `df_indicator2` 
 ```{r}
 
 df_indicator2 <- bind_rows(df_indicator, df_indicator_nifes)
@@ -280,7 +281,7 @@ xtabs(~addNA(EQS) + PARAM, df_indicator2)
 
 ```
 
-## Add SPECIES_ID
+## Add SPECIES_ID  
 ```{r}
 
 df_indicator2 <- df_indicator2 %>%
@@ -293,16 +294,33 @@ df_indicator2 <- df_indicator2 %>%
 
 ## Add food limit (Mattrygghet)   
 1 = below limit, 2 = above limit   
-- food limit for Hg in liver taken to be the same as in muscle   
+- food limit for Hg, Cd and Pb in liver taken to be the same as in muscle   
 ```{r}
 
 # Add food limit for Hg in liver (taken to be the same as in muscle)
-sel1 <- with(df_limits, PARAM == "HG" & LATIN_NAME == "Gadus morhua")
+sel1 <- with(df_limits, PARAM %in% "HG" & LATIN_NAME %in% "Gadus morhua")
 if (sum(sel1) == 1){
   df_limits_extra <- data.frame(PARAM = "HG", LATIN_NAME = "Gadus morhua", NIVA_CODE = "LI")
   df_limits_extra$Mattrygghet <- df_limits$Mattrygghet[sel1]
   df_limits <- bind_rows(df_limits, df_limits_extra)
 }
+
+# Add food limit for Cd in liver (taken to be the same as in muscle)
+sel1 <- with(df_limits, PARAM %in% "CD" & LATIN_NAME %in% "Gadus morhua")
+if (sum(sel1) == 1){
+  df_limits_extra <- data.frame(PARAM = "CD", LATIN_NAME = "Gadus morhua", NIVA_CODE = "LI")
+  df_limits_extra$Mattrygghet <- df_limits$Mattrygghet[sel1]
+  df_limits <- bind_rows(df_limits, df_limits_extra)
+}
+
+# Add food limit for Pb in liver (taken to be the same as in muscle)
+sel1 <- with(df_limits, PARAM %in% "CD" & LATIN_NAME %in% "Gadus morhua")
+if (sum(sel1) == 1){
+  df_limits_extra <- data.frame(PARAM = "CD", LATIN_NAME = "Gadus morhua", NIVA_CODE = "LI")
+  df_limits_extra$Mattrygghet <- df_limits$Mattrygghet[sel1]
+  df_limits <- bind_rows(df_limits, df_limits_extra)
+}
+
 
 # sel2a <- with(df_limits, PARAM == "HG" & LATIN_NAME == "Gadus morhua" & NIVA_CODE == "LI")
 # df_limits[sel2a,]
