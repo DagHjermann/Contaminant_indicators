@@ -1,0 +1,177 @@
+---
+title: "21_Combine_maps"
+author: "DHJ"
+date: "30 9 2021"
+output: html_document
+---
+
+
+**Adding inset of Tromsø to maps of Norwegian Sea south**   
+
+- Read images of two maps  
+- Crops one of them, adds text and border
+- Adds this as an inset to the other  
+- Also see test file in 'R_test' project
+
+
+
+[Manual for the magick package](https://cran.r-project.org/web/packages/magick/vignettes/intro.html)
+
+```{r}
+
+library(magick) 
+library(dplyr)
+library(purrr)
+
+```
+
+## Read files   
+- Norwegian Sea, south and north parts  
+- Size = 945 x 945   
+```{r}
+
+# Original
+folder <- "K:/Avdeling/Mar/NOG/JMGdata/Kart/Indikatorer/2018/Figurer rev sept 2021"
+
+dir(folder)
+
+# Norwegian Sea, south 
+fn <- paste0(folder, "/", "GADUMOR_BDE6S_M.png")
+map_south <- image_read(fn)
+
+# Norwegian Sea, north 
+fn <- paste0(folder, "/", "GADUMOR_BDE6S_N.png")
+map_north <- image_read(fn)
+
+```
+
+## Test procedure  
+
+### Crop image  
+```{r}
+
+# example of "geometry" (check ?geometry)
+# "500x300+10+20" – Crop image to 500 by 300 at position 10,20 (position measured from TOP LEFT)
+# Add '!' to keep aspect
+
+# Use the following command
+#   image_crop(map_north, "400x400+50+50!")
+# in the console, repeatedly (with different geometries), to find a good crop  
+
+inset_1 <- image_crop(map_north, "200x200+260+420!")  
+inset_1
+
+```
+
+### Add text and border   
+```{r}
+
+inset_2 <- image_annotate(inset_1, "Tromsø", size = 35, gravity = "north")
+
+### Add border  
+inset_3 <- image_border(inset_2, "black", "2x2")
+
+inset_3
+
+```
+
+### Put inset into the southern map
+```{r}
+
+map_comb <- image_composite(map_south, inset_3, offset = "+650+70")
+map_comb
+
+```
+
+
+
+## Use function  
+
+### Function   
+* Reads files ending in "_N" and "_M", making insets  
+* New figures are saved with "_comb" in name  
+```{r}
+
+make_combined_map <- function(txt, folder){
+  
+  # Norwegian Sea, south 
+  fn <- paste0(folder, "/", txt, "_M.png")
+  map_south <- image_read(fn)
+  
+  # Norwegian Sea, north 
+  fn <- paste0(folder, "/", txt, "_N.png")
+  map_north <- image_read(fn)
+  
+  # Crop northern map
+  inset_1 <- image_crop(map_north, "200x200+260+420!")  
+  
+  # Add text  
+  inset_2 <- image_annotate(inset_1, "Tromsø", size = 35, gravity = "north")
+  
+  # Add border  
+  inset_3 <- image_border(inset_2, "black", "2x2")
+  
+  # Put inset into the southern map
+  # Use image_composite  
+  map_comb <- image_composite(map_south, inset_3, offset = "+650+70")
+  
+  # Save
+  fn <- paste0(folder, "/", txt, "_comb.png")
+  image_write(map_comb, path = fn, format = "png")
+  
+}
+
+make_combined_map("GADUMOR_BDE6S", "11_magick")
+
+```
+
+### Use in original folder  
+```{r}
+
+# Original
+folder <- "K:/Avdeling/Mar/NOG/JMGdata/Kart/Indikatorer/2018/Figurer rev sept 2021"
+
+# Used to make 'map_txt' below:
+# grep("_M", dir(folder), value = TRUE) %>% 
+#   sub("_M.png", "", ., fixed = TRUE) %>%
+#   dput()
+
+map_txt <- c("GADUMOR_BDE6S", "GADUMOR_CBS7", "GADUMOR_CD", "GADUMOR_DDEPP", 
+             "GADUMOR_HCB", "GADUMOR_HG", "GADUMOR_PB")
+
+# Uncomment next line to run - this actually makes/overwrites the '_comb' picture files  
+# walk(map_txt, make_combined_map, folder = folder)
+
+
+```
+
+## Make an inset out of 'Tromsø' in the northern map   
+
+### Crop image  
+```{r}
+
+# example of "geometry" (check ?geometry)
+# "500x300+10+20" – Crop image to 500 by 300 at position 10,20 (position measured from TOP LEFT)
+# Add '!' to keep aspect
+
+# Use just sentence such as this
+# image_crop(map_north, "400x400+50+50!")
+# In the console, repeatedly, to find a good crop  
+
+inset_1 <- image_crop(map_north, "200x200+260+420!")  
+
+### Add text  
+inset_2 <- image_annotate(inset_1, "Tromsø", size = 35, gravity = "north")
+
+### Add border  
+inset_3 <- image_border(inset_2, "black", "2x2")
+
+## Put inset into the southern map
+### Use image_composite  
+map_comb <- image_composite(map_south, inset_3, offset = "+650+70")
+
+fn <- paste0(folder, "/", "GADUMOR_BDE6S_comb.png")
+
+image_write(map_comb, path = fn, format = "png")
+
+```
