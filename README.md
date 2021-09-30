@@ -29,8 +29,19 @@ Creating indicator data (levels/trends) for contaminants in biota on the Norwegi
     - NIFES + NIVA cod data are combined in script 14    
 * For blue mussel and snails (only NIVA data) we use script 05   
 
-### Norwegian Sea (Norskehavet) - data until 2020       
-* script 11, 14, 21 marked '2021_NorwSea'
-* script 13 marked '2021'
+### Norwegian Sea (Norskehavet) cod - data until 2020       
+* script 11, 12, 14 marked '2021_NorwSea'
+* script 13 marked '2021'  
+* Overview:  
+    - 11: Prepares NIFES data by adding lat-long, Træna (data in 2018 only) is combined with Vikna to form Helgeland  
+    - 12: NIFES data (Lofoten, Helgeland, Møre) medians and trends (using the same regression function as Milkys)   
+    - 13: Gets NIVA data trends (10 year trend, directly from the big excel sheet from Milkys) + medians    
+    - 14: Combines NIFES indicators (11 + 12) with NIVA indicators (13), adds Proref, EQS, food limit   
+    
+### Norwegian Sea (Norskehavet) blue mussel - data until 2020       
+* only NIVA data - script 05 modified and halfway generalized
+
+
+
 
 
