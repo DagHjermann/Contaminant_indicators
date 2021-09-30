@@ -5,7 +5,7 @@ output: html_document
 
 - The file is called *2021* to keep in line with the other 2021 files (done in late 2020 for publishing in 2021)  
 - Note the data is saved in a K folder called *2020*    
-- Note that this uses data until *2019*  
+- Updated in September 2021 to use data until *2020*  
 - Resulting data is also copied to `K:\Avdeling\Mar\NOG\JMGdata\Kart\Indikatorer\2020\Grunnlagsdata` 
 
 
@@ -19,11 +19,37 @@ library(ggplot2)
 library(maps)
 library(mapdata)
 
-# File name for export
-fn_export <- "Data_export/MytiEdu_Snegl_2020_ver4.csv"
+#
+# NOTE! File name for export
+#
+fn_export <- "Data_export/MytiEdu_Snegl_2020_ver5.csv"
 overwrite <- FALSE
 
 ```
+### Select last year  
+```{r}
+
+year_2020_data <- TRUE
+
+selected_year <- ifelse(year_2020_data, 2020, 2019)
+
+var_selected_year <- paste0("Yr_", selected_year)
+var_selected_year_lt <- paste0("Lt_", selected_year)
+
+```
+
+
+### Select region  
+```{r}
+
+region <- "Norskehavet"   
+
+# Alternatives
+# region <- "Nordsjøen"   
+# region <- "Barentshavet"   
+
+```
+
 
 ## Data
 ### Read main NIVA data  
@@ -32,33 +58,84 @@ __NOTE hard-coded ranges for excel sheet (both no. of columns and rows); 2 place
 ```{r}
 # Define column types for faster reading + fewer (or none) errors
 
-# Column types - NOTE: for data going until 2019 
-# Until column DT only
-coltypes = c(rep("text",18),                  # PARAM - "Reference stations" [column A - R]
-             rep("numeric", 4),               # "Reference station count" - "PROREF" [column S - V]
-             rep(c("numeric","text"),40),     # Data 1980 - 2019 (2 columns per year) [W - CX] - increases by 2 each year
-             "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" last year [CY-DC]
-             "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" this year [DD-DH]
-             "text",                                          # Dummy [DI]
-             rep("numeric", 10),                              # "Trend p(long) this year" - "No. of Years(short) this year" [DJ - DS]
-             "text"                           # "Trends this year" [DT]
-             )
+if (year_2020_data){
+  
+  # FOR 2020 DATA
+  # Column types - NOTE: for data going until 2019 
+  # Until column DT only
+  coltypes = c(rep("text",18),                  # PARAM - "Reference stations" [column A - R]
+               rep("numeric", 4),               # "Reference station count" - "PROREF" [column S - V]
+               rep(c("numeric","text"),41),     # Data 1980 - 2019 (2 columns per year) - INCREASE THIS NUMBER BY 1 EACH YEAR
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" last year 
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" this year 
+               "text",                                          # Dummy [DI]
+               rep("numeric", 10),                              # "Trend p(long) this year" - "No. of Years(short) this year" 
+               "text"                           # "Trends this year" [DV]
+  )
+  
+} else {
+  
+  # FOR 2019 DATA
+  # Column types - NOTE: for data going until 2019 
+  # Until column DT only
+  coltypes = c(rep("text",18),                  # PARAM - "Reference stations" [column A - R]
+               rep("numeric", 4),               # "Reference station count" - "PROREF" [column S - V]
+               rep(c("numeric","text"),40),     # Data 1980 - 2019 (2 columns per year) [W - CX] - INCREASE THIS NUMBER BY 1 EACH YEAR
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" last year [CY-DC]
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" this year [DD-DH]
+               "text",                                          # Dummy [DI]
+               rep("numeric", 10),                              # "Trend p(long) this year" - "No. of Years(short) this year" [DJ - DS]
+               "text"                           # "Trends this year" [DT]
+  )
+}
 
-# write.csv2(coltypes, "clipboard", row.names = FALSE, col.names = FAL
 
-# Old file
-# fn <- "C:/Data/seksjon 212/Milkys_2018/Big_excel_table/Data_xl_lessthans_ver14_bluered.xlsm"
+if (year_2020_data){
+  
+  #
+  # FOR 2020
+  #
+  
+  fn <- "../Milkys2_pc/Files_from_Jupyterhub_2020/Big_excel_table/Data_xl_2021-09-15_ver03.xlsm"
+  
+  # For getting number of rows:
+  data_xl_firstcol <- read_excel(fn, range = cell_cols("A:B"))
 
-# New file
-fn <- "C:/Data/seksjon 212/Milkys2_pc/Files_from_Jupyterhub_2019/Big_excel_table/Data_xl_2020-08-05_ver15.xlsm"
-data_xl_orig <- read_excel(fn,
-                      range = "A1:DT24347",    # NOTE HARD-CODED RANGE  
+  last_column <- "DV"   # HARD-CODED for 2020! - increases by 2 for each year
+  range_2020 <- paste0("A1:", last_column, nrow(data_xl_firstcol))
+  
+  data_xl_orig <- read_excel(fn,
+                      range = range_2020,   
                       col_types = coltypes)
 
-# Read the single less-than value 
-data_xl_lessthans <- read_excel(fn,
-                      range = "HM1:HM24347",    # NOTE HARD-CODED RANGE  
+  last_column <- "HQ"   # HARD-CODED for 2020! - increases by 4 for each year
+  range_2020_lessthan <- paste0(last_column, "1:", last_column, nrow(data_xl_firstcol))
+
+  # Read the single less-than value 
+  data_xl_lessthans <- read_excel(fn,
+                      range = range_2020_lessthan,    
                       col_types = "logical")
+
+
+  } else {
+    
+    #
+    # FOR 2019
+    #
+    
+    fn <- "C:/Data/seksjon 212/Milkys_2018/Big_excel_table/Data_xl_lessthans_ver14_bluered.xlsm"
+    
+    data_xl_orig <- read_excel(fn,
+                               range = "A1:DT24347",    # NOTE HARD-CODED RANGE  
+                               col_types = coltypes)
+    
+    # Read the single less-than value 
+    data_xl_lessthans <- read_excel(fn,
+                                    range = "HM1:HM24347",    # NOTE HARD-CODED RANGE  
+                                    col_types = "logical")
+    
+    
+}
 
 
 # dim(data_xl)
@@ -69,17 +146,25 @@ data_xl_lessthans <- read_excel(fn,
 ### Stations
 ```{r}
 
+#
 # Station names + coordinates
-folder_milkys <- "H:/Documents/seksjon 212/Milkys 2017/Analyse"
-df_stations <- read_excel(paste0(folder_milkys, '/Stasjonsfiler/Milkys_koordinater_Sammenligning_NOG_0410_2017_forR.xlsx'), sheet = "for_R")
-colnames(df_stations)[1:3] <- c("LATITUDE", "LONGITUDE", "STATION_CODENAME")
-df_stations$STATION_CODE <- stringr::str_extract(df_stations$STATION_CODENAME, "([^[[:blank:]]]+)") 
-df_stations$STATION_NAME <- stringr::str_extract(df_stations$STATION_CODENAME, "(?<=[[:blank:]]).*")
-df_stations <- df_stations[,c("STATION_CODE", "STATION_NAME", "LONGITUDE", "LATITUDE")]
+#
+# folder_milkys <- "H:/Documents/seksjon 212/Milkys 2017/Analyse"
+# df_stations <- read_excel(paste0(folder_milkys, '/Stasjonsfiler/Milkys_koordinater_Sammenligning_NOG_0410_2017_forR.xlsx'), sheet = "for_R")
+# colnames(df_stations)[1:3] <- c("LATITUDE", "LONGITUDE", "STATION_CODENAME")
+# df_stations$STATION_CODE <- stringr::str_extract(df_stations$STATION_CODENAME, "([^[[:blank:]]]+)") 
+# df_stations$STATION_NAME <- stringr::str_extract(df_stations$STATION_CODENAME, "(?<=[[:blank:]]).*")
+# df_stations <- df_stations[,c("STATION_CODE", "STATION_NAME", "LONGITUDE", "LATITUDE")]
+
+# For coordinates   
+dat_stations <- readxl::read_excel("../Milkys2_pc/Files_to_Jupyterhub_2019/Kartbase_edit.xlsx")
+
 head(df_stations)
 
 ```
 
+### Rename columns  
+From big excel file to Nivadatabase style  
 ```{r}
 
 data_xl <- data_xl_orig %>%
@@ -94,11 +179,13 @@ names(data_xl) <- sub("^V8", "Yr_198", names(data_xl))
 names(data_xl) <- sub("^V9", "Yr_199", names(data_xl))
 names(data_xl) <- sub("^V0", "Yr_200", names(data_xl))
 names(data_xl) <- sub("^V1", "Yr_201", names(data_xl))
+names(data_xl) <- sub("^V2", "Yr_202", names(data_xl))
 
-names(data_xl)
+# names(data_xl)
 
 ```
-### Add VDSI for 36g Færder in 2019  
+
+### Add VDSI for 36G Færder in 2019  
 ```{r}
 
 sel <- with(data_xl, STATION_CODE == "36G" & grepl("VDSI", PARAM)); sum(sel)  
@@ -111,13 +198,17 @@ data_xl$Yr_2019[sel] <- 0
 ### Check if there is older data
 ```{r}
 
+vars <- c("STATION_CODE", "Station.Name", "PARAM", paste0("Yr_", 2012:selected_year))
+# vars
+
 check <- data_xl %>% 
   filter(
     PARAM %in% c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7") & 
     LATIN_NAME %in% "Mytilus edulis") %>%
-  select(STATION_CODE, Station.Name, PARAM, Yr_2012, Yr_2013, Yr_2014, Yr_2015, Yr_2016, Yr_2017, Yr_2018, Yr_2019) %>%
-  gather("Year", "Conc", Yr_2012:Yr_2019) %>%
+  .[vars] %>%
+  pivot_longer(-c(STATION_CODE, Station.Name, PARAM), names_to = "Year", values_to = "Conc") %>%
   filter(!is.na(Conc))
+
 
 # xtabs(~STATION_CODE + Year, check)
   
@@ -138,9 +229,9 @@ species <- c("Mytilus edulis", "Nucella lapillus", "N. lapillus / L. littorea")
 sel_param <- c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7", "TBT", "VDSI", "VDSI/Intersex")
 
 # Select records
-sel_records <- with(data_xl, PARAM %in% sel_param & 
-                             LATIN_NAME %in% species & 
-                             Basis == "WW" & !is.na(Yr_2019))
+sel_records <- with(data_xl, PARAM %in% sel_param &
+                             LATIN_NAME %in% species &
+                             Basis == "WW") & !is.na(data_xl[[var_selected_year]])
 
 sum(sel_records)   # 183
 sum(data_xl$STATION_CODE == "71G")
@@ -153,7 +244,7 @@ data_xl_sel <- data_xl[sel_records,]
 data_xl_sel <- bind_cols(data_xl_sel, data_xl_lessthans[sel_records,])
 
 # remove data_xl
-rm(data_xl)
+# rm(data_xl)
 
 ```
 
@@ -193,13 +284,13 @@ nrow(df_indicator)
 To remove before export
 ```{r}
 
-value_2019 <- data_xl_sel$Yr_2019
+value_last <- data_xl_sel[[var_selected_year]]
 
 # Less-thans are set a tad lower, to be put in the lower class
-sel2 <- !is.na(data_xl_sel$Lt_2019) & data_xl_sel$Lt_2019
-value_2019[sel2] <- value_2019[sel2] - 0.00001
+sel2 <- !is.na(data_xl_sel[[var_selected_year_lt]]) & data_xl_sel[[var_selected_year_lt]]
+value_last[sel2] <- value_last[sel2] - 0.00001
 
-df_indicator$Conc <- value_2019
+df_indicator$Conc <- value_last
 
 ```
 
@@ -261,6 +352,7 @@ head(df_indicator, 3)
  
 ## Save (so far)  
 ```{r}
+
 # Save indicator for NIVA data
 saveRDS(df_indicator, "Data/05_df_indicator_bluemussel_2021.rds")
 # df_indicator <- readRDS("Data/05_df_indicator_bluemussel.rds")
@@ -290,6 +382,9 @@ maps::map(regions = "Norway", add = TRUE, col = "brown")
 ## Add lacking coordinates  
 ```{r}
 
+# For coordinates   
+# dat_stations <- readxl::read_excel("../Milkys2_pc/Files_to_Jupyterhub_2019/Kartbase_edit.xlsx")
+
 sel <- df_indicator$STATION_CODE == "227G"
 # df_indicator[sel,]
 
@@ -304,6 +399,13 @@ sel <- df_indicator$STATION_CODE == "28A2"
 df_indicator$LATITUDE[sel] <- 62.46425
 df_indicator$LONGITUDE[sel] <- 6.238633
 df_indicator$STATION_NAME[sel] <- "Ålesund havn"
+
+sel <- df_indicator$STATION_CODE == "97A3"
+# df_indicator[sel,]
+
+df_indicator$LATITUDE[sel] <- 67.29631
+df_indicator$LONGITUDE[sel] <- 14.395639
+df_indicator$STATION_NAME[sel] <- "Bodø havn"
 
 ```
 
@@ -329,18 +431,26 @@ if (FALSE)
 
 
 ## Filter df_indicator by position    
-*Be sure to selet the right area*  
+*Be sure to select the right area*  
 ```{r}
 
-# Norskehavet
-# df_indicator <- df_indicator %>% 
-#   filter(LATITUDE > 62 & LONGITUDE < 22.2)
+if (region %in% "Norskehavet"){
+  
+  df_indicator <- df_indicator %>%
+    filter(LATITUDE > 62 & LONGITUDE < 22.2)
+  
+} else if (region %in% "Nordsjøen"){
 
-# Nordsjøen
-df_indicator <- df_indicator %>% 
-  filter(LATITUDE < 62)
+  df_indicator <- df_indicator %>% 
+    filter(LATITUDE < 62)
 
-# 
+} else if (region %in% "Barentshavet"){
+  
+  df_indicator <- df_indicator %>%
+    filter(LATITUDE > 62 & LONGITUDE >= 22.2)
+  
+}
+
 tab <- df_indicator %>%
   count(STATION_NAME, LATITUDE,  LONGITUDE) %>%
   arrange(LONGITUDE) 
@@ -361,7 +471,8 @@ tab
 ```{r}
 
 # Get PROREF (Q95) and EQS
-df_q95 <- data_xl_sel[data_xl_sel$Basis %in% "WW", c("PARAM", "LATIN_NAME", "TISSUE_NAME", "PROREF", "EQS-threshold last year")] %>%
+df_q95 <- data_xl_sel[data_xl_sel$Basis %in% "WW", c("PARAM", "LATIN_NAME", "TISSUE_NAME", "PROREF", 
+                                                     "EQS-threshold last year")] %>%
   group_by(PARAM, LATIN_NAME, TISSUE_NAME) %>%
   summarise(Q95 = first(`PROREF`), EQS_threshold = first(`EQS-threshold last year`),
             .groups = "drop")
@@ -465,6 +576,55 @@ xtabs(~addNA(Mattrygghet) + PARAM + TISSUE_NAME, df_indicator)
 # tail(df_indicator)
 
 ```
+## Comparison with previous version    
+- Takes 20 seconds or so  
+```{r}
+
+#
+# Here, previous blue mussel for Norwegian Sea
+#
+
+# NOTE - HARD-CODED
+df_indicator_p <- read.csv2("Data_export/2018 report Norwegian Sea/MytiEdu_2018_ver1.csv")
+
+library(compareDF)
+
+names(df_indicator %>% select(-LATIN_NAME, -Conc, -TISSUE_NAME , -Q95, -EQS_threshold))
+names(df_indicator_p)
+
+ctable = compare_df(
+  df_indicator_p %>% select(-STATION_NAME, -LONGITUDE, -LATITUDE, -SPECIES_ID), 
+  df_indicator %>% select(-STATION_NAME, -LONGITUDE, -LATITUDE, -SPECIES_ID,
+                          -LATIN_NAME, -Conc, -TISSUE_NAME , -Q95, -EQS_threshold), 
+  group_col = c("STATION_CODE", "PARAM")
+  )
+
+```
+
+```{r}
+ctable$comparison_df
+
+```
+
+```{r, fig.width = 9, fig.height=10}
+create_output_table(ctable)
+```
+
+### Changes for Norwegian Sea blue mussel 2018-2021:  
+trend KLASSE EQS Mat
+- CB_S7:  
+    - 91A2: KLASSE 3 -> 2  
+    - 98A2: trend 1 -> 2 (dvs ingen trend til oppadgående)  
+- HG:     
+    - Mattrygghet = 1 for alle plott
+    - Endringer i PROREF-klasse på 3 stasjoner (91A2, 98A2, I965), endring i EQS for 2 stasjoner (97A2, 98A2)
+- PB:
+    - I965: trend 3 -> 1 
+    - I969: trend 3 -> 1, KLASSE 2 -> 1  
+    
+```{r}
+
+```
 
 
 ## Save and export  
@@ -516,8 +676,8 @@ df <- df_indicator %>%
   mutate(Time_trend =
            case_when(trend %in% 0 ~ "Not calc.",
                      trend %in% 1 ~ "No trend",
-                     trend %in% 2 ~ "Down",
-                     trend %in% 3 ~ "Up")
+                     trend %in% 2 ~ "Up",
+                     trend %in% 3 ~ "Down")
          ) %>%
   mutate(Time_trend = factor(Time_trend, levels = c("Not calc.", "No trend", "Down", "Up")))
 
@@ -583,7 +743,7 @@ df %>%
   ggplot(aes(LONGITUDE, LATITUDE, Conc, color = factor(Mattrygghet))) + 
   annotation_map(simple_map, fill = "grey60") +
   geom_point() +
-  scale_color_manual(values = c("green", "red"), na.value = "grey20") +
+  scale_color_manual(values = cN("green", "red"), na.value = "grey20") +
   facet_wrap(~PARAM) +
   coord_map("lambert", parameters = c(10.4, 59.3))
 
