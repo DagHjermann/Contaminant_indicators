@@ -23,6 +23,14 @@ library(ggplot2)
 
 ```
 
+### Year  
+```{r}
+
+year_2020_data <- TRUE
+
+```
+
+
 
 ### Area
 ```{r}
@@ -34,39 +42,108 @@ area <- "Norwegian_Sea"
 
 
 ## Data
+
 ### Read main NIVA data  
-Only like 10 seconds (3-4 minutes if column types is not given)  
-__NOTE hard-coded ranges for excel sheet (both no. of columns and rows); 2 places__
+
+- Only like 10 seconds (3-4 minutes if column types is not given)  
+- __NOTE hard-coded number of columns for excel sheet (4 places)__  
+- Row nmber 'automatic'
+
 ```{r}
 # Define column types for faster reading + fewer (or none) errors
 
-# Column types, until column DP only
-coltypes = c(rep("text",18),                  # Parameter Code - Backgr_stations
-             rep("numeric", 4),               # Backgr_Nstat - Q95
-             rep(c("numeric","text"),40),     # Data 1980 - 2019 (2 columns per year) [W/X - ...]
-             rep(c("text","numeric","numeric","numeric","numeric"),2),  # Ant.prøver - EQS threshold, 2016+2017 
-             "text",                                          # OC 
-             rep("numeric",10), "text"                        # Trend p(long) - Trends this year [DJ-DT]
-             )
+if (year_2020_data){
+  
+  # FOR 2020 DATA
+  # Column types - NOTE: for data going until 2019 
+  # Until column DT only
+  coltypes = c(rep("text",18),                  # PARAM - "Reference stations" [column A - R]
+               rep("numeric", 4),               # "Reference station count" - "PROREF" [column S - V]
+               rep(c("numeric","text"),41),     # Data 1980 - 2019 (2 columns per year) - INCREASE THIS NUMBER BY 1 EACH YEAR
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" last year 
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" this year 
+               "text",                                          # Dummy [DI]
+               rep("numeric", 10),                              # "Trend p(long) this year" - "No. of Years(short) this year" 
+               "text"                           # "Trends this year" [DV]
+  )
+  
+} else {
+  
+  # FOR 2019 DATA
+  # Column types - NOTE: for data going until 2019 
+  # Until column DT only
+  coltypes = c(rep("text",18),                  # PARAM - "Reference stations" [column A - R]
+               rep("numeric", 4),               # "Reference station count" - "PROREF" [column S - V]
+               rep(c("numeric","text"),40),     # Data 1980 - 2019 (2 columns per year) [W - CX] - INCREASE THIS NUMBER BY 1 EACH YEAR
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" last year [CY-DC]
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" this year [DD-DH]
+               "text",                                          # Dummy [DI]
+               rep("numeric", 10),                              # "Trend p(long) this year" - "No. of Years(short) this year" [DJ - DS]
+               "text"                           # "Trends this year" [DT]
+  )
+}
 
-# write.csv2(coltypes, "clipboard", row.names = FALSE, col.names = FALSE)
 
-fn <- "C:/Data/seksjon 212/Milkys/Big_excel_table/Data_xl_lessthans_ver15.xlsm"
-fn <- "C:/Data/seksjon 212/Milkys2_pc/Files_from_Jupyterhub_2019/Big_excel_table/Data_xl_2020-08-05_ver15.xlsm"
-data_xl <- read_excel(fn,
-                      range = "A1:DT24347",    # NOTE HARD-CODED RANGE  
+if (year_2020_data){
+  
+  #
+  # FOR 2020
+  #
+  
+  fn <- "../Milkys2_pc/Files_from_Jupyterhub_2020/Big_excel_table/Data_xl_2021-09-15_ver03.xlsm"
+  
+  # For getting number of rows:
+  data_xl_firstcol <- read_excel(fn, range = cell_cols("A:B"))
+
+  # 
+  # HARD-CODED for 2020! last column of 'data_xl_orig' - increases by 2 for each year
+  #
+  last_column <- "DV"
+  range_2020 <- paste0("A1:", last_column, nrow(data_xl_firstcol))
+  
+  data_xl_orig <- read_excel(fn,
+                      range = range_2020,   
                       col_types = coltypes)
 
-# Read the single less-than value from 2019
-data_xl_lessthans <- read_excel(fn,
-                      range = "HM1:HM24347",    # NOTE HARD-CODED RANGE  
+  # 
+  # HARD-CODED for 2020! last column of 'data_xl_lessthans' - increases by 4 for each year
+  #
+  last_column <- "HQ"   
+  range_2020_lessthan <- paste0(last_column, "1:", last_column, nrow(data_xl_firstcol))
+
+  # Read the single less-than value 
+  data_xl_lessthans <- read_excel(fn,
+                      range = range_2020_lessthan,    
                       col_types = "logical")
 
+
+  } else {
+    
+    #
+    # FOR 2019
+    #
+    
+    fn <- "C:/Data/seksjon 212/Milkys_2018/Big_excel_table/Data_xl_lessthans_ver14_bluered.xlsm"
+    
+    data_xl_orig <- read_excel(fn,
+                               range = "A1:DT24347",    # NOTE HARD-CODED RANGE  
+                               col_types = coltypes)
+    
+    # Read the single less-than value 
+    data_xl_lessthans <- read_excel(fn,
+                                    range = "HM1:HM24347",    # NOTE HARD-CODED RANGE  
+                                    col_types = "logical")
+    
+    
+}
+
+data_xl <- data_xl_orig
 
 # dim(data_xl)
 # [1]  29546   216
 
 ```
+
 
 ### 'data_xl_sel' = selected rows of excel table
 ```{r}
@@ -128,7 +205,7 @@ data_xl[sel_records2,] %>% xtabs(~`Parameter Code` + Tissue, . )
 
 
 ### Station data  
-Shortened from script 98 iin 'Milkys'   
+Shortened from script 98 in 'Milkys'   
 ```{r}
 
 data_stations <- readxl::read_excel("../Milkys2_pc/Files_to_Jupyterhub_2019/Kartbase_edit.xlsx") %>%
@@ -175,13 +252,43 @@ df_limits <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx")
 - To remove before export
 ```{r}
 
-value_lastyear <- data_xl_sel$V19    # HARD_CODED YEAR
+if (year_2020_data){
+  
+  value_lastyear <- data_xl_sel$V20          # HARD_CODED YEAR
+  
+  # Less-thans are set a tad lower, to be put in the lower class
+  sel2 <- !is.na(data_xl_sel$Lt_2019) & data_xl_sel$Lt_2019
+  
+} else {
+  
+  value_lastyear <- data_xl_sel$V19          # HARD_CODED YEAR
+  
+  # Less-thans are set a tad lower, to be put in the lower class
+  sel2 <- !is.na(data_xl_sel$Lt_2019) & data_xl_sel$Lt_2019
+  
+}
 
-# Less-thans are set a tad lower, to be put in the lower class
-sel2 <- !is.na(data_xl_sel$Lt_2019) & data_xl_sel$Lt_2019
 value_lastyear[sel2] <- value_lastyear[sel2] - 0.00001
 
 data_xl_sel$Conc_for_check <- value_lastyear
+
+```
+### For checking  
+
+```{r}
+
+if (FALSE){
+  
+  data_xl %>% 
+    filter(`Parameter Code` == "HG" & Basis == "WW" & `Station Code` == "43B2") %>%
+    select(`Parameter Code`, Basis, `Station Code`, `Station Name`, PROREF, V19, V20)
+  
+  # Don't need Basis == "WW" - taht has been selected already
+  data_xl_sel %>%
+    filter(`Parameter Code` == "HG" & `Station Code` == "43B2") %>%
+    select(`Parameter Code`, Basis, `Station Code`, `Station Name`, PROREF, V19, V20, Conc_for_check)
+  
+}
 
 ```
 
