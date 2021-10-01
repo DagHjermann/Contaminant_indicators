@@ -35,7 +35,7 @@ library(ggplot2)
 
 
 # File name for export
-fn <- "Data_export/GaduMor_2021data_Norw_Sea_ver03"
+fn <- "Data_export/GaduMor_2021data_Norw_Sea_ver04"
 fn_csv <- paste0(fn, ".csv")
 fn_xlsx <- paste0(fn, ".xlsx")
 overwrite <- FALSE
@@ -52,10 +52,14 @@ Indicators from NIVA serves as the starting point for combining the data
 ```{r}
 
 # NIVA medians
-data_xl_sel <- readRDS("Data/13_data_xl_sel (2021_NorwSea).rds")
+fn <- "Data/13_data_xl_sel (2021_NorwSea).rds"
+data_xl_sel <- readRDS(fn)
+Sys.time() - file.info(fn)$mtime
 
 # NIVA indicators
-df_indicator <- readRDS("Data/13_df_indicator_NIVA_only (2021_NorwSea).rds")
+fn <- "Data/13_df_indicator_NIVA_only (2021_NorwSea).rds"
+df_indicator <- readRDS(fn)
+Sys.time() - file.info(fn)$mtime
 
 # NIFES medians
 df_median <- readRDS("Data/11_df_median (Norwegian Sea 2020).rds") %>%
@@ -90,7 +94,7 @@ nifes_regression$Posisjon[sel] <- "Lofoten"
 # Adding coordinates
 #
 df_2018 <- read_excel(
-  "Data_export/2018 report/GaduMor_2018_withNIFES_ver4.xlsx") 
+  "Data_export/2018 report Norwegian Sea/GaduMor_2018_withNIFES_ver4.xlsx") 
 
 df_2018_norwegiansea <- df_2018 %>%
   group_by(STATION_NAME) %>%
@@ -353,6 +357,9 @@ df_indicator2 <- df_indicator2 %>%
   filter(LATIN_NAME %in% "Gadus morhua") %>% 
   arrange(PARAM,LONGITUDE,LATITUDE)
 
+# Back up old/outdated file (NIVA cod was from 2019)
+# file.copy("Data/14_df_indicator2_cod_ver01 (2021_NorwSea.rds", "Data/14_df_indicator2_cod_ver01 (2021_NorwSea_OUTDATED.rds")
+
 # Save with all variables
 saveRDS(df_indicator2, file = "Data/14_df_indicator2_cod_ver01 (2021_NorwSea.rds")
 
@@ -361,7 +368,7 @@ vars <- c("PROJECT_ID", "STATION_CODE", "STATION_NAME",
   "LONGITUDE", "LATITUDE", "PARAM", "N", "KLASSE", 
   "SPECIES_ID", "trend", "NIVA_CODE", "EQS", "Mattrygghet")
 
-# DOnt include HG in liver
+# Don't include HG in liver
 sel <- with(df_indicator2, !(PARAM == "HG" & TISSUE_NAME == "Lever"))
 sum(sel)
 mean(sel)
@@ -376,9 +383,14 @@ write_safe <- function(data, filename, save_function, overwrite = FALSE, ...){
     save_function(data, file = filename, ...)
     cat("Data written to file", filename, "\n")
   } else {
-    cat("File", filename, "exists, data not saved.\nSet 'overwrite = TRUE' to overwrite file anyway.\n")
+    warning("File ", filename, " exists! Data not saved. \n")
+    cat("Set 'overwrite = TRUE' to overwrite file anyway.\n\n")
   }
 }
+
+# Back up old/outdated file (NIVA cod was from 2019)
+# file.copy("Data_export/GaduMor_2021data_Norw_Sea_ver03.csv", "Data_export/GaduMor_2021data_Norw_Sea_ver03_OUTDATED.csv")
+# file.copy("Data_export/GaduMor_2021data_Norw_Sea_ver03.xlsx", "Data_export/GaduMor_2021data_Norw_Sea_ver03_OUTDATED.xlsx")
 
 # Csv
 write_safe(df_indicator2[sel,vars], filename = fn_csv, save_function = write.csv,
@@ -389,6 +401,51 @@ library(openxlsx)
 write_safe(df_indicator2[sel,vars], filename = fn_xlsx, save_function = write.xlsx,
            overwrite = overwrite)
 
+```
+
+## Compare new data with outdated data  
+```{r}
+
+# file.copy("Data_export/GaduMor_2021data_Norw_Sea_ver03.xlsx", "Data_export/GaduMor_2021data_Norw_Sea_ver03_OUTDATED.xlsx")
+
+# NOTE - HARD-CODED
+df_indicator_p <- readxl::read_excel("Data_export/GaduMor_2021data_Norw_Sea_ver03_OUTDATED.xlsx")
+df_indicator <- readxl::read_excel("Data_export/GaduMor_2021data_Norw_Sea_ver03.xlsx")
+
+if (FALSE){
+  
+  # Compare just Tromsø mercury
+  bind_rows(
+    df_indicator_p %>%
+      filter(PARAM == "HG" & STATION_CODE == "43B2") %>%
+      select(PARAM, STATION_CODE, KLASSE, trend, EQS, Mattrygghet),
+    df_indicator %>%
+      filter(PARAM == "HG" & STATION_CODE == "43B2") %>%
+      select(PARAM, STATION_CODE, KLASSE, trend, EQS, Mattrygghet)
+  )
+}
+
+```
+
+### Comparison      
+```{r, fig.width = 9, fig.height=10}
+
+ctable = compare_df(
+  df_indicator %>% 
+    select(PARAM, STATION_CODE, KLASSE, trend, EQS, Mattrygghet),
+  df_indicator_p %>% 
+    select(PARAM, STATION_CODE, KLASSE, trend, EQS, Mattrygghet), 
+  group_col = c("PARAM", "STATION_CODE")
+  )
+
+create_output_table(ctable)
+
+```
+
+
+
+### For reading back / checking  
+```{r}
 
 if (FALSE){
   
@@ -422,7 +479,9 @@ if (FALSE){
   
 }
 
+
 ```
+
 ## Compare with old file  
 ```{r}
 

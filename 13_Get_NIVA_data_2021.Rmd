@@ -383,6 +383,8 @@ if (overwrite){
     
     
   } else if (area == "Norwegian_Sea"){
+
+    # file.copy("Data/13_df_indicator_NIVA_only (2021_NorwSea).rds", "Data/13_df_indicator_NIVA_only (2021_NorwSea)_OUTDATED.rds")
     
     # Save indicator for NIVA data
     saveRDS(df_indicator, "Data/13_df_indicator_NIVA_only (2021_NorwSea).rds")
@@ -404,4 +406,29 @@ if (FALSE) {
 }
 
 ```
+
+
+## Compare with the outdated version  
+```{r}
+
+df_indicator_p <- readxl::read_excel("Data_export/GaduMor_2021data_Norw_Sea_ver03.xlsx")
+# readRDS("Data/13_df_indicator_NIVA_only (2021_NorwSea)_OUTDATED.rds")
+df_indicator <- readRDS("Data/13_df_indicator_NIVA_only (2021_NorwSea).rds")
+
+
+if (FALSE){
+  
+  df_indicator_p %>% 
+    filter(PARAM == "HG" & STATION_CODE == "43B2") %>%
+    select(PARAM, STATION_CODE, KLASSE, trend, EQS, Mattrygghet)
+  
+  df_indicator %>% 
+    filter(PARAM == "HG" & STATION_CODE == "43B2") %>%
+    select(PARAM, STATION_CODE, trend)
+  
+  }
+
+```
+
+
 
