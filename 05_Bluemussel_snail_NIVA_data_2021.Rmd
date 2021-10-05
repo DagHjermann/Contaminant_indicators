@@ -22,10 +22,11 @@ library(mapdata)
 #
 # NOTE! File name for export
 #
-fn_export <- "Data_export/MytiEdu_Snegl_2020_ver5.csv"
+fn_export <- "Data_export/MytiEdu_Snegl_2020_ver6.csv"
 overwrite <- FALSE
 
 ```
+
 ### Select last year  
 ```{r}
 
@@ -157,9 +158,10 @@ if (year_2020_data){
 # df_stations <- df_stations[,c("STATION_CODE", "STATION_NAME", "LONGITUDE", "LATITUDE")]
 
 # For coordinates   
-dat_stations <- readxl::read_excel("../Milkys2_pc/Files_to_Jupyterhub_2019/Kartbase_edit.xlsx")
+dat_stations <- readxl::read_excel("../Milkys2_pc/Files_to_Jupyterhub_2019/Kartbase_edit.xlsx") %>%
+  rename(LATITUDE = Lat, LONGITUDE = Long, STATION_NAME = Station_name)
 
-head(df_stations)
+head(dat_stations)
 
 ```
 
@@ -212,7 +214,7 @@ check <- data_xl %>%
 
 # xtabs(~STATION_CODE + Year, check)
   
-check <- left_join(check, df_stations, by = "STATION_CODE")
+check <- left_join(check, dat_stations, by = "STATION_CODE")
                    
 check %>% 
   filter(LATITUDE > 62 & LONGITUDE < 22.2) %>%
@@ -269,7 +271,7 @@ df_indicator <- tibble(
   LATIN_NAME = data_xl_sel[["LATIN_NAME"]],
   STATION_CODE = data_xl_sel[["STATION_CODE"]])
 
-df_indicator <- left_join(df_indicator, df_stations, by = "STATION_CODE")
+df_indicator <- left_join(df_indicator, dat_stations, by = "STATION_CODE")
 df_indicator$PARAM <- data_xl_sel[["PARAM"]]
 df_indicator$N <- NA
 
@@ -622,10 +624,6 @@ trend KLASSE EQS Mat
     - I965: trend 3 -> 1 
     - I969: trend 3 -> 1, KLASSE 2 -> 1  
     
-```{r}
-
-```
-
 
 ## Save and export  
 * In folder 'data': save RDS file with all variables   
@@ -654,7 +652,7 @@ if (overwrite | !file.exists(fn_export)){
   write.csv2(df_indicator[sel,vars], file = fn_export, row.names = FALSE, na = "")
   cat("Data written to file", fn_export, "\n")
 } else {
-  warning("File", fn_export, "exists, data not saved.\nSet 'overwrite <- TRUE' to overwrite file.\n")
+  warning("File ", fn_export, " exists, data not saved.\nSet 'overwrite <- TRUE' to overwrite file.\n")
 }
 
 
@@ -665,6 +663,33 @@ if (FALSE){
   xtabs(~STATION_CODE, df1)
   xtabs(~STATION_CODE, df2)
 }
+
+```
+
+## Comparison with previous version    
+- Takes 20 seconds or so  
+```{r}
+
+#
+# Here, previous blue mussel for Norwegian Sea
+#
+
+# NOTE - HARD-CODED
+df_indicator_p <- read.csv2("Data_export/2021 report Norwegian Sea mussels and snails/MytiEdu_Snegl_2020_ver5.csv")
+
+library(compareDF)
+
+names(df_indicator %>% select(-LATIN_NAME, -Conc, -TISSUE_NAME , -Q95, -EQS_threshold))
+names(df_indicator_p)
+
+ctable = compare_df(
+  df_indicator_p %>% select(-SPECIES_ID), 
+  df_indicator %>% select(-SPECIES_ID,
+                          -LATIN_NAME, -Conc, -TISSUE_NAME , -Q95, -EQS_threshold), 
+  group_col = c("STATION_CODE", "PARAM")
+  )
+
+create_output_table(ctable)
 
 ```
 
