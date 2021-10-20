@@ -1,0 +1,430 @@
+Folder PATH listing for volume OF5-large-03
+Volume serial number is 000000CF BEF1:D367
+K:\AVDELING\MAR\NOG\JMGDATA\KART\INDIKATORER
+|   db1 - Copy (2).mdb
+|   db1 - Copy (3).mdb
+|   db1 - Copy (4).mdb
+|   db1 - Copy (5).mdb
+|   db1 - Copy (6).mdb
+|   db1 - Copy (7).mdb
+|   db1 - Copy.mdb
+|   db1.mdb
+|   
++---2016
+|   |   Barentshavet.mxd
+|   |   Indikatorer_Beskrivelse_Utkast_20170102.docx
+|   |   Indikatorer_M.mxd
+|   |   Indikatorer_N1.mxd
+|   |   Indikatorer_N2.mxd
+|   |   Indikatorer_S.mxd
+|   |   Indikator_2017KopiForrigeVersjon.mdb
+|   |   Indikator_2017Kopi_Backup.accdb
+|   |   Indikator_fra_trend_20170104.xlsm
+|   |   Indikator_Tabell.xlsm
+|   |   
+|   \---Figurer
+|       +---M
+|       |       gadumor_cd.png
+|       |       gadumor_ddepp.png
+|       |       gadumor_hcb.png
+|       |       gadumor_hg.png
+|       |       gadumor_pb.png
+|       |       gadumor_pcb.png
+|       |       mytiedu_cd.png
+|       |       mytiedu_dde.png
+|       |       mytiedu_hcb.png
+|       |       mytiedu_hg.png
+|       |       mytiedu_pb.png
+|       |       mytiedu_pcb.png
+|       |       
+|       +---N
+|       |       gadumor_cd.png
+|       |       gadumor_ddepp.png
+|       |       gadumor_hcb.png
+|       |       gadumor_hg.png
+|       |       gadumor_pb.png
+|       |       gadumor_pcb.png
+|       |       mytiedu_cd.png
+|       |       mytiedu_dde.png
+|       |       mytiedu_hcb.png
+|       |       mytiedu_hg.png
+|       |       mytiedu_pb.png
+|       |       mytiedu_pcb.png
+|       |       
+|       \---S
+|               gadumor_cd.png
+|               gadumor_ddepp.png
+|               gadumor_hcb.png
+|               gadumor_hg.png
+|               gadumor_pb.png
+|               gadumor_pcb.png
+|               mytiedu_cd.png
+|               mytiedu_dde.png
+|               mytiedu_hcb.png
+|               mytiedu_hg.png
+|               mytiedu_pb.png
+|               mytiedu_pcb.png
+|               
++---2017
+|   |   Indikatorer_S_test.mxd
+|   |   Indikatorer_S_test.png
+|   |   MytiEdu_2018.csv
+|   |   MytiEdu_2018.txt
+|   |   
+|   +---Figurer
+|   |       GADUMOR_BDE6S_M.png
+|   |       GADUMOR_BDE6S_N.png
+|   |       GADUMOR_BDE6S_S-2.png
+|   |       GADUMOR_BDE6S_S.png
+|   |       GADUMOR_CB_S7_M.png
+|   |       GADUMOR_CB_S7_N.png
+|   |       GADUMOR_CB_S7_S-2.png
+|   |       GADUMOR_CB_S7_S-3.png
+|   |       GADUMOR_CB_S7_S.png
+|   |       GADUMOR_CD_M.png
+|   |       GADUMOR_CD_N.png
+|   |       GADUMOR_CD_S-2.png
+|   |       GADUMOR_CD_S-3.png
+|   |       GADUMOR_CD_S-4.png
+|   |       GADUMOR_CD_S.png
+|   |       GADUMOR_DDEPP_M.png
+|   |       GADUMOR_DDEPP_N.png
+|   |       GADUMOR_DDEPP_S.png
+|   |       GADUMOR_HCB_M.png
+|   |       GADUMOR_HCB_N.png
+|   |       GADUMOR_HCB_S.png
+|   |       GADUMOR_HG_M.png
+|   |       GADUMOR_HG_N.png
+|   |       GADUMOR_HG_S.png
+|   |       GADUMOR_PB_M.png
+|   |       GADUMOR_PB_N.png
+|   |       GADUMOR_PB_S-2.png
+|   |       GADUMOR_PB_S-3.png
+|   |       GADUMOR_PB_S-4.png
+|   |       GADUMOR_PB_S.png
+|   |       MYTIEDU_BDE6S_M.png
+|   |       MYTIEDU_BDE6S_N.png
+|   |       MYTIEDU_BDE6S_S-2.png
+|   |       MYTIEDU_BDE6S_S.png
+|   |       MYTIEDU_CB_S7_M.png
+|   |       MYTIEDU_CB_S7_N.png
+|   |       MYTIEDU_CB_S7_S-2.png
+|   |       MYTIEDU_CB_S7_S.png
+|   |       MYTIEDU_CD_M.png
+|   |       MYTIEDU_CD_N.png
+|   |       MYTIEDU_CD_S-2.png
+|   |       MYTIEDU_CD_S.png
+|   |       MYTIEDU_DDEPP_M.png
+|   |       MYTIEDU_DDEPP_N.png
+|   |       MYTIEDU_DDEPP_S.png
+|   |       MYTIEDU_HCB_M.png
+|   |       MYTIEDU_HCB_N.png
+|   |       MYTIEDU_HCB_S.png
+|   |       MYTIEDU_HG_M.png
+|   |       MYTIEDU_HG_N.png
+|   |       MYTIEDU_HG_S-2.png
+|   |       MYTIEDU_HG_S.png
+|   |       MYTIEDU_PB_M.png
+|   |       MYTIEDU_PB_N.png
+|   |       MYTIEDU_PB_S-2.png
+|   |       MYTIEDU_PB_S.png
+|   |       NUCELAP_TBT_M.png
+|   |       NUCELAP_TBT_N.png
+|   |       NUCELAP_TBT_S-2.png
+|   |       NUCELAP_TBT_S.png
+|   |       NUCELAP_VDSI_M.png
+|   |       NUCELAP_VDSI_N.png
+|   |       NUCELAP_VDSI_S-2.png
+|   |       NUCELAP_VDSI_S.png
+|   |       
+|   \---Grunnlagsdata
+|           Data og rettelser.txt
+|           GaduMor_2018_testHG.xlsx
+|           GaduMor_2018_withNIFES.xlsx
+|           GaduMor_2018_withNIFES_ver3.xlsx
+|           GaduMor_2018_withNIFES_ver4.xlsx
+|           Indikatorer_2018_M.mxd
+|           Indikatorer_2018_N.mxd
+|           Indikatorer_2018_S.mxd
+|           MytiEdu_2018.csv
+|           MytiEdu_2018_ver2.csv
+|           MytiEdu_2018_ver3.csv
+|           MytiEdu_2018_ver3_tillegg.xlsx
+|           MytiEdu_2018_ver4.xlsx
+|           Nucelap_2018_ver2.csv
+|           NuceLap_2018_ver3.xlsx
+|           
++---2018
+|   +---Figurer
+|   |   |   GADUMOR_BDE6S_M.png
+|   |   |   GADUMOR_BDE6S_N.png
+|   |   |   GADUMOR_CBS7_M_Rev2021.png
+|   |   |   GADUMOR_CBS7_N_Rev2021.png
+|   |   |   GADUMOR_CD_M.png
+|   |   |   GADUMOR_CD_N.png
+|   |   |   GADUMOR_DDEPP_M_Ver2.png
+|   |   |   GADUMOR_DDEPP_N.png
+|   |   |   GADUMOR_HCB_M_Rev2021.png
+|   |   |   GADUMOR_HCB_N.png
+|   |   |   GADUMOR_HG_M_Rev2021.png
+|   |   |   GADUMOR_HG_N.png
+|   |   |   GADUMOR_PB_M.png
+|   |   |   GADUMOR_PB_N.png
+|   |   |   MYTIEDU_BDE6S_M.png
+|   |   |   MYTIEDU_BDE6S_N.png
+|   |   |   MYTIEDU_CBS7_M.png
+|   |   |   MYTIEDU_CBS7_N.png
+|   |   |   MYTIEDU_CD_M.png
+|   |   |   MYTIEDU_CD_N.png
+|   |   |   MYTIEDU_HG_M_Ver2.png
+|   |   |   MYTIEDU_HG_N_Ver2.png
+|   |   |   MYTIEDU_PB_M.png
+|   |   |   MYTIEDU_PB_N.png
+|   |   |   
+|   |   +---2018-versjoner utdatert i 2021
+|   |   |       GADUMOR_CBS7_M_Ver3.png
+|   |   |       GADUMOR_CBS7_N_Ver2.png
+|   |   |       GADUMOR_HCB_M_Ver2.png
+|   |   |       GADUMOR_HG_M.png
+|   |   |       
+|   |   +---Eldre versjoner
+|   |   |       GADUMOR_CBS7_M.png
+|   |   |       GADUMOR_CBS7_M_Ver2.png
+|   |   |       GADUMOR_CBS7_N.png
+|   |   |       GADUMOR_DDEPP_M.png
+|   |   |       GADUMOR_HCB_M.png
+|   |   |       MYTIEDU_HG_M.png
+|   |   |       MYTIEDU_HG_N.png
+|   |   |       
+|   |   \---Rev2021
+|   |       |   Forurensning i blÜskjell  Norskehavet mal til oppdatering 2021- NIVA 20.10.2021.docx
+|   |       |   Forurensning kysttorsk i Norskehavet mal oppdatering 2021-NIVA 20.10.21.docx
+|   |       |   Grenseverdier_fra_Sylvia.xlsx
+|   |       |   Tegnforklaring - legend -revidert MSC 20.10.21.pptx
+|   |       |   
+|   |       \---Eldre utgaver - ikke i bruk
+|   |               Forurensning i blÜskjell  Norskehavet mal til oppdatering 2021-MSC 28.09.2021.docx
+|   |               Forurensning i blÜskjell  Norskehavet mal til oppdatering 2021-MSC 29.09.2021.docx
+|   |               Forurensning i blÜskjell  Norskehavet mal til oppdatering 2021.docx
+|   |               Forurensning kysttorsk i Norskehavet mal oppdatering 2021-MSC-DHJ 03.10.2021.docx
+|   |               Forurensning kysttorsk i Norskehavet mal oppdatering 2021-MSC-DHJ 19.10.2021.docx
+|   |               Forurensning kysttorsk i Norskehavet mal oppdatering 2021-MSC-DHJ 19.10.2021versjon 2.docx
+|   |               Forurensning kysttorsk i Norskehavet mal oppdatering 2021-MSC-DHJ 28.09.2021.docx
+|   |               Forurensning kysttorsk i Norskehavet mal oppdatering 2021-MSC-DHJ 29.09.2021.docx
+|   |               Forurensning kysttorsk i Norskehavet mal oppdatering 2021-MSC-DHJ Mè OPPDATERES.docx
+|   |               Forurensning kysttorsk i Norskehavet mal oppdatering 2021-MSC.docx
+|   |               Forurensning kysttorsk i Norskehavet mal oppdatering 2021.docx
+|   |               Nye kart kysttorsk Norskehavet.docx
+|   |               Tegnforklaring - legend - justert MSC 21.10.21.pptx
+|   |               Tegnforklaring - legend.pptx
+|   |               
+|   +---Figurer rev okt 2021
+|   |       GADUMOR_CBS7_M.png
+|   |       GADUMOR_CBS7_N.png
+|   |       GADUMOR_CD_M.png
+|   |       GADUMOR_CD_N.png
+|   |       GADUMOR_HG_M.png
+|   |       GADUMOR_HG_N.png
+|   |       GADUMOR_PB_M.png
+|   |       GADUMOR_PB_N.png
+|   |       MYTIEDU_BDE6S_M.png
+|   |       MYTIEDU_BDE6S_N.png
+|   |       MYTIEDU_CB_S7_M.png
+|   |       MYTIEDU_CB_S7_N.png
+|   |       MYTIEDU_CD_M.png
+|   |       MYTIEDU_CD_N.png
+|   |       MYTIEDU_HG_M.png
+|   |       MYTIEDU_HG_N.png
+|   |       MYTIEDU_PB_M.png
+|   |       MYTIEDU_PB_N.png
+|   |       MYTIEDU_TBT_M.png
+|   |       SNEGL_TBT_M.png
+|   |       SNEGL_VDSI_M.png
+|   |       
+|   +---Figurer rev sept 2021
+|   |       GADUMOR_BDE6S_comb.png
+|   |       GADUMOR_BDE6S_M.png
+|   |       GADUMOR_BDE6S_N.png
+|   |       GADUMOR_CBS7_comb.png
+|   |       GADUMOR_CBS7_M.png
+|   |       GADUMOR_CBS7_N.png
+|   |       GADUMOR_CD_comb.png
+|   |       GADUMOR_CD_M.png
+|   |       GADUMOR_CD_N.png
+|   |       GADUMOR_DDEPP_comb.png
+|   |       GADUMOR_DDEPP_M.png
+|   |       GADUMOR_DDEPP_N.png
+|   |       GADUMOR_HCB_comb.png
+|   |       GADUMOR_HCB_M.png
+|   |       GADUMOR_HCB_N.png
+|   |       GADUMOR_HG_comb.png
+|   |       GADUMOR_HG_M.png
+|   |       GADUMOR_HG_N.png
+|   |       GADUMOR_PB_comb.png
+|   |       GADUMOR_PB_M.png
+|   |       GADUMOR_PB_N.png
+|   |       Grunnlagsdata Norskehavet ('03'-filene).lnk
+|   |       Nye kart kysttorsk Norskehavet.docx
+|   |       Tegnforklaring - legend.pptx
+|   |       
+|   \---Grunnlagsdata
+|           GaduMor_2018_withNIFES_ver2.xlsx
+|           GaduMor_2018_withNIFES_ver3.xlsx
+|           GaduMor_2018_withNIFES_ver4.xlsx
+|           Indikatorer - HI og NIVA .docx
+|           MytiEdu_2018_ver1.xlsx
+|           
++---2019
+|   |   Indikatorer Symboler.docx
+|   |   
+|   +---Figurer
+|   |       GADUMOR_BDE6S_2019-v2.png
+|   |       GADUMOR_BDE6S_2019-v3.png
+|   |       GADUMOR_BDE6S_2019-v4.png
+|   |       GADUMOR_BDE6S_2019.png
+|   |       GADUMOR_CBS7_2019.png
+|   |       GADUMOR_CD_2019-v2.png
+|   |       GADUMOR_CD_2019.png
+|   |       GADUMOR_DDEPP_2019.png
+|   |       GADUMOR_HCB_2019.png
+|   |       GADUMOR_HG_2019.png
+|   |       GADUMOR_PB_2019-v2.png
+|   |       GADUMOR_PB_2019.png
+|   |       GADUMOR_stasjoner.png
+|   |       MYTIEDU_BDE6S_2019.png
+|   |       MYTIEDU_CBS7_2019.png
+|   |       MYTIEDU_CD_2019.png
+|   |       MYTIEDU_DDEPP_2019.png
+|   |       MYTIEDU_HCB_2019.png
+|   |       MYTIEDU_HG_2019-v2.png
+|   |       MYTIEDU_HG_2019.png
+|   |       MYTIEDU_PB_2019.png
+|   |       
+|   \---Grunnlagsdata
+|           GaduMor_2020_withNIFES_og_PBDE_ver04.xlsx
+|           GaduMor_2020_withNIFES_ver01.csv
+|           GaduMor_2020_withNIFES_ver01.xlsx
+|           GaduMor_2020_withNIFES_ver02.csv
+|           GaduMor_2020_withNIFES_ver02.xlsx
+|           GaduMor_2020_withNIFES_ver06.xlsx
+|           Grenseverdier_fra_Sylvia.xlsx
+|           
++---2020
+|   |   Forurensning i torsk i Nordsjõen revNorman-1301_2021.docx
+|   |   Imposex hos purpursnegl langs kysten av Skagerrak og Nordsjõen-rev14901_2021 - MSC.docx
+|   |   Indikatorer Symboler.docx
+|   |   Nordsjõen og Skagerrak blÜskjell rev0203_2021 sfr2-NOG_MS sfr_MS010321.docx
+|   |   
+|   +---Eldre versjoner - ikke i bruk
+|   |       Imposex hos purpursnegl langs kysten av Skagerrak og Nordsjõen-rev14901_2021.docx
+|   |       Nordsjõen og Skagerrak blÜskjell rev1401_2021.docx
+|   |       
+|   +---Figurer
+|   |   |   GADUMOR_BDE6S_2020.png
+|   |   |   GADUMOR_CB_S7_2020.png
+|   |   |   GADUMOR_CB_S7_2020_v2.png
+|   |   |   GADUMOR_CD_2020.png
+|   |   |   GADUMOR_DDEPP_2020.png
+|   |   |   GADUMOR_HCB_2020.png
+|   |   |   GADUMOR_HG_2020.png
+|   |   |   GADUMOR_PB_2020.png
+|   |   |   MYTIEDU_BDE6S_2020.png
+|   |   |   MYTIEDU_CB_S7_2020.png
+|   |   |   MYTIEDU_CD_2020.png
+|   |   |   MYTIEDU_DDEPP_2020.png
+|   |   |   MYTIEDU_HCB_2020.png
+|   |   |   MYTIEDU_HG_2020.png
+|   |   |   MYTIEDU_PB_2020.png
+|   |   |   MYTIEDU_TBT_2020.png
+|   |   |   SNEGL_TBT_2020.png
+|   |   |   SNEGL_TBT_2020_v2.png
+|   |   |   SNEGL_VDSI_2020.png
+|   |   |   SNEGL_VDSI_2020_v2.png
+|   |   |   SNEGL_VDSI_2020_v3.png
+|   |   |   
+|   |   \---Oversendelse 1103_2021
+|   |           GADUMOR_BDE6S_2020.png
+|   |           GADUMOR_CB_S7_2020_v2.png
+|   |           GADUMOR_CD_2020.png
+|   |           GADUMOR_DDEPP_2020.png
+|   |           GADUMOR_HCB_2020.png
+|   |           GADUMOR_HG_2020.png
+|   |           GADUMOR_PB_2020.png
+|   |           MYTIEDU_BDE6S_2020.png
+|   |           MYTIEDU_CB_S7_2020.png
+|   |           MYTIEDU_CD_2020.png
+|   |           MYTIEDU_DDEPP_2020.png
+|   |           MYTIEDU_HCB_2020.png
+|   |           MYTIEDU_HG_2020.png
+|   |           MYTIEDU_PB_2020.png
+|   |           MYTIEDU_TBT_2020.png
+|   |           Nordsjõ kart for torsk, blÜskjell og snegl 1103_2021.zip
+|   |           SNEGL_TBT_2020_v2.png
+|   |           SNEGL_VDSI_2020_v3.png
+|   |           
+|   +---Grunnlagsdata
+|   |       GaduMor_2020data_ver01.csv
+|   |       GaduMor_2020data_ver01.xlsx
+|   |       GaduMor_2020data_ver02.xlsx
+|   |       MytiEdu_Snegl_2020_ver1.csv
+|   |       MytiEdu_Snegl_2020_ver1.xlsx
+|   |       MytiEdu_Snegl_2020_ver2.csv
+|   |       MytiEdu_Snegl_2020_ver2.xlsx
+|   |       MytiEdu_Snegl_2020_ver3.csv
+|   |       MytiEdu_Snegl_2020_ver3.xlsx
+|   |       MytiEdu_Snegl_2020_ver4.csv
+|   |       MytiEdu_Snegl_2020_ver4.xlsx
+|   |       
+|   \---Grunnlagsdata Norskehavet
+|           Figurer rev sept 2021.lnk
+|           GaduMor_2021data_Norw_Sea_ver01_differences.xlsx
+|           GaduMor_2021data_Norw_Sea_ver02.xlsx
+|           GaduMor_2021data_Norw_Sea_ver03.csv
+|           GaduMor_2021data_Norw_Sea_ver03.xlsx
+|           
++---2021
+|   |   Grenseverdier_fra_Sylvia.xlsx
+|   |   
+|   +---Forurensningsrapport
+|   |       Forurensning i de norske havomrÜdene status 2021 arbeidsdokument.docx
+|   |       
+|   +---Norskehavet blÜskjell
+|   |       MytiEdu_Snegl_2020_ver5.csv
+|   |       MytiEdu_Snegl_2020_ver5.xlsx
+|   |       MytiEdu_Snegl_2020_ver6.csv
+|   |       MytiEdu_Snegl_2020_ver6.xlsx
+|   |       
+|   \---Norskehavet torsk
+|       |   GaduMor_2021data_Norw_Sea_ver05.csv
+|       |   GaduMor_2021data_Norw_Sea_ver05.xlsx
+|       |   Rev2021 (i 2018-mappe, kun noen av disse er revidert).lnk
+|       |   
+|       \---Utdatert eller feil
+|               GaduMor_2021data_Norw_Sea_ver03.csv
+|               GaduMor_2021data_Norw_Sea_ver03.xlsx
+|               GaduMor_2021data_Norw_Sea_ver04.csv
+|               GaduMor_2021data_Norw_Sea_ver04.xlsx
+|               
+\---Bck
+        Barentshavet - Copy.mxd
+        Barentshavet.mxd
+        db1 - Copy (2).mdb
+        db1 - Copy (22).mdb
+        db1 - Copy (3).mdb
+        db1 - Copy (4).mdb
+        db1 - Copy (5).mdb
+        db1 - Copy (6).mdb
+        db1 - Copy - Copy.mdb
+        db1 - Copy(0).mdb
+        db1 - Copy(1).mdb
+        db1 - Copy-12122018.mdb
+        db1 - Copy.mdb
+        db1 - Copy12.mdb
+        db1_sep2017.mdb
+        Indikatorer_M.mxd
+        Indikatorer_N1.mxd
+        Indikatorer_N2.mxd
+        Indikatorer_S.mxd
+        Indikator_2017Kopi BRUK MDB IKKE DENNE.accdb
+        Indikator_2017Kopi.mdb
+        

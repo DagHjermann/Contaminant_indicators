@@ -49,14 +49,14 @@ colnumber_meta <- 1:(colnumber_conc[1]-1)
 ### Make concentration data
 ```{r}
 dat1_conc <- dat1[c(colnumber_meta, colnumber_conc)] %>%
-  gather("Parameter", "Conc_chr", `Tørrstoff %`:Ni) %>%                            # Note hard-coded column names
+  gather("Parameter", "Conc_chr", `TÃ¸rrstoff %`:Ni) %>%                            # Note hard-coded column names
   as.data.frame()
 
 # Check first and second character of value. The "<" is always in the first
 table(substr(dat1_conc$Conc_chr, 1, 1))
 table(substr(dat1_conc$Conc_chr, 2, 2))
 
-# Remove less-than sign and make Conc variabøe
+# Remove less-than sign and make Conc variabÃ¸e
 dat1_conc$Conc_chr2 <- sub("<", "", dat1_conc$Conc_chr, fixed = TRUE)
 dat1_conc$Conc <- as.numeric(dat1_conc$Conc_chr2)
 
@@ -75,7 +75,7 @@ dat1_unit <- dat1[c(1, colnumber_unit)] %>%
 colnames(dat1_unit)[-1] <- colnames(dat1)[colnumber_conc]
 
 dat1_unit <- dat1_unit %>%
-  gather("Parameter", "Unit", `Tørrstoff %`:Ni) %>%                               # Note hard-coded column names
+  gather("Parameter", "Unit", `TÃ¸rrstoff %`:Ni) %>%                               # Note hard-coded column names
   as.data.frame()
 
 nrow(dat1_unit)
@@ -120,7 +120,7 @@ dat2_conc <- dat2[c(colnumber_meta, colnumber_conc)] %>%
 table(substr(dat2_conc$Conc_chr, 1, 1))
 table(substr(dat2_conc$Conc_chr, 2, 2))
 
-# Remove less-than sign and make Conc variabøe
+# Remove less-than sign and make Conc variabÃ¸e
 dat2_conc$Conc_chr2 <- sub("<", "", dat2_conc$Conc_chr, fixed = TRUE)
 dat2_conc$Conc <- as.numeric(dat2_conc$Conc_chr2)
 
@@ -166,7 +166,7 @@ dat2_conc_extra <- dat2[c(colnumber_meta, colnumber_conc_extra)] %>%
 table(substr(dat2_conc_extra$Conc_chr, 1, 1))
 table(substr(dat2_conc_extra$Conc_chr, 2, 2))
 
-# Remove less-than sign and make Conc variabøe
+# Remove less-than sign and make Conc variabÃ¸e
 dat2_conc_extra$Conc_chr2 <- sub("<", "", dat2_conc_extra$Conc_chr, fixed = TRUE)
 dat2_conc_extra$Conc <- as.numeric(dat2_conc_extra$Conc_chr2)
 
@@ -177,7 +177,7 @@ nrow(dat2_conc_extra)
 
 # xtabs(~Unit, dat2_tall)
 
-dat2_conc_extra$Unit <- "µg/kg"
+dat2_conc_extra$Unit <- "Âµg/kg"
 
 # Add to dat2_tall (if not already there)
 if (!"HCB" %in% unique(dat2_tall$Parameter))
@@ -218,10 +218,10 @@ df_nifes_cod[sel,] %>% select(Parameter, Conc_chr, Conc_chr2, Conc, Flag) %>% he
 df_nifes_cod %>% filter(Jnr %in% "2014-1753/21") %>% select(Parameter, Conc_chr, Conc)
 
 df_nifes_cod %>% filter(Parameter %in% "Sum PCB 7") %>%
-  ggplot(aes(År, Conc)) +
+  ggplot(aes(Ã…r, Conc)) +
   geom_jitter(width = 0.3) +
   geom_smooth() +
-  facet_wrap(~Uttaksområde) +
+  facet_wrap(~UttaksomrÃ¥de) +
   coord_cartesian(ylim = c(0,800))   # Vikna has a single cod of 3255 ug/kg
 
 ```
@@ -256,7 +256,7 @@ df_nifes_cod <- df_nifes_cod %>%
 colnames(df_nifes_cod) <- gsub(" ", "_", colnames(df_nifes_cod), fixed = TRUE)
 
 df_nifes_cod <- df_nifes_cod %>%
-  select(Jnr,Merking,År,Uttaksdato,Uttakssted,LATITUDE,LONGITUDE,Uttaksområde,Art,Organ,Latinsk_navn,
+  select(Jnr,Merking,Ã…r,Uttaksdato,Uttakssted,LATITUDE,LONGITUDE,UttaksomrÃ¥de,Art,Organ,Latinsk_navn,
          Parameter, Conc, Flag, Unit)
 
 ```
@@ -266,7 +266,7 @@ Creates df_nifes_cod2
 ```{r}
 df_nifes_cod_PBDE6 <- df_nifes_cod %>% 
   filter(Parameter %in% c("PBDE 28", "PBDE 47", "PBDE 99", "PBDE 100", "PBDE 126", "PBDE 153")) %>%
-  group_by(Jnr,Merking,År,Uttaksdato,Uttakssted,LATITUDE,LONGITUDE,Uttaksområde,Art,Organ,Latinsk_navn,Unit) %>%
+  group_by(Jnr,Merking,Ã…r,Uttaksdato,Uttakssted,LATITUDE,LONGITUDE,UttaksomrÃ¥de,Art,Organ,Latinsk_navn,Unit) %>%
   summarise(Conc = sum(Conc, na.rm = TRUE), n = n(), BelowLOQ = sum(Flag %in% "<"), BelowLOQ_fraction = BelowLOQ/n)
 summary(df_nifes_cod_PBDE6$BelowLOQ_fraction)
 
@@ -295,12 +295,12 @@ df_nifes_cod2$Time <- lubridate::dmy(df_nifes_cod2$Uttaksdato)
 df_nifes_cod2$Month <- lubridate::month(df_nifes_cod2$Time)
 
 # Lacking Year: none; lacking date: 2450
-xtabs(~addNA(År), df_nifes_cod2)
+xtabs(~addNA(Ã…r), df_nifes_cod2)
 xtabs(~addNA(Month), df_nifes_cod2)
-df_nifes_cod2 %>% filter(is.na(Month)) %>% select(År, Uttaksdato, Time, Month) %>% head(4)
+df_nifes_cod2 %>% filter(is.na(Month)) %>% select(Ã…r, Uttaksdato, Time, Month) %>% head(4)
 
-# Set measurement year (32% are in January-March, all in År = 2010,2011,2018)
-yr <- df_nifes_cod2$År
+# Set measurement year (32% are in January-March, all in Ã…r = 2010,2011,2018)
+yr <- df_nifes_cod2$Ã…r
 sel <- with(df_nifes_cod2, Month <= 3 & !is.na(Month))
 sum(sel, na.rm = TRUE); mean(sel, na.rm = TRUE)   # 9234 = 8.2%
 yr[sel] <- yr[sel]-1
@@ -312,22 +312,22 @@ df_nifes_cod2$Year <- yr
 
 ## 8. Some tables
 ```{r}
-# Calender year (År) vs month
-xtabs(~addNA(År) + addNA(Month), df_nifes_cod2)
+# Calender year (Ã…r) vs month
+xtabs(~addNA(Ã…r) + addNA(Month), df_nifes_cod2)
 
-# Calender year (År) vs measurement year (Year)
-xtabs(~addNA(År) + addNA(Year), df_nifes_cod2)   
+# Calender year (Ã…r) vs measurement year (Year)
+xtabs(~addNA(Ã…r) + addNA(Year), df_nifes_cod2)   
 # All 2010,2018 data and much 2011 data are in the measurement year before
 
 # Areas
-xtabs(~addNA(Uttaksområde) + addNA(Year), df_nifes_cod2)   
+xtabs(~addNA(UttaksomrÃ¥de) + addNA(Year), df_nifes_cod2)   
 ```
 
 ## 9. Create df_median and set parameter names  
 Note that we use Flag = "" for data over LOQ (not ">" as in the original script)  
 ```{r}
 df_median <- df_nifes_cod2 %>% 
-  group_by(Year, Uttaksområde, Organ, Parameter) %>%
+  group_by(Year, UttaksomrÃ¥de, Organ, Parameter) %>%
   summarise(Conc = median(Conc, na.rm = TRUE), N = n(), Over_LOQ = sum(Flag %in% ""),
             LONGITUDE = median(LONGITUDE, na.rm = TRUE),
             LATITUDE = median(LATITUDE, na.rm = TRUE)
