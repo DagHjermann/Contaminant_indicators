@@ -35,6 +35,7 @@ fn <- "Input_data/Data kysttorsk NH nov. 2018 per 160421.xlsx"
 # excel_sheets(fn)
 
 dat1 <- read_excel(fn, col_types = "text", sheet = "Metaller og POPs i torskelever", skip = 2)
+dat2 <- read_excel(fn, col_types = "text", sheet = "Metaller i torskefilet")
 
 #
 # We don't need more, as the only thing we will do is to check trend in pesticides 
@@ -67,16 +68,21 @@ colnames(dat1)[11:14]  # start of actual data
 
 ncol(dat1)
 
-colnames(dat1)[seq(11, 165, by = 2)]
-colnames(dat1)[seq(12, 164, by = 2)]  
-seq(12, 164, by = 2)[62]
-
-colnames(dat1)[seq(11, 131, by = 2)]
-colnames(dat1)[seq(12, 132, by = 2)]  
-colnames(dat1)[133]                       # CB118 - no attached unit
-colnames(dat1)[seq(134, 156, by = 2)]   # PBDEs
-colnames(dat1)[seq(135, 157, by = 2)]   
-colnames(dat1)[seq(158, 165, by = 2)]   # HCB, DDT compumnds
+# For checking  
+if (FALSE){
+  
+  colnames(dat1)[seq(11, 165, by = 2)]
+  colnames(dat1)[seq(12, 164, by = 2)]  
+  seq(12, 164, by = 2)[62]
+  
+  colnames(dat1)[seq(11, 131, by = 2)]
+  colnames(dat1)[seq(12, 132, by = 2)]  
+  colnames(dat1)[133]                       # CB118 - no attached unit
+  colnames(dat1)[seq(134, 156, by = 2)]   # PBDEs
+  colnames(dat1)[seq(135, 157, by = 2)]   
+  colnames(dat1)[seq(158, 165, by = 2)]   # HCB, DDT compumnds
+  
+}
 
 
 ```
@@ -85,9 +91,13 @@ colnames(dat1)[seq(158, 165, by = 2)]   # HCB, DDT compumnds
 ### Check sample identifiers   
 ```{r}
 
-dat1 %>%
+check <- dat1 %>%
   count(Jnr, Prøvenr.) %>%
   filter(n > 1)
+
+if (nrow(check) > 0){
+  stop("Duplicates found")
+}
 
 ```
 
@@ -102,26 +112,73 @@ Put all data sets on long format and combine
 
 if (FALSE){
   debugonce(nifes_standardize_conc)
-  nifes_standardize_conc(dat1) %>% 
-    filter(Jnr %in% "2016-2040/14") %>%
+  nifes_standardize_conc(dat1) %>%
+    filter(Jnr %in% "2016-2040/14" & substr(Parameter,1,3) == "PCB") %>% 
     select(Jnr, Prøvenr., Parameter, Conc_chr)
+  nifes_standardize_data(dat1) %>%
+    filter(Jnr %in% "2016-2040/14" & substr(Parameter,1,3) == "PCB") %>% 
+    select(Jnr, Prøvenr., Parameter, Conc, Flag)
 }
 
-df_nifes_cod <- nifes_standardize_data(dat1) %>%
+df_nifes_cod_liver <- nifes_standardize_data(dat1) %>%
   filter(Parameter != "Underleverandør")     # last column
 
-df_nifes_cod %>%
+df_nifes_cod_liver %>%
   filter(Jnr %in% "2016-2040/14") %>%
   select(Jnr, Prøvenr., Parameter, Conc, Unit)
 
 # Original version:
-# df_nifes_cod <- bind_rows(
+# df_nifes_cod_liver <- bind_rows(
 #   nifes_standardize_data(dat1),
 #   nifes_standardize_data(dat2),
 #   nifes_standardize_data(dat3)
 # )
 
 ```
+
+### Get muscle data    
+```{r}
+
+# Delete columns we don't use
+dat2$Uttaksdato <- NULL
+dat2$Mottaksdato <- NULL
+dat2$Uttakssted <- NULL
+dat2$Oppdragsgiver <- NULL
+dat2$`Prosjekt notat` <- NULL
+dat2$`Prøve status` <- NULL
+dat2$`Prosjekt Nr.` <- NULL
+
+# Pick the first 43 columns
+dat2 <- dat2[1:43]
+
+# Set name of column 2
+i <- 2; names(dat2)[i] <- names(dat1)[i]
+
+if (FALSE){
+  # Compare column names  
+  dat1 %>% names() %>% head(25)
+  dat2 %>% names() %>% head(25)
+}
+
+df_nifes_cod_muscle <- nifes_standardize_data(dat2)
+
+# xtabs(~Parameter, df_nifes_cod_muscle)
+
+```
+
+### Replace liver Hg with muscle Hg     
+- Data set df_nifes_cod 
+```{r}
+
+df_nifes_cod <- bind_rows(
+  df_nifes_cod_liver %>% filter(Parameter != "Hg") ,
+  df_nifes_cod_muscle %>% filter(Parameter %in% "Hg"),
+)
+
+xtabs(~Parameter + Organ, df_nifes_cod)
+
+```
+
 
 ## 4. Missing values  
 
@@ -166,12 +223,16 @@ df_nifes_cod <- df_nifes_cod %>%
 ```{r}
 
 # A bunch of positions, none missing 
-df_nifes_cod %>% 
-  count(Posisjon)
+# df_nifes_cod %>% 
+#   count(Posisjon)
 
 xtabs(~År + addNA(Uttaksområde), df_nifes_cod)
 
+# Also check Organ  
+# xtabs(~År + addNA(Uttaksområde) + addNA(Organ), df_nifes_cod)
+
 if (FALSE){
+  
   # All are Hg in cod fillet
   df_nifes_cod %>%
     mutate(Has_position = ifelse(is.na(Posisjon),"Lack_position", "Has_position")) %>%
@@ -191,11 +252,16 @@ if (FALSE){
 
 ```
 
-### Remove lacking positions  
+### Remove lacking Uttaksområde  
+- Was Posisjon, but we don*t use that one (lacing for muscle)
 ```{r}
 
+# df_nifes_cod <- df_nifes_cod %>%
+#   filter(!is.na(Posisjon))
+
 df_nifes_cod <- df_nifes_cod %>%
-  filter(!is.na(Posisjon))
+  filter(!is.na(Uttaksområde))
+
 
 ```
 
@@ -307,7 +373,7 @@ df_nifes_cod2 %>%
 ## 7. Checks
 ```{r}
 
-unique(df_nifes_cod2$Parameter)
+# unique(df_nifes_cod2$Parameter)
 
 # unique(df_nifes_cod2$Parameter) %>% dput()
 

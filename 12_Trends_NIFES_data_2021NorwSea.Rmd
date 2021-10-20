@@ -60,6 +60,8 @@ df <- df_median %>%
 # debugonce(calc_models_gam)
 m <- model_from_medians("HCB", "Gadus morhua", "Lever", "Helgeland", "WW", 1980:2019, df, 
                      plotname = "window", ggplot = TRUE)
+m <- model_from_medians("HG", "Gadus morhua", "Muskel", "Helgeland", "WW", 1980:2019, df, 
+                     plotname = "window", ggplot = TRUE)
 
 
 ```
@@ -111,8 +113,8 @@ sel_param <- c("CD", "HG", "PB", "HCB", "DDEPP", "CB_S7", "DDEPP", "BDE6S")
 
 timeseries <- df_median %>%
   filter(Parameter %in% sel_param) %>%
-  count(Posisjon, Parameter) %>%
-  mutate(TISSUE_NAME = "Lever")
+  count(Posisjon, TISSUE_NAME, Parameter)
+
 #  mutate(TISSUE_NAME = get_tissue(Parameter))
 
 timeseries
