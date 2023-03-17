@@ -1,0 +1,104 @@
+---
+title: "22_Food_safety_metals_muscle"
+author: "DHJ"
+date: "5 11 2021"
+output: html_document
+---
+
+
+
+Food safety of Cd and Pb in muscle (fillet)    
+
+* Based on code from 
+    - `11_Import_and_fix_NIFES_data_2021.Rmd`   
+    - `14_Combine_NIVA_NIFES_data_2021_NorwSea.Rmd`   
+
+
+## 1. Packages  
+
+```{r setup, include=FALSE}
+
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(ggplot2)
+
+source("11_Import_and_fix_NIFES_data_2020_functions.R", encoding = "UTF-8")
+
+# save_data <- TRUE
+save_data <- FALSE
+
+```
+
+## 2. Data    
+* NOTE: we simply skip the "metals in muscle" sheet since we don't need it here   
+```{r}
+
+dir("Input_data")
+
+fn <- "Input_data/Data kysttorsk NH nov. 2018 per 160421.xlsx"
+
+dat1 <- read_excel(fn, col_types = "text", sheet = "Metaller og POPs i torskelever", skip = 2)
+dat2 <- read_excel(fn, col_types = "text", sheet = "Metaller i torskefilet")
+
+# Food and EQS limits
+df_limits <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx") %>%
+  rename(Matrix = `Organisme/vev`) %>%
+  filter(PARAM %in% c("CD","PB") & grepl("Fisk", Matrix))
+
+
+```
+
+
+## 3. Create df_median  
+
+```{r}
+
+df_median_muscle <- df_nifes_cod_muscle %>% 
+  mutate(Year = as.numeric(År)) %>% 
+  mutate(STATION_NAME = case_when(                            # NOTE: change definition of Posisjon here!
+    Uttaksområde %in% c("Træna","Vikna") ~ "Helgeland",
+    TRUE ~ Uttaksområde)
+  ) %>%
+  group_by(Year, STATION_NAME, Art, Organ, Parameter) %>%     # changed from Posisjon, Long, Lat
+  summarise(Conc_median = median(Conc), 
+            Conc_min = min(Conc), Conc_max = max(Conc),
+            N = n(), Over_LOQ = sum(Flag %in% "")
+  ) %>%
+  ungroup()
+
+```
+
+
+## 4. Last year for each 
+
+```{r}
+
+# Get last year's median
+df_nifes_finalyear_muscle <- df_median_muscle %>% 
+  filter(Parameter %in% c("Cd","Pb") & !is.na(Conc_median)) %>%
+  mutate(PARAM = toupper(Parameter)) %>%
+  group_by(STATION_NAME, Parameter)  %>%
+  mutate(Maxyear = max(Year)) %>%
+  filter(Year == Maxyear) %>%
+  # select(-LONGITUDE, -LATITUDE) %>%             # no LONGITUDE, LATITUDE this
+  as.data.frame()
+
+```
+
+## 5. Plot  
+```{r}
+
+# Without limits, free scale  
+ggplot(df_nifes_finalyear_muscle, aes(STATION_NAME, Conc_median)) +
+  geom_pointrange(aes(ymin = Conc_min, ymax = Conc_max)) +
+  facet_wrap(vars(PARAM), scales = "free_y")
+
+# With limits
+ggplot(df_nifes_finalyear_muscle, aes(STATION_NAME, Conc_median)) +
+  geom_pointrange(aes(ymin = Conc_min, ymax = Conc_max)) +
+  facet_wrap(vars(PARAM)) +
+  geom_hline(data = df_limits, aes(yintercept = Mattrygghet), linetype = "dashed")
+
+```
+
