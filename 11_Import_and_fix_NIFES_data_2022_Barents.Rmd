@@ -19,7 +19,7 @@ library(tidyr)
 library(readxl)
 library(ggplot2)
 
-source("11_Import_and_fix_NIFES_data_2020_functions.R")
+source("11_Import_and_fix_NIFES_data_2021_functions.R")
 
 # save_data <- TRUE
 save_data <- FALSE
@@ -28,18 +28,18 @@ save_data <- FALSE
 
 ## 2. Data  
 ```{r}
-dir("Input_data")
+# dir("Input_data")
 
-fn <- "Input_data/Cd Pb torsk lever 2006-2019 HI.xlsx"
+fn <- "Input_data/Cd Pb torsk lever 2006-2022 HI.xlsx"
 # excel_sheets(fn)
 dat1 <- read_excel(fn, col_types = "text")
 
-fn <- "Input_data/Kvikksølv torskefilet Bhav 2006-2019.xlsx"
+fn <- "Input_data/Kvikksølv torskefilet Bhav 2006-2022 HI.xlsx"
 # excel_sheets(fn)
 dat2 <- read_excel(fn, col_types = "text") %>%
   rename(Prøvenr. = `Prøve nr.`)      # fix this column name (equal to dat1)
 
-fn <- "Input_data/POPs torskelever Bhav 2006-2019 med PBDE.xlsx"
+fn <- "Input_data/POPs torskelever Bhav 2006-2022 HI.xlsx"
 # excel_sheets(fn)
 dat3 <- read_excel(fn, col_types = "text") %>%
   rename(Prøvenr. = `Prøve nr.`)      # fix this column name (equal to dat1)
@@ -70,8 +70,8 @@ data.frame(
 # All should be zero - not the case for dat2 (16)
 for (dat in list(dat1, dat2, dat3))
   print(
-    dat %>%
-      count(Jnr, Prøvenr.) %>%
+    dat2 %>%
+      add_count(Jnr, Prøvenr.) %>%
       filter(n > 1) %>% nrow()
   )
 
@@ -94,6 +94,21 @@ dat2 <- dat2 %>%
 Put all data sets on long format and combine
 ```{r}
 
+# Remove columns that we don't need  
+dat1 <- dat1 %>%
+  select(-c(`Engelsk beskrivelse`, `Latinsk navn`, `Produkt beskrivelse`))
+dat2 <- dat2 %>%
+  select(-c(`Engelsk beskrivelse`, `Latinsk navn`, `Produkt beskrivelse`))
+dat3 <- dat3 %>%
+  select(-c(`Engelsk beskrivelse`, `Latinsk navn`, `Produkt beskrivelse`))
+
+if (FALSE){
+  # Checking:
+  nifes_standardize_data(dat1) %>% xtabs(~Parameter, .)
+  nifes_standardize_data(dat2) %>% xtabs(~Parameter, .)
+  nifes_standardize_data(dat3) %>% xtabs(~Parameter, .)
+}
+
 df_nifes_cod <- bind_rows(
   nifes_standardize_data(dat1),
   nifes_standardize_data(dat2),
@@ -111,8 +126,10 @@ df_nifes_cod <- bind_rows(
 tab <- xtabs(~Parameter + is.na(Conc), df_nifes_cod)
 tab[tab[,2] > 0,]
 cat(sum(tab[,2]), "missing Conc values\n")
+
 sel1 <- is.na(df_nifes_cod$Conc) & !is.na(df_nifes_cod$Conc_chr) 
 cat(sum(sel1), "missing Conc values with non-missing values of Conc_chr\n")
+
 sel2 <- df_nifes_cod$Comment != ""
 cat(sum(sel2), "'starred' Conc_chr values\n")
 
@@ -173,7 +190,7 @@ df_nifes_cod <- df_nifes_cod %>%
 
 df_nifes_cod <- df_nifes_cod %>%
   # Split spring
-  separate(Posisjon, c("LATITUDE","LONGITUDE"), sep = "[:blank:]", remove = FALSE) %>%
+  separate(Posisjon, c("LATITUDE","LONGITUDE"), sep = " ", remove = FALSE) %>%
   # Remove letters
   mutate(LATITUDE = sub("[a-zA-Z]", "", LATITUDE),
          LONGITUDE = sub("[a-zA-Z]", "", LONGITUDE)) %>%
