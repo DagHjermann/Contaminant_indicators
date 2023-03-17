@@ -1,0 +1,351 @@
+---
+title: "Import and fix HI/NIFES data for 2020 report"
+output: 
+  html_document:
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: show
+    df_print: paged
+---
+
+Based on code from '01_NIVA_data_with_NIFES_3.R' ("H:/Documents/seksjon 212/Indikator 2018/Analyse")  
+
+## 1. Packages  
+```{r setup, include=FALSE}
+
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(ggplot2)
+
+source("11_Import_and_fix_NIFES_data_2020_functions.R")
+
+# save_data <- TRUE
+save_data <- FALSE
+
+```
+
+## 2. Data  
+```{r}
+dir("Input_data")
+
+fn <- "Input_data/Cd Pb torsk lever 2006-2019 HI.xlsx"
+# excel_sheets(fn)
+dat1 <- read_excel(fn, col_types = "text")
+
+fn <- "Input_data/Kvikksølv torskefilet Bhav 2006-2019.xlsx"
+# excel_sheets(fn)
+dat2 <- read_excel(fn, col_types = "text") %>%
+  rename(Prøvenr. = `Prøve nr.`)      # fix this column name (equal to dat1)
+
+fn <- "Input_data/POPs torskelever Bhav 2006-2019 med PBDE.xlsx"
+# excel_sheets(fn)
+dat3 <- read_excel(fn, col_types = "text") %>%
+  rename(Prøvenr. = `Prøve nr.`)      # fix this column name (equal to dat1)
+
+```
+
+### Check column names
+```{r}
+data.frame(
+  n1 = colnames(dat1)[1:10],
+  n2 = colnames(dat2)[1:10],
+  n3 = colnames(dat3)[1:10]
+)
+
+data.frame(
+  n1 = colnames(dat1)[11:14],
+  n2 = colnames(dat2)[11:14],
+  n3 = colnames(dat3)[11:14]
+)
+  
+# cat("\n")
+# colnames(dat2)
+```
+
+
+### Check sample identifiers   
+```{r}
+# All should be zero - not the case for dat2 (16)
+for (dat in list(dat1, dat2, dat3))
+  print(
+    dat %>%
+      count(Jnr, Prøvenr.) %>%
+      filter(n > 1) %>% nrow()
+  )
+
+# Prøvenr. lacking for all in dat2:
+dat2 %>%
+  count(Jnr, Prøvenr.) %>%
+  filter(n > 1)
+
+# Set prøvenr. for dat2:
+dat2 <- dat2 %>%
+  group_by(Jnr) %>%
+  mutate(Prøvenr. = 1:length(Jnr) %>% as.character())
+
+# If we now run the stuff on top again, it's OK (zero for all 3)
+
+```
+
+## 3. Standardize and combine data
+  
+Put all data sets on long format and combine
+```{r}
+
+df_nifes_cod <- bind_rows(
+  nifes_standardize_data(dat1),
+  nifes_standardize_data(dat2),
+  nifes_standardize_data(dat3)
+)
+
+
+```
+
+## 4. Missing values  
+
+### Check missing values  
+```{r}
+# 1. Missing Conc values (list of parameters)
+tab <- xtabs(~Parameter + is.na(Conc), df_nifes_cod)
+tab[tab[,2] > 0,]
+cat(sum(tab[,2]), "missing Conc values\n")
+sel1 <- is.na(df_nifes_cod$Conc) & !is.na(df_nifes_cod$Conc_chr) 
+cat(sum(sel1), "missing Conc values with non-missing values of Conc_chr\n")
+sel2 <- df_nifes_cod$Comment != ""
+cat(sum(sel2), "'starred' Conc_chr values\n")
+
+# 2. Missing Conc but unmissing Conc_chr values
+# All have "n.a."
+df_nifes_cod[sel1,] %>% select(Jnr, Parameter, Conc_chr, Conc, Unit, Flag)
+
+# 3. Starred values
+df_nifes_cod[sel2,] %>% select(Jnr, Parameter, Conc_chr, Conc, Unit, Flag, Comment)
+
+```
+
+### Remove missing values  
+```{r}
+
+df_nifes_cod <- df_nifes_cod %>%
+  filter(!is.na(Conc))
+
+```
+
+
+## 5. Add Lat, Long
+
+### Check lacking positions  
+```{r}
+# Just three positions, and some (125) missing 
+df_nifes_cod %>% 
+  count(Posisjon)
+
+# All are Hg in cod fillet
+df_nifes_cod %>%
+  mutate(Has_position = ifelse(is.na(Posisjon),"Lack_position", "Has_position")) %>%
+  count(Art, Organ, Parameter, Has_position) %>%
+  pivot_wider(names_from = Has_position, values_from = n) %>%
+  filter(!is.na(Lack_position))
+
+# One Lnr may have several positions
+#  (So we cant use Jnr for fixing position)
+df_nifes_cod %>% 
+  filter(!is.na(Posisjon)) %>%
+  count(Jnr, Posisjon) %>%
+  count(Jnr) %>%
+  rename(No_of_positions_per_Jnr = n) %>%
+  count(No_of_positions_per_Jnr)
+
+```
+
+### Remove lacking positions  
+```{r}
+
+df_nifes_cod <- df_nifes_cod %>%
+  filter(!is.na(Posisjon))
+
+```
+
+### Extract Lat,long
+```{r}
+
+df_nifes_cod <- df_nifes_cod %>%
+  # Split spring
+  separate(Posisjon, c("LATITUDE","LONGITUDE"), sep = "[:blank:]", remove = FALSE) %>%
+  # Remove letters
+  mutate(LATITUDE = sub("[a-zA-Z]", "", LATITUDE),
+         LONGITUDE = sub("[a-zA-Z]", "", LONGITUDE)) %>%
+  # Get LATITUDE, LONGITUDE (first replace decimal comma by '.', then convert)
+  mutate(LATITUDE = as.numeric(sub(",", ".", LATITUDE)),
+         LONGITUDE = as.numeric(sub(",", ".", LONGITUDE))
+  )
+
+df_nifes_cod %>% 
+  count(Posisjon, LATITUDE, LONGITUDE)
+
+```
+
+## 6. More fixing     
+
+### Fix year     
+
+Don't have date, so we can't set Measurement year = 1.april to 31. March...    
+```{r}
+
+# df_nifes_cod %>% 
+#   count(År)
+
+df_nifes_cod <- df_nifes_cod %>% 
+  mutate(Year = as.numeric(År))
+
+df_nifes_cod %>% 
+  count(År)
+
+```
+
+### Fix tissue  
+
+Both Filet and Muskel, set all to Muskel  
+
+```{r}
+
+# Both Filet and Muskel, 
+# xtabs(~Year + Organ + Art, df_nifes_cod)  
+
+df_nifes_cod <- df_nifes_cod %>% 
+  mutate(Organ = ifelse(Organ %in% "Filet", "Muskel", Organ))
+
+xtabs(~Year + Organ + Art, df_nifes_cod)  
+
+```
+
+
+###  Add BDE6S
+
+#### Add sum
+```{r}
+
+df_nifes_cod_BACKUP <- df_nifes_cod
+# If error, restore the original
+# df_nifes_cod <- df_nifes_cod_BACKUP
+
+pars_bde6s <- c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154")
+
+df_nifes_cod_extra <- df_nifes_cod %>%
+  filter(Parameter %in% pars_bde6s) %>%
+  group_by(Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ, Prøvenr.) %>%
+  summarise(Conc = sum(Conc),
+            Flag = ifelse(sum(Flag %in% "") > 1, "", "<")
+            ) %>%
+  ungroup() %>%
+  mutate(Parameter = "BDE6S")
+
+if (!"BDE6S" %in% unique(df_nifes_cod$Parameter)){
+  df_nifes_cod <- bind_rows(
+    df_nifes_cod,
+    df_nifes_cod_extra
+  )
+}
+
+```
+
+#### Check individual BDE and the sum  
+```{r}
+
+df_nifes_cod %>%
+  filter(Parameter %in% c(pars_bde6s, "BDE6S")) %>%
+  ggplot(aes(Year, Conc, color = Posisjon)) +
+  geom_jitter(size = 1) +
+  facet_wrap(vars(Parameter))
+
+df_nifes_cod %>%
+  filter(Parameter %in% c(pars_bde6s, "BDE6S")) %>% 
+  group_by(Parameter, Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ) %>%
+  summarise(Above_LOQ = mean(Flag %in% "")) %>%
+  ggplot(aes(Year, Above_LOQ, color = Posisjon)) +
+  geom_point() +
+  facet_wrap(vars(Parameter))
+
+
+```
+
+
+## 7. Checks
+```{r}
+
+unique(df_nifes_cod$Parameter)
+
+# unique(df_nifes_cod$Parameter) %>% dput()
+
+```
+
+### Test plot  
+Annual medians of the most important parameters
+```{r, fig.width=9, fig.height=7}
+
+df_nifes_cod %>%
+  filter(Parameter %in% c("Cd", "Pb", "Hg", "PCB-118", "Sum PCB 7", 
+                          "Hexachlorobenzene (HCB)", "pp-DDE", "PBDE 47", "BDE6S")) %>%
+  group_by(Year, Posisjon, Parameter, Organ) %>%
+  mutate(Conc_median = median(Conc)) %>%
+  ggplot(aes(Year, Conc_median, color = Posisjon)) +
+  geom_smooth(method = "lm") + geom_point() +
+  facet_wrap(vars(Parameter, Organ), scales = "free_y")
+
+```
+
+
+
+## 9. Create df_median and set parameter names  
+Note that we use Flag = "" for data over LOQ (not ">" as in the original script)  
+```{r}
+
+# Create df_median
+df_median <- df_nifes_cod %>% 
+  group_by(Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ, Parameter) %>%
+  summarise(Conc = median(Conc), 
+            Conc_min = min(Conc), Conc_max = max(Conc),
+            N = n(), Over_LOQ = sum(Flag %in% "")
+            ) %>%
+  ungroup()
+
+
+# set parameter names
+df_median <- df_median %>%
+  mutate(Parameter = sub("PCB-", "CB", Parameter, fixed = TRUE)) %>% # xtabs(~Parameter, .)
+  mutate(Parameter = sub("PBDE ", "BDE", Parameter, fixed = TRUE)) %>% # xtabs(~Parameter, .)
+  mutate(Parameter = case_when(
+    Parameter %in% "Cd" ~ "CD",
+    Parameter %in% "Pb" ~ "PB",
+    Parameter %in% "Hg" ~ "HG",
+    Parameter %in% "Sum PCB 7" ~ "CB_S7",
+    Parameter %in% "Hexachlorobenzene (HCB)" ~ "HCB",
+    Parameter %in% "pp-DDE" ~ "DDEPP",     # the rest of the DDT compounds we ignore
+    TRUE ~ Parameter)
+    )
+
+unique(df_median$Parameter)
+
+
+# Check all
+# cat("Parameters:\n", table(df_median$Parameter) %>% names() %>% paste(collapse = "; "))
+```
+
+
+## 10. Save 
+```{r}
+# dir.create("Data")
+
+if (save_data){
+  saveRDS(df_nifes_cod, "Data/11_df_nifes_cod (2020).rds")
+  saveRDS(df_median, "Data/11_df_median (2020).rds")
+}
+
+# df_median <- readRDS("Data/01_df_median.rds")
+# xtabs(~Parameter + Organ, df_median)
+
+```
+
+
