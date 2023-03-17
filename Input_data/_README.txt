@@ -19,7 +19,14 @@ Files:
      Jeg har fylt ut i datasettet med de nye dataene på pesticider, ellers er alt annet gammelt nytt.
      (gamle data kom i mail fra Norman 30.01.2019 )   
 
- 
+  - Data until 2022, Barents (for 2022 report/maps, script 11-14):
+    - Cd Pb torsk lever 2006-2022 HI.xlsx
+    - Kvikksølv torskefilet Bhav 2006-2022.xlsx
+    - POPs torskelever Bhav 2006-2022.xlsx
+    Origin: Attachment from Sylvia 17.03.2023  
+
+
+
 
 From: Norman Whitaker Green 
 Sent: tirsdag 20. november 2018 12.40
