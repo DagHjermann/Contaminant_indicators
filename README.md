@@ -1,6 +1,19 @@
 # Contaminant_indicators
 
-Creating indicator data (levels/trends) for contaminants in biota on the Norwegian coast, based on both HI (previously NIFES) and NIVA data  
+Creating indicator data (levels/trends) for contaminants in biota on the Norwegian coast, based on both HI (previously NIFES) and NIVA data   
+
+  * This is the source for the following blue mussel indicators (North Sea, Norwegian Sea and Barents Sea, resp.):   
+  
+      - https://miljostatus.miljodirektoratet.no/tema/hav-og-kyst/havindikatorer/nordsjoen-skagerrak/forurensende-stoffer/forurensning-i-blaskjell-i-nordsjoen/  
+      - https://miljostatus.miljodirektoratet.no/tema/hav-og-kyst/havindikatorer/norskehavet/forurensende-stoffer/miljogifter-i-blaskjell-langs-kysten-av-norskehavet/  
+      - https://miljostatus.miljodirektoratet.no/tema/hav-og-kyst/havindikatorer/barentshavet/forurensende-stoffer/forurensning-i-blaskjell-langs-kysten-av-nordland-troms-og-finnmark/
+      
+  * ...and for the following cod indicators (North Sea, Norwegian Sea and Barents Sea, resp.):    
+  
+      - https://miljostatus.miljodirektoratet.no/tema/hav-og-kyst/havindikatorer/nordsjoen-skagerrak/forurensende-stoffer/forurensning-i-torsk-i-nordsjoen/  
+      - https://miljostatus.miljodirektoratet.no/tema/hav-og-kyst/havindikatorer/norskehavet/forurensende-stoffer/forurensning-i-kysttorsk-i-norskehavet/  
+      - https://miljostatus.miljodirektoratet.no/tema/hav-og-kyst/havindikatorer/barentshavet/forurensende-stoffer/forurensning-i-torsk-i-barentshavet/  
+      
   
 * Created data (csv) are saved in the 'Data_export' folder and manually re-saved as Excel    
 * Note that results use   
@@ -8,6 +21,25 @@ Creating indicator data (levels/trends) for contaminants in biota on the Norwegi
     - trend functions from `00_Trend_functions.R`  
  Copied to `K:\Avdeling\Mar\NOG\JMGdata\Kart\Indikatorer` 
 
+## Overview of excel files produced on K (last versions only)  
+
+```
+- Cod (North Sea, Norwegian Sea and Barents Sea, resp.):    
+    - "K:\Avdeling\Mar\NOG\JMGdata\Kart\Indikatorer\2020\Grunnlagsdata\GaduMor_2020data_ver02.xlsx"
+    - "K:\Avdeling\Mar\NOG\JMGdata\Kart\Indikatorer\2021\Norskehavet torsk\GaduMor_2021data_Norw_Sea_ver06.xlsx"
+    - "K:\Avdeling\Mar\NOG\JMGdata\Kart\Indikatorer\2019\Grunnlagsdata\GaduMor_2020_withNIFES_ver06.xlsx"  
+
+- Blue mussel (North Sea, Norwegian Sea and Barents Sea, resp.):  
+    - "K:\Avdeling\Mar\NOG\JMGdata\Kart\Indikatorer\2020\Grunnlagsdata\MytiEdu_Snegl_2020_ver4.xlsx"
+    - "K:\Avdeling\Mar\NOG\JMGdata\Kart\Indikatorer\2021\Norskehavet blåskjell\MytiEdu_Snegl_2020_ver6.xlsx"  
+    - Barents Sea: ?
+
+- Codes in excel sheets (see script 14 in various versions)   
+    - trend: 0 = no trend calculated, 1 = zero time trend, 2 = up, 3 = down
+    - Proref: Klasse 1-4 = Conc/PROREF ratio is <1, 1-2, 2-10, >10  
+    - EQS and Mattrygghet: 1 = below, 2 = above  
+```
+    
 ### Norskehavet - data until 2018, analysis 2019   
 * Script 01-04    
     - Data kysttorsk NH nov. 2018.xlsx  
@@ -40,7 +72,7 @@ Creating indicator data (levels/trends) for contaminants in biota on the Norwegi
     
 ### Norwegian Sea (Norskehavet) blue mussel - data until 2020       
 * only NIVA data - script 05 modified and halfway generalized
-
+    - 05_Bluemussel_snail_NIVA_data_2021.Rmd - contains all parts of the procedure  
 
 
 
