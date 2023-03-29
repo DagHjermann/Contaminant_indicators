@@ -74,6 +74,15 @@ Creating indicator data (levels/trends) for contaminants in biota on the Norwegi
 * only NIVA data - script 05 modified and halfway generalized
     - 05_Bluemussel_snail_NIVA_data_2021.Rmd - contains all parts of the procedure  
 
+### Barentshavet - data until 2022, analysis 2023   
+* Script 11-14 marked "2022"   
+    - Cd Pb torsk lever 2006-2022 HI.xlsx
+    - Kvikksølv torskefilet Bhav 2006-2022.xlsx
+    - POPs torskelever Bhav 2006-2022 inkl. PBDE HI.xlsx   
+* Script 11: read excel files from HI (IMR, formerly NIFES)   
+* Script 12: trends/levels for HI data (copy "12_Trends_NIFES_data_2020.Rmd" to new script with 2022 in the name)   
+* Script 13: trends/levels for NIVA data (copy "13_Get_NIVA_data_2021.Rmd" to new script with 2022 in the name)
+* Script 14: combine trends/levels from HI and NIVA  
 
 
 

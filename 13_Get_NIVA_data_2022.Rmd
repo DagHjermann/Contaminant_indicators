@@ -1,0 +1,434 @@
+---
+title: "Get NIVA trends, 2021 (data unitl 2020)"
+output: 
+  html_document:
+    keep_md: true
+    toc: true
+    toc_float: true
+    
+---
+
+Actually the script should be called get NIVA _trends_ because that is what we actually do   
+
+NOTE:  
+* This script is used for both '2021 North Sea' and '2021 Norweegian Sea' - set 'area' to the right ocean!    
+
+
+## Packages + functions  
+```{r, results='hide', message=FALSE}
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(ggplot2)
+
+```
+
+### Year  
+```{r}
+
+year_2020_data <- TRUE
+
+```
+
+
+
+### Area
+```{r}
+
+# area <- "North_Sea"
+area <- "Norwegian_Sea"
+
+```
+
+
+## Data
+
+### Read main NIVA data  
+
+- Only like 10 seconds (3-4 minutes if column types is not given)  
+- __NOTE hard-coded number of columns for excel sheet (4 places)__  
+- Row nmber 'automatic'
+
+```{r}
+# Define column types for faster reading + fewer (or none) errors
+
+if (year_2020_data){
+  
+  # FOR 2020 DATA
+  # Column types - NOTE: for data going until 2019 
+  # Until column DT only
+  coltypes = c(rep("text",18),                  # PARAM - "Reference stations" [column A - R]
+               rep("numeric", 4),               # "Reference station count" - "PROREF" [column S - V]
+               rep(c("numeric","text"),41),     # Data 1980 - 2019 (2 columns per year) - INCREASE THIS NUMBER BY 1 EACH YEAR
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" last year 
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" this year 
+               "text",                                          # Dummy [DI]
+               rep("numeric", 10),                              # "Trend p(long) this year" - "No. of Years(short) this year" 
+               "text"                           # "Trends this year" [DV]
+  )
+  
+} else {
+  
+  # FOR 2019 DATA
+  # Column types - NOTE: for data going until 2019 
+  # Until column DT only
+  coltypes = c(rep("text",18),                  # PARAM - "Reference stations" [column A - R]
+               rep("numeric", 4),               # "Reference station count" - "PROREF" [column S - V]
+               rep(c("numeric","text"),40),     # Data 1980 - 2019 (2 columns per year) [W - CX] - INCREASE THIS NUMBER BY 1 EACH YEAR
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" last year [CY-DC]
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" this year [DD-DH]
+               "text",                                          # Dummy [DI]
+               rep("numeric", 10),                              # "Trend p(long) this year" - "No. of Years(short) this year" [DJ - DS]
+               "text"                           # "Trends this year" [DT]
+  )
+}
+
+
+if (year_2020_data){
+  
+  #
+  # FOR 2020
+  #
+  
+  fn <- "../Milkys2_pc/Files_from_Jupyterhub_2020/Big_excel_table/Data_xl_2021-09-15_ver03.xlsm"
+  
+  # For getting number of rows:
+  data_xl_firstcol <- read_excel(fn, range = cell_cols("A:B"))
+
+  # 
+  # HARD-CODED for 2020! last column of 'data_xl_orig' - increases by 2 for each year
+  #
+  last_column <- "DV"
+  range_2020 <- paste0("A1:", last_column, nrow(data_xl_firstcol))
+  
+  data_xl_orig <- read_excel(fn,
+                      range = range_2020,   
+                      col_types = coltypes)
+
+  # 
+  # HARD-CODED for 2020! last column of 'data_xl_lessthans' - increases by 4 for each year
+  #
+  last_column <- "HQ"   
+  range_2020_lessthan <- paste0(last_column, "1:", last_column, nrow(data_xl_firstcol))
+
+  # Read the single less-than value 
+  data_xl_lessthans <- read_excel(fn,
+                      range = range_2020_lessthan,    
+                      col_types = "logical")
+
+
+  } else {
+    
+    #
+    # FOR 2019
+    #
+    
+    fn <- "C:/Data/seksjon 212/Milkys_2018/Big_excel_table/Data_xl_lessthans_ver14_bluered.xlsm"
+    
+    data_xl_orig <- read_excel(fn,
+                               range = "A1:DT24347",    # NOTE HARD-CODED RANGE  
+                               col_types = coltypes)
+    
+    # Read the single less-than value 
+    data_xl_lessthans <- read_excel(fn,
+                                    range = "HM1:HM24347",    # NOTE HARD-CODED RANGE  
+                                    col_types = "logical")
+    
+    
+}
+
+data_xl <- data_xl_orig
+
+# dim(data_xl)
+# [1]  29546   216
+
+```
+
+
+### 'data_xl_sel' = selected rows of excel table
+```{r}
+
+species <- "Gadus morhua"
+#
+# Muscle data (Hg)
+#
+tissue <- "Muscle"
+sel_param <- c("HG")
+sel_records1 <- with(data_xl, `Parameter Code` %in% sel_param & 
+                              Tissue %in% tissue & 
+                              Species %in% species & 
+                              Basis == "WW" & !is.na(`EQS-class this year`))
+
+#
+# Liver data (the rest)
+#
+tissue <- "Liver"
+sel_param <- c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7")
+sel_records2 <- with(data_xl, `Parameter Code` %in% sel_param & 
+                              Tissue %in% tissue & 
+                              Species %in% species & 
+                              Basis == "WW") # & !is.na(`EQS-class this year`))
+
+
+#
+# Blue mussel
+#
+species <- "Mytilus edulis"
+tissue <- "Whole soft body"
+sel_param <- c("HG", "CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7")
+sel_records3 <- with(data_xl, `Parameter Code` %in% sel_param & 
+                              Tissue %in% tissue & 
+                              Species %in% species & 
+                              Basis == "WW" & !is.na(`EQS-class this year`))
+
+# Combine muscel and liver data
+sel_records <- sel_records1 | sel_records2 | sel_records3
+sum(sel_records1)  # 17
+sum(sel_records2)  # 75
+sum(sel_records3)  # 75
+sum(sel_records)   # 92
+
+# Select rows
+data_xl_sel <- data_xl[sel_records,]
+
+# Add less-thans
+data_xl_sel <- bind_cols(data_xl_sel, data_xl_lessthans[sel_records,])
+
+# remove data_xl
+# rm(data_xl)
+
+xtabs(~`Parameter Code` + Tissue, data_xl_sel )
+
+data_xl[sel_records2,] %>% xtabs(~`Parameter Code` + Tissue, . )
+
+```
+
+
+### Station data  
+Shortened from script 98 in 'Milkys'   
+```{r}
+
+data_stations <- readxl::read_excel("../Milkys2_pc/Files_to_Jupyterhub_2019/Kartbase_edit.xlsx") %>%
+  rename(LATITUDE = Lat, LONGITUDE = Long, 
+         STATION_NAME = Station_name) %>%
+  filter(!is.na(STATION_CODE))# %>%
+  # One duplicate (different names), we just remove one of them
+  # filter(!STATION_NAME %in% "Risøy, Østerfjord")
+
+### Pick by area and species    
+
+if (area == "North_Sea"){
+  
+  data_stations <- data_stations %>% 
+    filter(LATITUDE < 61) %>%
+    # no blue mussel, flatfish or snail stations
+    filter(!(grepl("F", STATION_CODE) | grepl("G", STATION_CODE)))
+  
+} else if (area == "Norwegian_Sea"){
+  
+  data_stations <- data_stations %>% 
+    filter(LATITUDE > 62.2 & LATITUDE < 70 & LONGITUDE < 22) %>%
+    # no blue mussel, flatfish or snail stations
+    filter(grepl("B", STATION_CODE))
+  
+}
+
+data_stations
+
+```
+
+
+### Limits
+```{r}
+# Limits for EQS and Mattrygghet (food safety)
+df_limits <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx")
+
+```
+
+
+## Add Conc value for check  
+- Concnetration value of last year  
+- If less-than, it is set slightly lower than value (in case the limit is exacly the same)
+- To remove before export
+```{r}
+
+if (year_2020_data){
+  
+  value_lastyear <- data_xl_sel$V20          # HARD_CODED YEAR
+  
+  # Less-thans are set a tad lower, to be put in the lower class
+  sel2 <- !is.na(data_xl_sel$Lt_2019) & data_xl_sel$Lt_2019
+  
+} else {
+  
+  value_lastyear <- data_xl_sel$V19          # HARD_CODED YEAR
+  
+  # Less-thans are set a tad lower, to be put in the lower class
+  sel2 <- !is.na(data_xl_sel$Lt_2019) & data_xl_sel$Lt_2019
+  
+}
+
+value_lastyear[sel2] <- value_lastyear[sel2] - 0.00001
+
+data_xl_sel$Conc_for_check <- value_lastyear
+
+```
+### For checking  
+
+```{r}
+
+if (FALSE){
+  
+  data_xl %>% 
+    filter(`Parameter Code` == "HG" & Basis == "WW" & `Station Code` == "43B2") %>%
+    select(`Parameter Code`, Basis, `Station Code`, `Station Name`, PROREF, V19, V20)
+  
+  # Don't need Basis == "WW" - taht has been selected already
+  data_xl_sel %>%
+    filter(`Parameter Code` == "HG" & `Station Code` == "43B2") %>%
+    select(`Parameter Code`, Basis, `Station Code`, `Station Name`, PROREF, V19, V20, Conc_for_check)
+  
+}
+
+```
+
+
+## 'df_indicator'  
+
+### Make 'df_indicator'  
+```{r}
+
+df_indicator <- tibble(
+  PROJECT_ID = 3699,
+  LATIN_NAME = data_xl_sel[["Species"]],
+  STATION_CODE = data_xl_sel[["Station Code"]],
+  SPECIES_ID = 17,                  # HARD-CODED - check above that we only have cod stations
+  TISSUE_NAME = data_xl_sel[["Tissue"]],
+  PARAM = data_xl_sel[["Parameter Code"]],
+  Conc = data_xl_sel[["Conc_for_check"]],
+  trend_symbol = substr(data_xl_sel$`Trends this year`, 3, 3),     # 3rd symbol, e.g. the "¢" in ê/¢ - FOR 10-YEAR TREND
+  N = NA
+  )
+
+#
+# Add station position + name
+#
+nrow(df_indicator)  # 275
+df_indicator <- df_indicator %>% 
+  inner_join(data_stations, by = "STATION_CODE")
+nrow(df_indicator)  # 44
+
+
+```
+
+
+### Add NIVA_CODE
+```{r}
+
+df_tissue_code <- tibble(
+  TISSUE_NAME = c("Whole soft body", "Muscle", "Liver"),
+  NIVA_CODE = c("SB","MU","LI")
+  )
+
+nrow(df_indicator)
+df_indicator <- left_join(df_indicator, df_tissue_code, by = "TISSUE_NAME")
+nrow(df_indicator)
+
+```
+
+### Add trend text
+```{r}
+
+# Check 'set_symbol' function: 
+# source("18_Time_series_write_to_Excel_functions.R")
+# set_symbol
+df_symbol_to_trend <- tibble(
+  trend_symbol = c("§", "«", "¢", "é", "ê"),
+  trend_text = c("Too little data", "Too few data above LOQ", "No trend", "Trend up", "Trend down"),
+  trend = c(0,0,1,2,3)
+  )
+
+# Add trend symbol  
+nrow(df_indicator)
+df_indicator <- left_join(df_indicator, df_symbol_to_trend, by = "trend_symbol")
+nrow(df_indicator)
+
+# Check result
+table(addNA(df_indicator$trend))
+
+df_indicator$trend_symbol <- NULL
+df_indicator$trend_text <- NULL
+
+head(df_indicator, 3)
+
+```
+
+## Save  
+```{r}
+
+overwrite <- FALSE
+# overwrite <- TRUE
+
+if (overwrite){
+  
+  if (area == "North_Sea"){
+    
+    # Save indicator for NIVA data
+    saveRDS(df_indicator, "Data/13_df_indicator_NIVA_only (2021).rds")
+    write.csv(df_indicator, "Data/13_df_indicator_NIVA_only (2021).csv", 
+              quote = FALSE, row.names = FALSE)
+    
+    # Save selected excel data
+    saveRDS(data_xl_sel, "Data/13_data_xl_sel (2021).rds")
+    
+    
+  } else if (area == "Norwegian_Sea"){
+
+    # file.copy("Data/13_df_indicator_NIVA_only (2021_NorwSea).rds", "Data/13_df_indicator_NIVA_only (2021_NorwSea)_OUTDATED.rds")
+    
+    # Save indicator for NIVA data
+    saveRDS(df_indicator, "Data/13_df_indicator_NIVA_only (2021_NorwSea).rds")
+    write.csv(df_indicator, "Data/13_df_indicator_NIVA_only (2021_NorwSea).csv", 
+              quote = FALSE, row.names = FALSE)
+    
+    # Save selected excel data
+    saveRDS(data_xl_sel, "Data/13_data_xl_sel (2021_NorwSea).rds")
+    
+  }
+  
+}
+
+if (FALSE) {
+  
+  df_indicator <- readRDS("Data/13_df_indicator_NIVA_only (2021_NorwSea).rds")
+
+  
+}
+
+```
+
+
+## Compare with the outdated version  
+```{r}
+
+df_indicator_p <- readxl::read_excel("Data_export/GaduMor_2021data_Norw_Sea_ver03.xlsx")
+# readRDS("Data/13_df_indicator_NIVA_only (2021_NorwSea)_OUTDATED.rds")
+df_indicator <- readRDS("Data/13_df_indicator_NIVA_only (2021_NorwSea).rds")
+
+
+if (FALSE){
+  
+  df_indicator_p %>% 
+    filter(PARAM == "HG" & STATION_CODE == "43B2") %>%
+    select(PARAM, STATION_CODE, KLASSE, trend, EQS, Mattrygghet)
+  
+  df_indicator %>% 
+    filter(PARAM == "HG" & STATION_CODE == "43B2") %>%
+    select(PARAM, STATION_CODE, trend)
+  
+  }
+
+```
+
+
+
