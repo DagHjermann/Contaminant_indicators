@@ -39,7 +39,7 @@ fn <- "Input_data/Kvikksølv torskefilet Bhav 2006-2022 HI.xlsx"
 dat2 <- read_excel(fn, col_types = "text") %>%
   rename(Prøvenr. = `Prøve nr.`)      # fix this column name (equal to dat1)
 
-fn <- "Input_data/POPs torskelever Bhav 2006-2022 HI.xlsx"
+fn <- "Input_data/POPs torskelever Bhav 2006-2022 inkl. PBDE HI.xlsx"
 # excel_sheets(fn)
 dat3 <- read_excel(fn, col_types = "text") %>%
   rename(Prøvenr. = `Prøve nr.`)      # fix this column name (equal to dat1)
@@ -251,7 +251,7 @@ df_nifes_cod_BACKUP <- df_nifes_cod
 pars_bde6s <- c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154")
 
 df_nifes_cod_extra <- df_nifes_cod %>%
-  filter(Parameter %in% pars_bde6s) %>%
+  filter(Parameter %in% pars_bde6s & !is.na(Flag)) %>%
   group_by(Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ, Prøvenr.) %>%
   summarise(Conc = sum(Conc),
             Flag = ifelse(sum(Flag %in% "") > 1, "", "<")
