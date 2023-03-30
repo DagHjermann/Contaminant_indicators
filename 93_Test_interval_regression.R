@@ -44,7 +44,7 @@ dat_all <- readRDS("Input_data/NIVA_data_2022-09-01.rds")
 
 dat_1a <- dat_all %>%
   filter(
-    STATION_CODE %in% rownames(tab1),
+    STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
     PARAM %in% c("CD", "DDEPP", "HCB", "HG", "PB")
   )
 
@@ -60,8 +60,8 @@ xtabs(~PARAM + STATION_CODE, dat_1a)
 
 dat_1b <- dat_all %>%
   filter(
-    STATION_CODE %in% rownames(tab1),
-    PARAM %in% c("CB28", "CB52", "CB101", "CB118", "CB138", "CB153", "CB180")
+    STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
+    PARAM %in% c("CB28", "CB52", "CB101", "CB118", "CB138", "CB153", "CB180")  # for BDE, replace here 
   ) %>%
   mutate(
     VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
@@ -72,6 +72,15 @@ dat_1b <- dat_all %>%
     CB7_lo = sum(VALUE_lo),
     CB7_up = sum(VALUE_up)
   )
+
+# Medians of lower and upper bound
+dat_1b_median <- dat_1b %>%
+  group_by(STATION_CODE, LATIN_NAME, MYEAR) %>%
+  summarise(
+    CB7_lo = median(CB7_lo),
+    CB7_up = median(CB7_up)
+  )
+
 
 #
 # Get sumPCB7 data for one station  
@@ -90,13 +99,8 @@ ggplot(dat_test1, aes(x = MYEAR)) +
 #
 # . Median data ----
 #
-dat_test2 <- dat_test1 %>%
-  group_by(STATION_CODE, LATIN_NAME, MYEAR) %>%
-  summarise(
-    CB7_lo = median(CB7_lo),
-    CB7_up = median(CB7_up)
-  )
-
+dat_test2 <- dat_1b_median %>%
+  filter(STATION_CODE == "10A2")
 
 ggplot(dat_test2, aes(x = MYEAR)) +
   geom_point(aes(y = CB7_up), color = "red") +
