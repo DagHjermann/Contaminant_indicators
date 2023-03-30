@@ -10,7 +10,7 @@ library(ggplot2)
 
 
 #
-# Checkng stations and parameters for 202 assessment
+# Checkng stations and parameters for 2020 assessment
 #
 
 df_indicator_2020 <- readRDS("Data/13_df_indicator_NIVA_only (2020).rds")
@@ -49,6 +49,10 @@ dat_1a <- dat_all %>%
   )
 
 xtabs(~PARAM + STATION_CODE, dat_1a)
+
+#
+# NOTE: ADD station 20B as well
+#
 
 #
 # Calculate upper/lower bounds of PCB7 ----
