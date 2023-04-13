@@ -261,10 +261,12 @@ dat_CB <- dat_all %>%
 #   and the sum is defined like this:
 # BDE6S = Sum of BDE congener numbers 28 (tri), 47 (tetra), 99 (penta), 
 #   100 (penta), 153 (hexa) and 154 (hexa)
+# Names: BDE28, BDE47 etc.
 
 dat_test3_individual <- bind_rows(
   dat_individual_param,
-  dat_CB                      # dat_BDE should also be added here  
+  dat_CB,                      # dat_BDE should also be added here 
+  dat_BDE
 )
 
 dat_test3_medians <- dat_test3_individual %>%
@@ -304,6 +306,36 @@ X <- get_trendslope("CB_S7", "10A2", dat_test3_medians)
 # Make "safe" version (doen't stop if there is an error)
 get_trendslope_s <- safely(get_trendslope)
 
-result1 <- map2(c("CB_S7","CB_S7"), c("10A2","43B2"), get_trendslope_s, data = dat_test3_medians)
-  
+X2 <- get_trendslope_s("CB_S7", "10A2", dat_test3_medians)
 
+result1 <- map2(c("CB_S7","CB_S7", "PB"), c("10A2","43B2", "10A2"), get_trendslope_s, data = dat_test3_medians)
+
+# Get all combinations:
+df_combinations <- dat_test3_medians %>%
+  distinct(PARAM, STATION_CODE)
+# result1 <- map2(df_combinations$PARAM, df_combinations$STATION_CODE, get_trendslope_s, data = dat_test3_medians)
+
+# example
+result1[[3]]$result
+
+str(result1, 1)
+str(result1, 2)
+
+# collecting the results  
+result2 <- purrr::transpose(result1)
+result_is_ok <- map_lgl(result2$error, is.null) 
+result3 <- result2$result[result_is_ok]
+
+result4 <- bind_rows(result3)
+
+result4 <- result4 %>%
+  mutate(
+    trend = case_when(
+      slope_lo > 0 ~ 2,
+      slope_up < 0 ~ 3,
+      TRUE ~ 1),
+    trend_text = case_when(
+      slope_lo > 0 ~ "Trend_up",
+      slope_up < 0 ~ "Trend_down",
+      TRUE ~ "No trend")
+  )
