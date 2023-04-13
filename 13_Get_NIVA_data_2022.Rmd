@@ -1,5 +1,5 @@
 ---
-title: "Get NIVA trends, 2021 (data unitl 2020)"
+title: "Get NIVA trends, 2022 (data unitl ?)"
 output: 
   html_document:
     keep_md: true
@@ -50,97 +50,27 @@ area <- "Norwegian_Sea"
 - Row nmber 'automatic'
 
 ```{r}
-# Define column types for faster reading + fewer (or none) errors
+#
+# Checking stations and parameters for 2020 assessment
+#
+## does not exist in folder
+df_indicator_2020 <- readRDS("Data/13_df_indicator_NIVA_only (2020).rds") # only exists as csv...
 
-if (year_2020_data){
-  
-  # FOR 2020 DATA
-  # Column types - NOTE: for data going until 2019 
-  # Until column DT only
-  coltypes = c(rep("text",18),                  # PARAM - "Reference stations" [column A - R]
-               rep("numeric", 4),               # "Reference station count" - "PROREF" [column S - V]
-               rep(c("numeric","text"),41),     # Data 1980 - 2019 (2 columns per year) - INCREASE THIS NUMBER BY 1 EACH YEAR
-               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" last year 
-               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" this year 
-               "text",                                          # Dummy [DI]
-               rep("numeric", 10),                              # "Trend p(long) this year" - "No. of Years(short) this year" 
-               "text"                           # "Trends this year" [DV]
-  )
-  
-} else {
-  
-  # FOR 2019 DATA
-  # Column types - NOTE: for data going until 2019 
-  # Until column DT only
-  coltypes = c(rep("text",18),                  # PARAM - "Reference stations" [column A - R]
-               rep("numeric", 4),               # "Reference station count" - "PROREF" [column S - V]
-               rep(c("numeric","text"),40),     # Data 1980 - 2019 (2 columns per year) [W - CX] - INCREASE THIS NUMBER BY 1 EACH YEAR
-               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" last year [CY-DC]
-               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" this year [DD-DH]
-               "text",                                          # Dummy [DI]
-               rep("numeric", 10),                              # "Trend p(long) this year" - "No. of Years(short) this year" [DJ - DS]
-               "text"                           # "Trends this year" [DT]
-  )
-}
+tab1 <- xtabs(~STATION_CODE + LATIN_NAME, df_indicator_2020)
+tab2 <- xtabs(~PARAM + LATIN_NAME, df_indicator_2020)
+tab1
+# STATION_CODE Gadus morhua Mytilus edulis
+# 10A2            0              6
+# 10B             6              0
+# 11X             0              6
+# 19B             5              0
+# 43B2            5              0
+# 45B2            4              0
+# 98A2            0              5
+# 98B1            7              0
 
-
-if (year_2020_data){
-  
-  #
-  # FOR 2020
-  #
-  
-  fn <- "../Milkys2_pc/Files_from_Jupyterhub_2020/Big_excel_table/Data_xl_2021-09-15_ver03.xlsm"
-  
-  # For getting number of rows:
-  data_xl_firstcol <- read_excel(fn, range = cell_cols("A:B"))
-
-  # 
-  # HARD-CODED for 2020! last column of 'data_xl_orig' - increases by 2 for each year
-  #
-  last_column <- "DV"
-  range_2020 <- paste0("A1:", last_column, nrow(data_xl_firstcol))
-  
-  data_xl_orig <- read_excel(fn,
-                      range = range_2020,   
-                      col_types = coltypes)
-
-  # 
-  # HARD-CODED for 2020! last column of 'data_xl_lessthans' - increases by 4 for each year
-  #
-  last_column <- "HQ"   
-  range_2020_lessthan <- paste0(last_column, "1:", last_column, nrow(data_xl_firstcol))
-
-  # Read the single less-than value 
-  data_xl_lessthans <- read_excel(fn,
-                      range = range_2020_lessthan,    
-                      col_types = "logical")
-
-
-  } else {
-    
-    #
-    # FOR 2019
-    #
-    
-    fn <- "C:/Data/seksjon 212/Milkys_2018/Big_excel_table/Data_xl_lessthans_ver14_bluered.xlsm"
-    
-    data_xl_orig <- read_excel(fn,
-                               range = "A1:DT24347",    # NOTE HARD-CODED RANGE  
-                               col_types = coltypes)
-    
-    # Read the single less-than value 
-    data_xl_lessthans <- read_excel(fn,
-                                    range = "HM1:HM24347",    # NOTE HARD-CODED RANGE  
-                                    col_types = "logical")
-    
-    
-}
-
-data_xl <- data_xl_orig
-
-# dim(data_xl)
-# [1]  29546   216
+tab2
+rownames(tab2)
 
 ```
 
@@ -148,61 +78,168 @@ data_xl <- data_xl_orig
 ### 'data_xl_sel' = selected rows of excel table
 ```{r}
 
-species <- "Gadus morhua"
-#
-# Muscle data (Hg)
-#
-tissue <- "Muscle"
-sel_param <- c("HG")
-sel_records1 <- with(data_xl, `Parameter Code` %in% sel_param & 
-                              Tissue %in% tissue & 
-                              Species %in% species & 
-                              Basis == "WW" & !is.na(`EQS-class this year`))
 
-#
-# Liver data (the rest)
-#
-tissue <- "Liver"
-sel_param <- c("CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7")
-sel_records2 <- with(data_xl, `Parameter Code` %in% sel_param & 
-                              Tissue %in% tissue & 
-                              Species %in% species & 
-                              Basis == "WW") # & !is.na(`EQS-class this year`))
+### replaced with station line 46-49 from interval regression
 
+# Latest NIVA data ----
+#
+
+# dat_all <- readRDS("../Milkys2_pc/Files_from_Jupyterhub_2021/Raw_data/101_data_updated_2022-09-01.rds") %>%
+#   select(MYEAR:VALUE_WW)
+# saveRDS(dat_all, "Input_data/NIVA_data_2022-09-01.rds")
+
+dat_all <- readRDS("Input_data/NIVA_data_2022-09-01.rds")
+
+dat_1a <- dat_all %>%
+  filter(
+    STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
+    PARAM %in% c("CD", "DDEPP", "HCB", "HG", "PB")
+  )
+
+xtabs(~PARAM + STATION_CODE, dat_1a)
 
 #
-# Blue mussel
+# NOTE: ADD station 20B as well
 #
-species <- "Mytilus edulis"
-tissue <- "Whole soft body"
-sel_param <- c("HG", "CD", "HG", "PB", "BDE6S", "HCB", "DDEPP", "CB_S7")
-sel_records3 <- with(data_xl, `Parameter Code` %in% sel_param & 
-                              Tissue %in% tissue & 
-                              Species %in% species & 
-                              Basis == "WW" & !is.na(`EQS-class this year`))
 
-# Combine muscel and liver data
-sel_records <- sel_records1 | sel_records2 | sel_records3
-sum(sel_records1)  # 17
-sum(sel_records2)  # 75
-sum(sel_records3)  # 75
-sum(sel_records)   # 92
+#
+# Calculate upper/lower bounds of PCB7 ----
+#
 
-# Select rows
-data_xl_sel <- data_xl[sel_records,]
+dat_1b <- dat_all %>%
+  filter(
+    STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
+    PARAM %in% c("CB28", "CB52", "CB101", "CB118", "CB138", "CB153", "CB180")  # for BDE, replace here 
+  ) %>%
+  mutate(
+    VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
+    VALUE_up = VALUE_WW
+  ) %>%
+  group_by(STATION_CODE, SAMPLE_NO2, LATIN_NAME, MYEAR) %>%
+  summarise(
+    CB7_lo = sum(VALUE_lo),
+    CB7_up = sum(VALUE_up)
+  )
 
-# Add less-thans
-data_xl_sel <- bind_cols(data_xl_sel, data_xl_lessthans[sel_records,])
+# Medians of lower and upper bound
+dat_1b_median <- dat_1b %>%
+  group_by(STATION_CODE, LATIN_NAME, MYEAR) %>%
+  summarise(
+    CB7_lo = median(CB7_lo),
+    CB7_up = median(CB7_up)
+  )
 
-# remove data_xl
-# rm(data_xl)
 
-xtabs(~`Parameter Code` + Tissue, data_xl_sel )
+#
+# Get sumPCB7 data for one station  
+#
 
-data_xl[sel_records2,] %>% xtabs(~`Parameter Code` + Tissue, . )
+#
+# . Individual data ----
+#
+dat_test1 <- dat_1b %>%
+  filter(STATION_CODE == "10A2")
 
+ggplot(dat_test1, aes(x = MYEAR)) +
+  geom_point(aes(y = CB7_up), color = "red") +
+  geom_point(aes(y = CB7_lo), color = "blue")
+
+#
+# . Median data ----
+#
+dat_test2 <- dat_1b_median %>%
+  filter(STATION_CODE == "10A2")
+
+ggplot(dat_test2, aes(x = MYEAR)) +
+  geom_point(aes(y = CB7_up), color = "red") +
+  geom_point(aes(y = CB7_lo), color = "blue")
+
+
+
+#
+# Interval regression using 'icenReg' ----   
+#
+# - NOTE: will not be used
+# 
+
+# install.packages("icenReg")
+library(icenReg)
+library(foreach)
+library(doParallel)
+
+# using individual datat  
+mle_fit <- ic_par(cbind(CB7_lo, CB7_up) ~ MYEAR,
+                  model = "ph",
+                  dist = "lnorm",
+                  data = dat_test1)
+summary(mle_fit)
+
+
+#
+# Interval regression using JAGS function ----   
+#
+
+library(R2jags)
+library(rjags)
+
+source("interval_lm_qi.R")  # function 'int_linear_qi'  
+
+#
+# . all data (until 2021) ----      
+#
+
+
+# Model
+mod <- int_linear_qi(data = dat_test2, x = "MYEAR", y_lo = "CB7_lo", y_up = "CB7_up")
+
+# str(mod,1)
+
+cat("Estimate of slope (with uncertainty) \n")
+mod$slope
+
+if (mod$slope[["2.5%"]] > 0){
+  # If lower range (2.5 percentile) of the slope estimate is above zero....
+  cat("Significant increase over time")
+} else if (mod$slope[["97.5%"]] < 0){
+  # If upper range (97.5 percentile) of the slope estimate is below zero....
+  cat("Significant decrease over time")
+} else {
+  cat("No significant change over time")
+}
+
+# Test plot  
+ggplot(dat_test2, aes(x = MYEAR)) +
+  geom_point(aes(y = CB7_up), color = "red") +
+  geom_point(aes(y = CB7_lo), color = "blue") +
+  geom_line(data = mod$plot_data, aes(x, y)) +
+  geom_line(data = mod$plot_data, aes(x, y_lo), linetype = "dashed") +
+  geom_line(data = mod$plot_data, aes(x, y_hi), linetype = "dashed")
+
+
+
+#
+# . shorter time series (until 2014) ----      
+#
+
+dat_test2b <- dat_test2 %>% filter(MYEAR <= 2016)
+
+# Model
+mod <- int_linear_qi(data = dat_test2b, x = "MYEAR", y_lo = "CB7_lo", y_up = "CB7_up")
+
+# str(mod,1)
+
+cat("Estimate of slope (with uncertainty) \n")
+mod$slope
+
+
+# Test plot  
+ggplot(dat_test2b, aes(x = MYEAR)) +
+  geom_point(aes(y = CB7_up), color = "red") +
+  geom_point(aes(y = CB7_lo), color = "blue") +
+  geom_line(data = mod$plot_data, aes(x, y)) +
+  geom_line(data = mod$plot_data, aes(x, y_lo), linetype = "dashed") +
+  geom_line(data = mod$plot_data, aes(x, y_hi), linetype = "dashed")
 ```
-
 
 ### Station data  
 Shortened from script 98 in 'Milkys'   
@@ -234,8 +271,9 @@ df_limits <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx")
 ```{r}
 
 dat_last_year <- dat_all %>%
-  filter(MYEAR == 2021) %>%
-  left_join( ....  add df_limits using by= PARAM name ....)
+  filter(MYEAR == 2022) %>%
+  left_join( ....  add df_limits using by= PARAM name ....) # not sure what df is this connected to?
+
 
 # then compare VALUE_WW with limit
 
