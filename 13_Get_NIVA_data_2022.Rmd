@@ -551,20 +551,20 @@ head(df_indicator, 3)
 ## Save  
 ```{r}
 ### new output 
-overwrite <- FALSE
-# overwrite <- TRUE
+overwrite <- TRUE
+# overwrite <- FALSE
 
 if (overwrite){
   
   if (area == "North_Sea"){
     
     # Save indicator for NIVA data
-    saveRDS(df_indicator, "Data/13_df_indicator_NIVA_only (2022).rds")
-    write.csv(df_indicator, "Data/13_df_indicator_NIVA_only (2022).csv", 
+    saveRDS(result4, "Data/13_df_indicator_NIVA_only (2022).rds")
+    write.csv(result4, "Data/13_df_indicator_NIVA_only (2022).csv", 
               quote = FALSE, row.names = FALSE)
     
     # Save selected excel data
-    saveRDS(data_xl_sel, "Data/13_data_xl_sel (2022).rds")
+    #saveRDS(result4, "Data/13_data_xl_sel (2022).rds")
     
     
   } else if (area == "Norwegian_Sea"){
@@ -572,12 +572,13 @@ if (overwrite){
     # file.copy("Data/13_df_indicator_NIVA_only (2021_NorwSea).rds", "Data/13_df_indicator_NIVA_only (2021_NorwSea)_OUTDATED.rds")
     
     # Save indicator for NIVA data
-    saveRDS(df_indicator, "Data/13_df_indicator_NIVA_only (2022).rds")
-    write.csv(df_indicator, "Data/13_df_indicator_NIVA_only (2022).csv", 
+    saveRDS(result4, "Data/13_df_indicator_NIVA_only (2022).rds")
+    write.csv(result4, "Data/13_df_indicator_NIVA_only (2022).csv", 
               quote = FALSE, row.names = FALSE)
     
     # Save selected excel data
-    saveRDS(data_xl_sel, "Data/13_data_xl_sel (2021_NorwSea).rds")
+    
+    #saveRDS(data_xl_sel, "Data/13_data_xl_sel (2022_NorwSea).rds")
     
   }
   
@@ -585,7 +586,7 @@ if (overwrite){
 
 if (FALSE) {
   
-  df_indicator <- readRDS("Data/13_df_indicator_NIVA_only (2022).rds")
+  result4 <- readRDS("Data/13_df_indicator_NIVA_only (2022).rds")
 
   
 }
