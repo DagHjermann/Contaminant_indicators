@@ -7,10 +7,16 @@ library(dplyr)
 library(tidyr)
 library(readxl)
 library(ggplot2)
+library(purrr)
+
+# for JAGS
+library(R2jags)
+library(rjags)
+source("interval_lm_qi.R")  # function 'int_linear_qi'  
 
 
 #
-# Checkng stations and parameters for 2020 assessment
+# Checking stations and parameters for 2020 assessment
 #
 
 df_indicator_2020 <- readRDS("Data/13_df_indicator_NIVA_only (2020).rds")
@@ -27,6 +33,13 @@ tab1
 # 45B2            4              0
 # 98A2            0              5
 # 98B1            7              0
+
+# In addition to the stations we had in the last assessment, we now have
+# a new station, 20B (Longyearbyen)
+
+# The NIVA stations are then: 
+#   c("10A2", "10B", "11X", "19B", "20B", "43B2", "45B2", "98A2", "98B1")
+# where the ones with 'B' are cod stations and the others are blue mussel stations
 
 tab2
 rownames(tab2)
@@ -51,8 +64,11 @@ dat_1a <- dat_all %>%
 xtabs(~PARAM + STATION_CODE, dat_1a)
 
 #
-# NOTE: ADD station 20B as well
+# NOTE: added station 20B as well
 #
+
+xtabs(~PARAM + is.na(FLAG1), dat_1a)
+
 
 #
 # Calculate upper/lower bounds of PCB7 ----
@@ -131,14 +147,13 @@ summary(mle_fit)
 # Interval regression using JAGS function ----   
 #
 
-library(R2jags)
-library(rjags)
-source("interval_lm_qi.R")  # function 'int_linear_qi'  
 
 #
 # . all data (until 2021) ----      
 #
-
+# This includes the later years with huge difference between min and max numbers,
+#   so not unsurprisingly we get no signficicant time trend (because uncertainty is
+#   so large)
 
 # Model
 mod <- int_linear_qi(data = dat_test2, x = "MYEAR", y_lo = "CB7_lo", y_up = "CB7_up")
@@ -147,6 +162,7 @@ mod <- int_linear_qi(data = dat_test2, x = "MYEAR", y_lo = "CB7_lo", y_up = "CB7
 
 cat("Estimate of slope (with uncertainty) \n")
 mod$slope
+# The 95% "confidence interval" is defined by '2.5%' and '97.5%'
 
 if (mod$slope[["2.5%"]] > 0){
   # If lower range (2.5 percentile) of the slope estimate is above zero....
@@ -171,6 +187,11 @@ ggplot(dat_test2, aes(x = MYEAR)) +
 #
 # . shorter time series (until 2014) ----      
 #
+# This avoids the later years with large uncertainty, so we would expect to pick up the
+#   downward time trend that we see. 
+# If the downward time trend was significant we would get both '2.5%' and '97.5%' below zero.
+# However '97.5%' is slightly above zero, so we cannot say that the negative trend
+#   is statistically significant
 
 dat_test2b <- dat_test2 %>% filter(MYEAR <= 2016)
 
@@ -192,4 +213,97 @@ ggplot(dat_test2b, aes(x = MYEAR)) +
   geom_line(data = mod$plot_data, aes(x, y_hi), linetype = "dashed")
 
 
+#
+# Interval regression for several time series ----   
+#
+
+#
+# . data ----
+#
+# Standardize on names VALUE_lo and VALUE_up
+#
+
+dat_individual_param <- dat_all %>%
+  filter(
+    STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
+    PARAM %in% c("CD", "DDEPP", "HCB", "HG", "PB")  
+  ) %>%
+  mutate(
+    VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
+    VALUE_up = VALUE_WW
+  ) %>%
+  select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_lo, VALUE_up)
+
+
+# data for PCB sum  
+# Almost identical to 'dat_1b' code above, but setting names to VALUE_lo and VALUE_up,
+# and adding PARAM = "CB_S7"
+
+dat_CB <- dat_all %>%
+  filter(
+    STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
+    PARAM %in% c("CB28", "CB52", "CB101", "CB118", "CB138", "CB153", "CB180")  # for BDE, replace here 
+  ) %>%
+  mutate(
+    VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
+    VALUE_up = VALUE_WW
+  ) %>%
+  group_by(STATION_CODE, SAMPLE_NO2, LATIN_NAME, MYEAR) %>%
+  summarise(
+    VALUE_lo = sum(VALUE_lo),
+    VALUE_up = sum(VALUE_up), .groups = "drop",
+  ) %>%
+  mutate(PARAM = "CB_S7") %>%
+  select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_lo, VALUE_up)
+
+
+# NOTE: for BDE, make a similar 'dat_BDE' where PARAM = BDE6S
+#   and the sum is defined like this:
+# BDE6S = Sum of BDE congener numbers 28 (tri), 47 (tetra), 99 (penta), 
+#   100 (penta), 153 (hexa) and 154 (hexa)
+
+dat_test3_individual <- bind_rows(
+  dat_individual_param,
+  dat_CB                      # dat_BDE should also be added here  
+)
+
+dat_test3_medians <- dat_test3_individual %>%
+  group_by(PARAM, STATION_CODE, MYEAR) %>%
+  summarise(
+    VALUE_lo = median(VALUE_lo),
+    VALUE_up = median(VALUE_up)
+  )
+
+
+
+# Here, two time series for CB7: stations 45B2 and 98A2
+
+
+# Make function that returns a data frame with lower and upper limits of the slope
+#   for a given function and for a given data set
+# (Can modify this so it also works for a specific parameter, but in this case we usi)
+get_trendslope <- function(parameter, stationcode, data){
+  dat_selected <- data %>%
+    filter(PARAM %in% parameter & STATION_CODE %in% stationcode)
+  mod <- int_linear_qi(data = dat_selected, x = "MYEAR", y_lo = "VALUE_lo", y_up = "VALUE_up")
+  data.frame(
+    PARAM = parameter,
+    STATION_CODE = stationcode,
+    slope_lo = mod$slope[["2.5%"]],
+    slope = mod$slope[["50%"]],
+    slope_up = mod$slope[["97.5%"]])
+}
+
+
+
+
+# test for one parameter / station
+X <- get_trendslope("CB_S7", "10A2", dat_test3_medians)
+# X
+
+# Make "safe" version (doen't stop if there is an error)
+get_trendslope_s <- safely(get_trendslope)
+
+result1 <- map2(c("CB_S7","CB_S7"), c("10A2","43B2"), get_trendslope_s, data = dat_test3_medians)
+  
 
