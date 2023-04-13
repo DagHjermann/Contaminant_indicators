@@ -21,8 +21,8 @@ library(ggplot2)
 
 source("11_Import_and_fix_NIFES_data_2021_functions.R")
 
-# save_data <- TRUE
-save_data <- FALSE
+save_data <- TRUE
+# save_data <- FALSE
 
 ```
 
