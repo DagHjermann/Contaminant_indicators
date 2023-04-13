@@ -16,10 +16,17 @@ NOTE:
 
 ## Packages + functions  
 ```{r, results='hide', message=FALSE}
+
 library(dplyr)
 library(tidyr)
 library(readxl)
 library(ggplot2)
+library(purrr)
+
+# for JAGS
+library(R2jags)
+library(rjags)
+source("interval_lm_qi.R")  # function 'int_linear_qi'  
 
 ```
 
@@ -43,21 +50,17 @@ area <- "Norwegian_Sea"
 
 ## Data
 
-### Read main NIVA data  
-
-- Only like 10 seconds (3-4 minutes if column types is not given)  
-- __NOTE hard-coded number of columns for excel sheet (4 places)__  
-- Row nmber 'automatic'
+### Checking stations and parameters for 2020 assessment
 
 ```{r}
 #
 # Checking stations and parameters for 2020 assessment
-#
+# _______________________________________________________________________________________only exists as csv...
 ## does not exist in folder
-df_indicator_2020 <- readRDS("Data/13_df_indicator_NIVA_only (2020).rds") # only exists as csv...
+df_indicator_2021 <- readRDS("Input_data/NIVA_data_2022-09-01.rds") # 
 
-tab1 <- xtabs(~STATION_CODE + LATIN_NAME, df_indicator_2020)
-tab2 <- xtabs(~PARAM + LATIN_NAME, df_indicator_2020)
+tab1 <- xtabs(~STATION_CODE + LATIN_NAME, df_indicator_2021)
+tab2 <- xtabs(~PARAM + LATIN_NAME, df_indicator_2021)
 tab1
 # STATION_CODE Gadus morhua Mytilus edulis
 # 10A2            0              6
@@ -79,8 +82,7 @@ rownames(tab2)
 ```{r}
 
 
-### replaced with station line 46-49 from interval regression
-
+### 
 # Latest NIVA data ----
 #
 
@@ -240,7 +242,163 @@ ggplot(dat_test2b, aes(x = MYEAR)) +
   geom_line(data = mod$plot_data, aes(x, y_lo), linetype = "dashed") +
   geom_line(data = mod$plot_data, aes(x, y_hi), linetype = "dashed")
 ```
+```{r}
+#
+# Interval regression for several time series ----   
+#
 
+#
+# . data ----
+#
+# Standardize on names VALUE_lo and VALUE_up
+#
+
+dat_individual_param <- dat_all %>%
+  filter(
+    STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
+    PARAM %in% c("CD", "DDEPP", "HCB", "HG", "PB")  
+  ) %>%
+  mutate(
+    VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
+    VALUE_up = VALUE_WW
+  ) %>%
+  select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_lo, VALUE_up)
+
+
+# data for PCB sum  
+# Almost identical to 'dat_1b' code above, but setting names to VALUE_lo and VALUE_up,
+# and adding PARAM = "CB_S7"
+
+dat_CB <- dat_all %>%
+  filter(
+    STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
+    PARAM %in% c("CB28", "CB52", "CB101", "CB118", "CB138", "CB153", "CB180")  # for BDE, replace here 
+  ) %>%
+  mutate(
+    VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
+    VALUE_up = VALUE_WW
+  ) %>%
+  group_by(STATION_CODE, SAMPLE_NO2, LATIN_NAME, MYEAR) %>%
+  summarise(
+    VALUE_lo = sum(VALUE_lo),
+    VALUE_up = sum(VALUE_up), .groups = "drop",
+  ) %>%
+  mutate(PARAM = "CB_S7") %>%
+  select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_lo, VALUE_up)
+
+
+# NOTE: for BDE, make a similar 'dat_BDE' where PARAM = BDE6S
+#   and the sum is defined like this:
+# BDE6S = Sum of BDE congener numbers 28 (tri), 47 (tetra), 99 (penta), 
+#   100 (penta), 153 (hexa) and 154 (hexa)
+# Names: BDE28, BDE47 etc.
+
+
+dat_BDE <- dat_all %>%
+  filter(
+    STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
+    PARAM %in% c("BDE100", "BDE119", "BDE126", "BDE138", "BDE153", "BDE154", "BDE156", "BDE17", "BDE183", "BDE184", "BDE191",
+                 "BDE196", "BDE197", "BDE202", "BDE205", "BDE206", "BDE207", "BDE209", "BDE28", "BDE47", "BDE49", "BDE66",
+                 "BDE6S", "BDE71", "BDE77", "BDE85", "BDE99", "BDESS")  # for BDE, replace here 
+  ) %>%
+  mutate(
+    VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
+    VALUE_up = VALUE_WW
+  ) %>%
+  group_by(STATION_CODE, SAMPLE_NO2, LATIN_NAME, MYEAR) %>%
+  summarise(
+    VALUE_lo = sum(VALUE_lo),
+    VALUE_up = sum(VALUE_up), .groups = "drop",
+  ) %>%
+  mutate(PARAM = "CB_S7") %>%
+  select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_lo, VALUE_up)
+
+
+
+
+
+
+# bind rows of CB, BDE and others
+dat_test3_individual <- bind_rows(
+  dat_individual_param,
+  dat_CB,                     
+  dat_BDE
+)
+
+dat_test3_medians <- dat_test3_individual %>%
+  group_by(PARAM, STATION_CODE, MYEAR) %>%
+  summarise(
+    VALUE_lo = median(VALUE_lo),
+    VALUE_up = median(VALUE_up)
+  )
+
+
+
+# Here, two time series for CB7: stations 45B2 and 98A2
+
+
+# Make function that returns a data frame with lower and upper limits of the slope
+#   for a given function and for a given data set
+# (Can modify this so it also works for a specific parameter, but in this case we usi)
+get_trendslope <- function(parameter, stationcode, data){
+  dat_selected <- data %>%
+    filter(PARAM %in% parameter & STATION_CODE %in% stationcode)
+  mod <- int_linear_qi(data = dat_selected, x = "MYEAR", y_lo = "VALUE_lo", y_up = "VALUE_up")
+  data.frame(
+    PARAM = parameter,
+    STATION_CODE = stationcode,
+    slope_lo = mod$slope[["2.5%"]],
+    slope = mod$slope[["50%"]],
+    slope_up = mod$slope[["97.5%"]])
+}
+
+
+
+
+# test for one parameter / station
+X <- get_trendslope("CB_S7", "10A2", dat_test3_medians)
+# X
+
+# Make "safe" version (doen't stop if there is an error)
+get_trendslope_s <- safely(get_trendslope)
+
+X2 <- get_trendslope_s("CB_S7", "10A2", dat_test3_medians)
+
+# result1 <- map2(c("CB_S7","CB_S7", "PB"), c("10A2","43B2", "10A2"), get_trendslope_s, data = dat_test3_medians)
+
+# Get all combinations:
+df_combinations <- dat_test3_medians %>%
+  distinct(PARAM, STATION_CODE)
+result1 <- map2(df_combinations$PARAM, df_combinations$STATION_CODE, get_trendslope_s, data = dat_test3_medians)
+
+# example
+result1[[3]]$result
+
+str(result1, 1)
+str(result1, 2)
+
+# collecting the results  
+result2 <- purrr::transpose(result1)
+result_is_ok <- map_lgl(result2$error, is.null) 
+result3 <- result2$result[result_is_ok]
+
+result4 <- bind_rows(result3)
+
+result4 <- result4 %>%
+  mutate(
+    trend = case_when(
+      slope_lo > 0 ~ 2,
+      slope_up < 0 ~ 3,
+      TRUE ~ 1),
+    trend_text = case_when(
+      slope_lo > 0 ~ "Trend_up",
+      slope_up < 0 ~ "Trend_down",
+      TRUE ~ "No trend")
+  )
+
+
+
+```
 ### Station data  
 Shortened from script 98 in 'Milkys'   
 ```{r}
@@ -392,7 +550,7 @@ head(df_indicator, 3)
 
 ## Save  
 ```{r}
-
+### new output 
 overwrite <- FALSE
 # overwrite <- TRUE
 
@@ -401,12 +559,12 @@ if (overwrite){
   if (area == "North_Sea"){
     
     # Save indicator for NIVA data
-    saveRDS(df_indicator, "Data/13_df_indicator_NIVA_only (2021).rds")
-    write.csv(df_indicator, "Data/13_df_indicator_NIVA_only (2021).csv", 
+    saveRDS(df_indicator, "Data/13_df_indicator_NIVA_only (2022).rds")
+    write.csv(df_indicator, "Data/13_df_indicator_NIVA_only (2022).csv", 
               quote = FALSE, row.names = FALSE)
     
     # Save selected excel data
-    saveRDS(data_xl_sel, "Data/13_data_xl_sel (2021).rds")
+    saveRDS(data_xl_sel, "Data/13_data_xl_sel (2022).rds")
     
     
   } else if (area == "Norwegian_Sea"){
@@ -414,8 +572,8 @@ if (overwrite){
     # file.copy("Data/13_df_indicator_NIVA_only (2021_NorwSea).rds", "Data/13_df_indicator_NIVA_only (2021_NorwSea)_OUTDATED.rds")
     
     # Save indicator for NIVA data
-    saveRDS(df_indicator, "Data/13_df_indicator_NIVA_only (2021_NorwSea).rds")
-    write.csv(df_indicator, "Data/13_df_indicator_NIVA_only (2021_NorwSea).csv", 
+    saveRDS(df_indicator, "Data/13_df_indicator_NIVA_only (2022).rds")
+    write.csv(df_indicator, "Data/13_df_indicator_NIVA_only (2022).csv", 
               quote = FALSE, row.names = FALSE)
     
     # Save selected excel data
@@ -427,7 +585,7 @@ if (overwrite){
 
 if (FALSE) {
   
-  df_indicator <- readRDS("Data/13_df_indicator_NIVA_only (2021_NorwSea).rds")
+  df_indicator <- readRDS("Data/13_df_indicator_NIVA_only (2022).rds")
 
   
 }
