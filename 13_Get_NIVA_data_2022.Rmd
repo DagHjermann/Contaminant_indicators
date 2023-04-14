@@ -57,11 +57,11 @@ area <- "Norwegian_Sea"
 # Checking stations and parameters for 2020 assessment
 # _______________________________________________________________________________________only exists as csv...
 ## does not exist in folder
-df_indicator_2021 <- readRDS("Input_data/NIVA_data_2022-09-01.rds") # 
+#df_indicator_2021 <- readRDS("Input_data/NIVA_data_2022-09-01.rds") # 
 
-tab1 <- xtabs(~STATION_CODE + LATIN_NAME, df_indicator_2021)
-tab2 <- xtabs(~PARAM + LATIN_NAME, df_indicator_2021)
-tab1
+#tab1 <- xtabs(~STATION_CODE + LATIN_NAME, df_indicator_2021)
+#tab2 <- xtabs(~PARAM + LATIN_NAME, df_indicator_2021)
+#tab1
 # STATION_CODE Gadus morhua Mytilus edulis
 # 10A2            0              6
 # 10B             6              0
@@ -72,8 +72,8 @@ tab1
 # 98A2            0              5
 # 98B1            7              0
 
-tab2
-rownames(tab2)
+#tab2
+#rownames(tab2)
 
 ```
 
@@ -283,7 +283,7 @@ dat_CB <- dat_all %>%
     VALUE_lo = sum(VALUE_lo),
     VALUE_up = sum(VALUE_up), .groups = "drop",
   ) %>%
-  mutate(PARAM = "SCB7") %>%
+  mutate(PARAM = "CB_S7") %>%
   select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_lo, VALUE_up)
 
 
