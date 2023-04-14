@@ -283,7 +283,7 @@ dat_CB <- dat_all %>%
     VALUE_lo = sum(VALUE_lo),
     VALUE_up = sum(VALUE_up), .groups = "drop",
   ) %>%
-  mutate(PARAM = "CB_S7") %>%
+  mutate(PARAM = "SCB7") %>%
   select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_lo, VALUE_up)
 
 
@@ -293,13 +293,10 @@ dat_CB <- dat_all %>%
 #   100 (penta), 153 (hexa) and 154 (hexa)
 # Names: BDE28, BDE47 etc.
 
-
 dat_BDE <- dat_all %>%
   filter(
     STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
-    PARAM %in% c("BDE100", "BDE119", "BDE126", "BDE138", "BDE153", "BDE154", "BDE156", "BDE17", "BDE183", "BDE184", "BDE191",
-                 "BDE196", "BDE197", "BDE202", "BDE205", "BDE206", "BDE207", "BDE209", "BDE28", "BDE47", "BDE49", "BDE66",
-                 "BDE6S", "BDE71", "BDE77", "BDE85", "BDE99", "BDESS") 
+    PARAM %in% c("BDE6S", "BDE28", "BDE47", "BDE99", "BDE100", "BDE153", "BDE154") 
   ) %>%
   mutate(
     VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
@@ -310,13 +307,8 @@ dat_BDE <- dat_all %>%
     VALUE_lo = sum(VALUE_lo),
     VALUE_up = sum(VALUE_up), .groups = "drop",
   ) %>%
-  mutate(PARAM = "BDE100") %>%
+  mutate(PARAM = "BDE6S") %>%
   select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_lo, VALUE_up)
-
-
-
-
-
 
 # bind rows of CB, BDE and others
 dat_test3_individual <- bind_rows(
@@ -331,8 +323,6 @@ dat_test3_medians <- dat_test3_individual %>%
     VALUE_lo = median(VALUE_lo),
     VALUE_up = median(VALUE_up)
   )
-
-
 
 # Here, two time series for CB7: stations 45B2 and 98A2
 
@@ -351,9 +341,6 @@ get_trendslope <- function(parameter, stationcode, data){
     slope = mod$slope[["50%"]],
     slope_up = mod$slope[["97.5%"]])
 }
-
-
-
 
 # test for one parameter / station
 X <- get_trendslope("CB_S7", "10A2", dat_test3_medians)
