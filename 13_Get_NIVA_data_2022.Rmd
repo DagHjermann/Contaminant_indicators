@@ -272,7 +272,7 @@ dat_individual_param <- dat_all %>%
 dat_CB <- dat_all %>%
   filter(
     STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
-    PARAM %in% c("CB28", "CB52", "CB101", "CB118", "CB138", "CB153", "CB180")  # for BDE, replace here 
+    PARAM %in% c("CB28", "CB52", "CB101", "CB118", "CB138", "CB153", "CB180")  
   ) %>%
   mutate(
     VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
@@ -299,7 +299,7 @@ dat_BDE <- dat_all %>%
     STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
     PARAM %in% c("BDE100", "BDE119", "BDE126", "BDE138", "BDE153", "BDE154", "BDE156", "BDE17", "BDE183", "BDE184", "BDE191",
                  "BDE196", "BDE197", "BDE202", "BDE205", "BDE206", "BDE207", "BDE209", "BDE28", "BDE47", "BDE49", "BDE66",
-                 "BDE6S", "BDE71", "BDE77", "BDE85", "BDE99", "BDESS")  # for BDE, replace here 
+                 "BDE6S", "BDE71", "BDE77", "BDE85", "BDE99", "BDESS") 
   ) %>%
   mutate(
     VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
@@ -310,7 +310,7 @@ dat_BDE <- dat_all %>%
     VALUE_lo = sum(VALUE_lo),
     VALUE_up = sum(VALUE_up), .groups = "drop",
   ) %>%
-  mutate(PARAM = "CB_S7") %>%
+  mutate(PARAM = "BDE100") %>%
   select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_lo, VALUE_up)
 
 
