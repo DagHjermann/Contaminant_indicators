@@ -45,18 +45,13 @@ simple_map <- map_data("worldHires", "Norway") %>% fortify()
 Indicators from NIVA serves as the starting point for combining the data  
 ```{r}
 
-# NIVA medians
-data_xl_sel <- readRDS("Data/13_data_xl_sel (2022).rds")
-
-# NIVA indicators
+# NIVA NIFES and indicators
 df_indicator <- readRDS("Data/13_df_indicator_NIVA_only (2022).rds")
 
 # NIFES medians
 df_median <- readRDS("Data/11_df_median (2022).rds") %>%
   as.data.frame()
 
-# NIFES regression
-nifes_regression <- readRDS("Data/12_nifes_regression (2022).rds")
 
 # Food and EQS limits
 df_limits <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx")
@@ -64,212 +59,17 @@ df_limits <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx")
 # Parameters
 sel_param <- c("CD", "HG", "PB", "HCB", "DDEPP", "CB_S7", "BDE6S")
 
-```
-
-### For 2021 specifically  
-```{r}
-#### skip 
-df_2017 <- read_excel(
-  "K:/Avdeling/Mar/NOG/JMGdata/Kart/Indikatorer/2017/Grunnlagsdata/GaduMor_2018_withNIFES_ver4.xlsx") 
-
-df_2017_northsea <- df_2017 %>%
-  filter(STATION_NAME == "Nordsjøen") %>%
-  summarise(
-    LONGITUDE = mean(LONGITUDE),
-    LATITUDE = mean(LATITUDE)
-    )
-
-df_median <- df_median %>%
-  mutate(
-    Posisjon = "Nordsjøen",
-    LONGITUDE = df_2017_northsea$LONGITUDE,
-    LATITUDE = df_2017_northsea$LATITUDE)
 
 
 ```
 
-
-## Make 'df_nifes_finalyear'   
-```{r}
-
-df_median <- df_median %>%
-  mutate(TISSUE_NAME =
-           case_when(Organ %in% "Muskel" ~ "Muscle",
-                     Organ %in% "Lever" ~ "Liver"),
-         STATION_NAME = Posisjon,                      # OR "= Posisjon", if given
-         NIVA_CODE = 
-           case_when(TISSUE_NAME %in% "Muscle" ~ "MU",
-                     TISSUE_NAME %in% "Liver" ~ "LI")
-  )
-
-
-# Get last year's median
-df_nifes_finalyear <- df_median %>% 
-  filter(Parameter %in% sel_param & !is.na(Conc)) %>%
-  group_by(STATION_NAME, Parameter, TISSUE_NAME, NIVA_CODE)  %>%
-  mutate(Maxyear = max(Year)) %>%
-  filter(Year == Maxyear) %>%
-  # select(-LONGITUDE, -LATITUDE) %>%             # no LONGITUDE, LATITUDE this
-  as.data.frame()
-
-df_nifes_pos <- df_median %>% 
-  filter(Parameter %in% sel_param & !is.na(Conc)) %>%
-  group_by(STATION_NAME)  %>%
-  summarize(
-    LONGITUDE = median(LONGITUDE, na.rm = TRUE),
-    LATITUDE = median(LATITUDE, na.rm = TRUE)
-  )
-
-df_nifes_finalyear <- 
-  df_nifes_finalyear %>% left_join(df_nifes_pos)
-
-xtabs(~Parameter + TISSUE_NAME, df_nifes_finalyear)  
-
-```
-
-
-## Make 'df_indicator_nifes'
-```{r}
-
-df_indicator_nifes <- tibble(
-       PROJECT_ID = 9999,
-       LATIN_NAME = "Gadus morhua",
-       STATION_CODE = "9999", 
-       STATION_NAME = df_nifes_finalyear$STATION_NAME,
-       LONGITUDE = df_nifes_finalyear$LONGITUDE, 
-       LATITUDE = df_nifes_finalyear$LATITUDE,
-       PARAM = df_nifes_finalyear$Parameter,
-       N = df_nifes_finalyear$N,
-       Conc = df_nifes_finalyear$Conc,
-       SPECIES_ID = 17,
-       TISSUE_NAME = df_nifes_finalyear$TISSUE_NAME,
-       NIVA_CODE = df_nifes_finalyear$NIVA_CODE
-       )
-
-# Add TISSUE_NAME to nifes_regression (for join below)
-nifes_regression <- nifes_regression %>%
-  mutate(TISSUE_NAME =
-           case_when(TISSUE_NAME %in% "Muskel" ~ "Muscle",
-                     TISSUE_NAME %in% "Lever" ~ "Liver",
-                     TRUE ~ TISSUE_NAME),
-         STATION_NAME = Posisjon
-  )
-
-# xtabs(~STATION_NAME, nifes_regression)
-nrow(df_indicator_nifes)
-df_indicator_nifes <- left_join(
-  df_indicator_nifes, 
-  nifes_regression[,c("PARAM", "TISSUE_NAME", "STATION_NAME", "trend")],
-  by = c("STATION_NAME", "PARAM", "TISSUE_NAME"))
-nrow(df_indicator_nifes)
-
-# Check
-# df_indicator_nifes %>% select(STATION_NAME, LATITUDE, Conc, NIVA_CODE, trend) %>% View()
-# df_indicator %>% select(STATION_NAME, LATITUDE, Conc, NIVA_CODE, trend) %>% View()
-
-```
-
-## Combine NIVA and NIFES data
-```{r}
-
-df_indicator2 <- bind_rows(df_indicator, df_indicator_nifes)
-df_indicator2 %>% head(2)
-nrow(df_indicator2)  # 45
-
-# Check liver
-# xtabs(~STATION_NAME + PARAM, df_indicator2 %>% filter(TISSUE_NAME == "Lever"))  # 94
-
-```
-
-## Map data
-```{r, fig.width=4, fig.height=5}
-
-# Check that all stations have positions
-sum(is.na(df_indicator2$LATITUDE))
-
-df_indicator2 %>%
-  count(STATION_NAME, LATITUDE,  LONGITUDE) %>%
-  arrange(LATITUDE)
-
-plot(LATITUDE ~ LONGITUDE, df_indicator2)
-maps::map(regions = "Norway", add = TRUE, col = "brown")
-
-
-```
-
-## Proref, EQS and mattrygghet
-```{r}
-
-# Get PROREF (Q95) and EQS
-df_q95 <- data_xl_sel[data_xl_sel$Basis %in% "WW", 
-                       c("Parameter Code", "Species", "Tissue", "PROREF", "EQS-threshold this year")] %>%
-  rename(PARAM = `Parameter Code`, 
-         LATIN_NAME = Species, 
-         TISSUE_NAME = Tissue) %>%
-  group_by(PARAM, LATIN_NAME, TISSUE_NAME) %>%
-  summarise(PROREF = first(PROREF), EQS_threshold = first(`EQS-threshold this year`))
-
-# Check
-# df_q95 %>% filter(PARAM == "HG")
-
-# add PROREF and EQS thresholds
-nrow(df_indicator2) # 94
-df_indicator2 <- left_join(df_indicator2, 
-                           df_q95,
-                           by = c("LATIN_NAME", "TISSUE_NAME", "PARAM"))
-nrow(df_indicator2) # 94
-
-# change EQS threshold for Hg (by mail from Norman; from 1.00 to 0.67)
-sel <- df_indicator2$PARAM %in% "CB_S7"; sum(sel) 
-df_indicator2$EQS_threshold[sel] <- 0.67
-
-# Classes changed - original classes were: c(-999999,1,2,5,10,20,999999)
-df_indicator2$KLASSE <- with(df_indicator2, 
-                             cut(Conc/PROREF, breaks = c(-999999,1,2,10,999999), 
-                                 right = FALSE, labels = FALSE)
-                             )
-
-xtabs(~KLASSE + PARAM, df_indicator2)
-#       PARAM
-# KLASSE BDE6S CB_S7 CD DDEPP HCB HG PB
-#      1     7     7  8     1   1  3  8
-#      2     0     1  0     0   0  1  0
-#      3     0     0  0     0   0  4  0
-     
-
-# EQS classe
-df_indicator2$EQS <- with(df_indicator2, 
-                          cut(Conc/EQS_threshold, breaks = c(-999999,1,999999), 
-                              right = FALSE, labels = FALSE)
-                          )
-
-xtabs(~addNA(EQS) + PARAM, df_indicator2)
-#           PARAM
-# addNA(EQS) BDE6S CB_S7 CD DDEPP HCB HG PB
-#       1        0     0  0     1   1  0  0
-#       2        7     8  0     0   0  8  0
-#       <NA>     0     0 11     0   0  3 11
-      
-
-
-
-```
-
-## Add SPECIES_ID
-```{r}
-
-df_indicator2 <- df_indicator2 %>%
-  mutate(SPECIES_ID = case_when(
-    LATIN_NAME %in% "Mytilus edulis" ~ 26,
-    LATIN_NAME %in% "Gadus morhua" ~ 17)
-  )
-
-```
 
 ## Add food limit  
 1 = below limit, 2 = above limit
 ```{r}
-#### start here ....
+df_indicator2 <- df_indicator %>% 
+  left_join(df_limits, multiple ="any")
+
 nrow(df_indicator2)
 df_indicator2 <- left_join(
   df_indicator2, 
