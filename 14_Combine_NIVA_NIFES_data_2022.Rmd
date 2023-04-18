@@ -1,4 +1,4 @@
----
+= ---
 title: "Combine NIVA and NIFES data 2022 - Norwegian Sea"
 output: 
   html_document:
@@ -68,7 +68,7 @@ sel_param <- c("CD", "HG", "PB", "HCB", "DDEPP", "CB_S7", "BDE6S")
 
 ### For 2021 specifically  
 ```{r}
-
+#### skip 
 df_2017 <- read_excel(
   "K:/Avdeling/Mar/NOG/JMGdata/Kart/Indikatorer/2017/Grunnlagsdata/GaduMor_2018_withNIFES_ver4.xlsx") 
 
@@ -269,7 +269,7 @@ df_indicator2 <- df_indicator2 %>%
 ## Add food limit  
 1 = below limit, 2 = above limit
 ```{r}
-
+#### start here ....
 nrow(df_indicator2)
 df_indicator2 <- left_join(
   df_indicator2, 
