@@ -313,6 +313,52 @@ df_nifes_cod %>%
 
 ```
 
+## 8. Put on same format as NIVA data  
+
+### a. Add "station code"  
+
+```{r}
+
+df_nifes_stations <- df_nifes_cod %>%
+  distinct(LONGITUDE, LATITUDE) %>%
+  mutate(STATION_CODE = paste0("HI_Barents", 1:n()))
+
+if (!"STATION_CODE" %in% names(df_nifes_cod)){
+  df_nifes_cod <- df_nifes_cod %>%
+    left_join(df_nifes_stations, by = c("LATITUDE", "LONGITUDE"))
+}
+
+```
+
+### b. Set parameter names  
+```{r}
+
+df_nifes_cod <- df_nifes_cod %>%
+  mutate(PARAM = case_when(
+    Parameter %in% "Cd" ~ "CD",
+    Parameter %in% "Pb" ~ "PB",
+    Parameter %in% "Hg" ~ "HG",
+    Parameter %in% "Sum PCB 6" ~ "CB_S6",
+    Parameter %in% "Sum PCB 7" ~ "CB_S7",
+    Parameter %in% "Hexachlorobenzene (HCB)" ~ "HCB",
+    Parameter %in% "pp-DDE" ~ "DDEPP",     # the rest of the DDT compounds we ignore
+    grepl("^PCB", Parameter) ~  sub("PCB-", "CB", Parameter, fixed = TRUE),
+    grepl("^PBDE", Parameter) ~  sub("PBDE", "BDE", Parameter, fixed = TRUE),
+    TRUE ~ Parameter)
+    )
+
+if (FALSE)
+  count(df_nifes_cod, Parameter, PARAM)
+
+```
+### Save  
+```{r}
+
+if (save_data){
+  saveRDS(df_nifes_cod, "Data/11_df_nifes_cod (2022).rds")
+}
+
+```
 
 
 ## 9. Create df_median and set parameter names  
