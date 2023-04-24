@@ -51,6 +51,7 @@ df_indicator <- readRDS("Data/13_df_indicator_NIVA_only (2022).rds")
 # NIFES medians
 df_median <- readRDS("Data/13_df_indicator_median (2022).rds") %>%
   as.data.frame()
+
 df_median_2022 <- df_median %>% 
   filter(MYEAR == 2022)
 
@@ -61,17 +62,38 @@ df_limits <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx")
 # Parameters
 sel_param <- c("CD", "HG", "PB", "HCB", "DDEPP", "CB_S7", "BDE6S")
 
+niva_stations <- readRDS("Input_data/NIVA_data_stations.rds")
 
+```
 
+### a. Add "station code"  
+
+```{r}
+
+df_nifes_cod <- readRDS("Data/11_df_nifes_cod (2022).rds")
+
+df_nifes_stations <- df_nifes_cod %>%
+  distinct(LONGITUDE, LATITUDE) %>%
+  mutate(STATION_CODE = paste0("HI_Barents", 1:n()))
+if (!"STATION_CODE" %in% names(df_nifes_cod)){
+  df_nifes_cod <- df_nifes_cod %>%
+    left_join(df_nifes_stations, by = c("LATITUDE", "LONGITUDE"))
+}
 ```
 
 
 ## Add food limit  
 1 = below limit, 2 = above limit
 ```{r}
-df_indicator2 <- df_median_2022 %>% 
-  left_join(df_indicator , multiple ="any")
+df_indicator2 <- df_indicator %>%
+  left_join(niva_stations, multiple ="any") %>% 
+  left_join(df_median_2022 , multiple ="any") %>% 
+  left_join(df_nifes_stations, multiple = "any")
+  
 
+#LATIN_NAME is "Gadus morhua" for cod, i.e. all NIVA stations with "B" in the station code and all NIFES/HI stations, and "Mytilus edulis" (blue mussel) for the rest
+# NIVA_CODE is "LI" (liver) for NIVA cod, except for HG for which it is "MU"
+#"SB" (soft body) for the blue mussel stations. For the NIFES data (cod) it's the same as NIVA cod I think (should say in the original excel)
 nrow(df_indicator2)
 df_indicator2 <- left_join(
   df_indicator2, 
