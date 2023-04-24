@@ -26,14 +26,15 @@ library(dplyr)
 library(tidyr)
 library(readxl)
 library(ggplot2)
+library(stringr)
 
 
 # File name for export
 fn <- "Data_export/GaduMor_2022data_ver01"
 fn_csv <- paste0(fn, ".csv")
 fn_xlsx <- paste0(fn, ".xlsx")
-overwrite <- FALSE
-#overwrite <- TRUE
+overwrite <- TRUE
+#overwrite <- FALSE
 
 # Background map
 library(mapdata)
@@ -45,7 +46,7 @@ simple_map <- map_data("worldHires", "Norway") %>% fortify()
 Indicators from NIVA serves as the starting point for combining the data  
 ```{r}
 
-# NIVA NIFES and indicators
+# NIVA & NIFES and indicators
 df_indicator <- readRDS("Data/13_df_indicator_NIVA_only (2022).rds")
 
 # NIFES medians
@@ -71,7 +72,27 @@ niva_stations <- readRDS("Input_data/NIVA_data_stations.rds")
 ```{r}
 
 df_nifes_cod <- readRDS("Data/11_df_nifes_cod (2022).rds")
+#fix concentration
+df_nifes_cod1 <- df_nifes_cod %>% 
+  mutate( Conc = sub("<", "", Conc_chr, fixed = TRUE) %>% 
+            sub("*", "", ., fixed = TRUE) %>%
+            as.numeric(),
+          Flag = ifelse(grepl("<", Conc_chr), "<", ""),
+          Comment = ifelse(grepl("*", Conc_chr, fixed = TRUE), "*", "")
+    )
+df_nifes_cod2 <- df_nifes_cod1 %>% 
+  filter(Parameter %in% c("Cd", "Pb", "Hg", "PCB-118", "Sum PCB 7", 
+                          "Hexachlorobenzene (HCB)", "pp-DDE", "PBDE 47", "BDE6S")) %>% 
+  group_by(Year, Posisjon, Parameter, Organ) %>%
+  mutate(Conc_median = median(Conc)) %>% 
+  select(-Conc, -Parameter, -Organ)
+  
 
+df_nifes_cod3 <- df_nifes_cod2 %>% 
+  rename("Conc" = Conc_median) %>% 
+  select(Conc, PARAM, STATION_CODE)
+
+# fix station names
 df_nifes_stations <- df_nifes_cod %>%
   distinct(LONGITUDE, LATITUDE) %>%
   mutate(STATION_CODE = paste0("HI_Barents", 1:n()))
@@ -79,6 +100,8 @@ if (!"STATION_CODE" %in% names(df_nifes_cod)){
   df_nifes_cod <- df_nifes_cod %>%
     left_join(df_nifes_stations, by = c("LATITUDE", "LONGITUDE"))
 }
+ # Find less-thans and make Flag variable
+
 ```
 
 
@@ -86,21 +109,52 @@ if (!"STATION_CODE" %in% names(df_nifes_cod)){
 1 = below limit, 2 = above limit
 ```{r}
 df_indicator2 <- df_indicator %>%
+  left_join(df_median_2022, multiple ="any") %>% 
+  left_join(df_nifes_cod3, multiple ="any") %>% 
   left_join(niva_stations, multiple ="any") %>% 
-  left_join(df_median_2022 , multiple ="any") %>% 
-  left_join(df_nifes_stations, multiple = "any")
+  left_join(df_nifes_stations, multiple = "any") 
   
 
+df_indicator2 <- df_indicator2 %>% 
+  select(-MYEAR, -VALUE_lo, -VALUE_up, -Year, -Posisjon, -Parameter, -Organ)
+### adding Latin_Name according to 
 #LATIN_NAME is "Gadus morhua" for cod, i.e. all NIVA stations with "B" in the station code and all NIFES/HI stations, and "Mytilus edulis" (blue mussel) for the rest
 # NIVA_CODE is "LI" (liver) for NIVA cod, except for HG for which it is "MU"
 #"SB" (soft body) for the blue mussel stations. For the NIFES data (cod) it's the same as NIVA cod I think (should say in the original excel)
+
+df_indicator2 <- df_indicator2 %>% mutate(
+  LATIN_NAME= 
+    case_when(
+      grepl("B",STATION_CODE)~ "Gadus morhua",
+      grepl("HI_Barents", STATION_CODE) ~ "Gadus morhua",
+      TRUE ~ "Mytilus edulis"
+      ))
+
+df_indicator2 <- df_indicator2 %>% mutate(
+  NIVA_CODE = 
+    case_when(
+      LATIN_NAME %in% "Mytilus edulis" ~ "SB",
+      LATIN_NAME %in% "Gadus morhua" & PARAM == "HG" ~ "MU",
+      TRUE ~ "LI"
+    ))
+
+df_indicator2 <- df_indicator2 %>% mutate(
+  TISSUE_NAME = 
+    case_when(
+      LATIN_NAME %in% "Mytilus edulis" ~ "Soft body",
+      LATIN_NAME %in% "Gadus morhua" & PARAM == "HG" ~ "Muscle",
+      TRUE ~ "Liver"
+    ))
+
+
 nrow(df_indicator2)
 df_indicator2 <- left_join(
   df_indicator2, 
-  subset(df_limits, select = c(PARAM, LATIN_NAME, NIVA_CODE, Mattrygghet,EQS)), 
+  subset(df_limits, select = c(PARAM, LATIN_NAME, NIVA_CODE)), 
   by = c("PARAM", "LATIN_NAME", "NIVA_CODE"))
 nrow(df_indicator2)
-# 96
+
+
 
 df_indicator2$Mattrygghet <- cut(with(df_indicator2, Conc/Mattrygghet),
                                  breaks = c(-999999,1,999999), 
@@ -108,7 +162,7 @@ df_indicator2$Mattrygghet <- cut(with(df_indicator2, Conc/Mattrygghet),
 
 xtabs(~addNA(Mattrygghet) + PARAM + TISSUE_NAME, df_indicator2)
 
-# tail(df_indicator2)
+#tail(df_indicator2)
 
 ```
 
@@ -122,7 +176,7 @@ df_indicator2 <- df_indicator2 %>%
   arrange(PARAM,LONGITUDE,LATITUDE)
 
 # Save with all variables
-saveRDS(df_indicator2, file = "Data/14_df_indicator2_cod_ver01 (2021.rds")
+saveRDS(df_indicator2, file = "Data/14_df_indicator2_cod_ver01 (2022.rds")
 
 # Save with selected variables
 vars <- c("PROJECT_ID", "STATION_CODE", "STATION_NAME", 
@@ -130,13 +184,9 @@ vars <- c("PROJECT_ID", "STATION_CODE", "STATION_NAME",
   "SPECIES_ID", "trend", "NIVA_CODE", "EQS", "Mattrygghet")
 
 # DOnt include HG in liver
-sel <- with(df_indicator2, !(PARAM == "HG" & TISSUE_NAME == "Lever"))
+sel <- with(df_indicator2, !(PARAM == "HG" & TISSUE_NAME == "Liver"))
 sum(sel)
 mean(sel)
-
-
-# setwd("H:/Documents/seksjon 212/Indikator 2018/Analyse")
-
 
 write_safe <- function(data, filename, save_function, overwrite = FALSE, ...){
   # Csv
@@ -169,13 +219,12 @@ trend: 0 = no trend calculated, 1 = zero time trend, 2 = up, 3 = down
 ```{r}
 
 df <- df_indicator2 %>%
-  filter(!(PARAM == "HG" & TISSUE_NAME == "Lever")) %>%
+  filter(!(PARAM == "HG" & TISSUE_NAME == "Liver")) %>%
   mutate(Time_trend =
            case_when(trend %in% 0 ~ "Not calc.",
                      trend %in% 1 ~ "No trend",
                      trend %in% 2 ~ "Down",
-                     trend %in% 3 ~ "Up")
-         ) %>%
+                     trend %in% 3 ~ "Up")) %>%
   mutate(Time_trend = factor(Time_trend, levels = c("Not calc.", "No trend", "Down", "Up")),
          Mattrygghet = factor(Mattrygghet, levels = 1:2),
          EQS = factor(EQS, levels = 1:2))
