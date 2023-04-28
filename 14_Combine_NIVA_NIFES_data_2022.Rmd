@@ -48,7 +48,7 @@ Indicators from NIVA serves as the starting point for combining the data
 
 # NIVA & NIFES and indicators
 df_indicator <- readRDS("Data/13_df_indicator_NIVA_Nifes_only (2022).rds")
-
+xtabs(~PARAM + STATION_CODE, df_indicator)
 # all median with HI_Barents1 in 2020, and HI_Barents2 & HI_Barents3 in 2022
 df_median <- readRDS("Data/13_df_indicator_median_all (2021).rds") %>%
   as.data.frame()
