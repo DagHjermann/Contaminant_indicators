@@ -67,6 +67,17 @@ dat_1a <- dat_all %>%
     PARAM %in% c("CD", "DDEPP", "HCB", "HG", "PB")
   )
 xtabs(~PARAM + STATION_CODE, dat_1a)
+
+# Medians of lower and upper bound
+dat_1a_median <- dat_1a %>%
+  filter(MYEAR == 2021) %>%
+  group_by(STATION_CODE, LATIN_NAME, PARAM) %>%
+  summarise(
+    Conc = median(VALUE_WW)
+  )
+
+saveRDS(dat_1a_median, "Data/13_df_indicator_median_NIVA (2021).rds")
+
 #
 # NOTE: ADD station 20B as well
 #
@@ -177,7 +188,7 @@ ggplot(dat_test2b, aes(x = MYEAR)) +
   geom_line(data = mod$plot_data, aes(x, y_lo), linetype = "dashed") +
   geom_line(data = mod$plot_data, aes(x, y_hi), linetype = "dashed")
 
-#
+#____________________________________________________________________________
 # Interval regression for several time series ----   
 #
 #
@@ -185,6 +196,11 @@ ggplot(dat_test2b, aes(x = MYEAR)) +
 #
 #
 df_nifes_cod <- readRDS("Data/11_df_nifes_cod (2022).rds")
+
+table(df_nifes_cod$Parameter)
+table(df_nifes_cod$Year, df_nifes_cod$STATION_CODE)
+
+
 df_nifes_cod <- df_nifes_cod %>%
   rename(
     MYEAR = Year,
@@ -196,7 +212,11 @@ df_nifes_cod <- df_nifes_cod %>%
   mutate(
     VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
     VALUE_up = VALUE_WW) %>% 
-  mutate(PARAM = "PB") %>%
+  mutate(
+    PARAM = case_when(
+      Parameter %in% "Sum PCB 7" ~ "CB_S7",
+      TRUE ~ toupper(Parameter))
+    ) %>%
   select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_lo, VALUE_up)
 # STATION_CODE = HI_Barents1, HI_Barents2, HI_Barents3
 head(dat_all, 2)
@@ -258,6 +278,7 @@ dat_BDE <- dat_all %>%
   ) %>%
   mutate(PARAM = "BDE6S") %>%
   select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_lo, VALUE_up)
+
 # bind rows of CB, BDE and others
 dat_test3_individual <- bind_rows(
   dat_individual_param,
@@ -266,6 +287,8 @@ dat_test3_individual <- bind_rows(
   df_nifes_cod
 )
 
+# xtabs(~STATION_CODE + PARAM, df_nifes_cod)
+# xtabs(~STATION_CODE + PARAM, dat_test3_individual)
 dat_test3_medians <- dat_test3_individual %>%
   group_by(PARAM, STATION_CODE, MYEAR) %>%
   summarise(
@@ -273,6 +296,48 @@ dat_test3_medians <- dat_test3_individual %>%
     VALUE_up = median(VALUE_up)
   )
 
+#____________________________________________ getting median concentrations for all
+#Value low = conc
+dat_BDE_median <- dat_BDE %>% 
+  mutate(Conc = VALUE_lo)
+
+dat_CB_median <- dat_CB %>% 
+  mutate(Conc = VALUE_lo)
+
+# value WW = value_up = Conc
+dat_individual_param_median <- dat_individual_param %>% 
+  mutate(Conc = VALUE_up) 
+  
+df_nifes_cod_median <- df_nifes_cod %>% 
+  mutate(Conc = VALUE_up)
+
+  
+# bind rows to get all conc
+dat_median_NIVA <- dat_BDE_median %>% 
+  bind_rows(dat_individual_param_median) %>% 
+  bind_rows(dat_CB_median) %>% 
+  filter(MYEAR == 2021) %>%
+  group_by(STATION_CODE, PARAM, MYEAR) %>%
+  summarise(
+    Conc = median(Conc)
+  )
+### we need the HI_Barents1 which had its last year in 2020!
+dat_median_nifes <- df_nifes_cod_median %>% 
+  filter(MYEAR == 2022 & STATION_CODE %in% c("HI_Barents3", "HI_Barents2") | MYEAR == 2020 & STATION_CODE == "HI_Barents1") %>%
+  group_by(STATION_CODE, PARAM, MYEAR) %>%
+  summarise(
+    Conc = median(Conc)
+  ) 
+xtabs(~PARAM + STATION_CODE, dat_median_nifes)
+
+dat_median_all <- dat_median_NIVA %>% 
+  bind_rows(dat_median_nifes)
+
+# save conc
+saveRDS(dat_median_all, "Data/13_df_indicator_median_all (2021).rds")
+
+
+#_______________________________________________________________________________________________
 # Here, two time series for CB7: stations 45B2 and 98A2
 # Make function that returns a data frame with lower and upper limits of the slope
 #   for a given function and for a given data set
@@ -352,8 +417,8 @@ if (overwrite){
   if (area == "North_Sea"){
     
     # Save indicator for NIVA data
-    saveRDS(result4, "Data/13_df_indicator_NIVA_only (2022).rds")
-    write.csv(result4, "Data/13_df_indicator_NIVA_only (2022).csv", 
+    saveRDS(result4, "Data/13_df_indicator_NIVA_Nifes_only (2022).rds")
+    write.csv(result4, "Data/13_df_indicator_NIVA_Nifes_only (2022).csv", 
               quote = FALSE, row.names = FALSE)
     
     # Save selected excel data
@@ -364,8 +429,8 @@ if (overwrite){
     # file.copy("Data/13_df_indicator_NIVA_only (2021_NorwSea).rds", "Data/13_df_indicator_NIVA_only (2021_NorwSea)_OUTDATED.rds")
     
     # Save indicator for NIVA data
-    saveRDS(result4, "Data/13_df_indicator_NIVA_only (2022).rds")
-    write.csv(result4, "Data/13_df_indicator_NIVA_only (2022).csv", 
+    saveRDS(result4, "Data/13_df_indicator_NIVA_Nifes_only (2022).rds")
+    write.csv(result4, "Data/13_df_indicator_NIVA_Nifes_only (2022).csv", 
               quote = FALSE, row.names = FALSE)
     
     # Save selected excel data
@@ -385,6 +450,6 @@ if (FALSE) {
 
 ## new part  ???
 
-dat_test3_medians_2 <- dat_test3_medians %>% filter(MYEAR == 2022)
+#dat_test3_medians_2 <- dat_test3_medians %>% filter(MYEAR == 2021)
 
-saveRDS(dat_test3_medians, "Data/13_df_indicator_median (2022).rds")
+#saveRDS(dat_test3_medians_2, "Data/13_df_indicator_median (2021).rds") ## changed to 2021
