@@ -287,8 +287,8 @@ dat_test3_individual <- bind_rows(
   df_nifes_cod
 )
 
-# xtabs(~STATION_CODE + PARAM, df_nifes_cod)
-# xtabs(~STATION_CODE + PARAM, dat_test3_individual)
+xtabs(~STATION_CODE + PARAM, df_nifes_cod)
+xtabs(~STATION_CODE + PARAM, dat_test3_individual)
 dat_test3_medians <- dat_test3_individual %>%
   group_by(PARAM, STATION_CODE, MYEAR) %>%
   summarise(
@@ -312,7 +312,7 @@ df_nifes_cod_median <- df_nifes_cod %>%
   mutate(Conc = VALUE_up)
 
   
-# bind rows to get all conc
+# bind rows to get all concentration 
 dat_median_NIVA <- dat_BDE_median %>% 
   bind_rows(dat_individual_param_median) %>% 
   bind_rows(dat_CB_median) %>% 
@@ -442,7 +442,7 @@ if (overwrite){
 }
 if (FALSE) {
   
-  result4 <- readRDS("Data/13_df_indicator_NIVA_only (2022).rds")
+  result4 <- readRDS("Data/13_df_indicator_NIVA_Nifes_only (2022).rds")
   
 }
 
