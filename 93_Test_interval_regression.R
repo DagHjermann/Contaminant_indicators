@@ -347,9 +347,6 @@ result4 <- result4 %>%
 
 df_nifes_cod <-  readRDS("Data/11_df_nifes_cod (2022).rds")
 
-head(dat_all, 2)
-head(df_nifes_cod, 2) 
-
 df_nifes_cod <- df_nifes_cod %>%
   rename(
     MYEAR = Year,
@@ -360,6 +357,13 @@ df_nifes_cod <- df_nifes_cod %>%
     SAMPLE_NO2 = as.numeric(factor(Prøvenr.))
     ) %>%
   select(STATION_CODE, SAMPLE_NO2, LATIN_NAME, MYEAR, VALUE_WW, FLAG1)
+
+# STATION_CODE = HI_Barents1, HI_Barents2, HI_Barents3
+
+head(dat_all, 2)
+head(df_nifes_cod, 2) 
+
+
 
 
 

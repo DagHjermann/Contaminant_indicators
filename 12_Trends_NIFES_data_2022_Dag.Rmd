@@ -26,11 +26,42 @@ library(AICcmodavg)   # for AICc()
 
 source("00_functions.R")
 # source("16_Trend_functions.R")
-source('16b_Trend_functions.R')
+# source('16b_Trend_functions.R')
+
+# for JAGS
+library(R2jags)
+library(rjags)
+source("interval_lm_qi.R")  # function 'int_linear_qi'  
 
 ```
 
-## 2. Data
+## 2. Data  
+
+```{r}
+
+df_nifes_cod <-  readRDS("Data/11_df_nifes_cod (2022).rds")
+
+df_nifes_cod <- df_nifes_cod %>%
+  rename(
+    MYEAR = Year,
+    VALUE_WW = Conc,
+    FLAG1 = Flag) %>%
+  mutate(
+    LATIN_NAME = "Gadus morhua",
+    SAMPLE_NO2 = as.numeric(factor(Prøvenr.))
+    ) %>%
+  select(STATION_CODE, SAMPLE_NO2, LATIN_NAME, MYEAR, VALUE_WW, FLAG1)
+
+# STATION_CODE = HI_Barents1, HI_Barents2, HI_Barents3
+
+# head(df_nifes_cod, 2) 
+
+xtabs(~MYEAR + STATION_CODE, df_nifes_cod)
+
+
+```
+
+
 ```{r}
 
 revised_data <- TRUE
