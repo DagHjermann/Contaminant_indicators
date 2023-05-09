@@ -1,0 +1,800 @@
+---
+title: "15_Final_results"
+format: html
+---
+
+* Area: Barents Sea  
+* Data until 2021 (NIVA) and 2019-2022 (HI)      
+
+* This scripts collects the final results (from Sophie doing script 11-14), and add some new ones  
+
+* Version OLD1 generated using this script  
+
+* Version ver3, manual changes added afterwards:  
+    - EQS for HG in blue mussel added  
+    - EQS for PCB7 added (see mail from Merete 8.5.2023)  
+    - Species and tissue for blue mussel added  
+
+## Packages + functions  
+```{r}
+
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(ggplot2)
+library(stringr)
+library(knitr)    # for kable
+
+# for JAGS (interval regression)  
+library(R2jags)
+library(rjags)
+library(purrr)
+source("interval_lm_qi.R")  # function 'int_linear_qi'  
+
+```
+
+## Indicator results from Sophie  
+
+* Includes 20B   
+* Includes CLASS variable (EQS)   
+* Lacking EQS classification  
+* Lacking trends for HI data 
+
+### Read file    
+```{r}
+
+dat_indicator_draft1 <- readRDS("Data/14_df_indicator2_cod_ver01 (2022.rds")
+
+params <- c("BDE6S", "CB_S7", "CD", "DDEPP", "HCB", "HG", "PB")
+xtabs(~PARAM + STATION_CODE, dat_indicator_draft1 %>% filter(PARAM %in% params))  
+
+# names(dat_indicator_draft1)
+
+```
+
+### Plots   
+```{r}
+
+# Mattrygghet  
+dat_indicator_draft1 %>% filter(PARAM %in% params) %>%
+  ggplot(aes(PARAM, STATION_CODE, color = addNA(Mattrygghet))) +
+  geom_point(size = rel(5))
+
+# EQS  
+dat_indicator_draft1 %>% filter(PARAM %in% params) %>%
+  ggplot(aes(PARAM, STATION_CODE, color = addNA(EQS))) +
+  geom_point(size = rel(5))
+
+# Trends
+# OK for NIVA data (lacking for 20B, that's normal)
+# Lacking Barents trends! 
+dat_indicator_draft1 %>% filter(PARAM %in% params) %>%
+  ggplot(aes(PARAM, STATION_CODE, color = addNA(trend_text))) +
+  geom_point(size = rel(5))
+
+```
+
+## Add EQS classification  
+```{r}
+
+dat_indicator_draft1 <- dat_indicator_draft1 %>%
+  rename(EQS_threshold = EQS) %>%
+  mutate(
+    EQS = case_when(
+      Conc >= EQS_threshold ~ 2,
+      Conc < EQS_threshold ~ 1)
+  )
+
+```
+
+## Function for getting slope  
+
+```{r}
+
+# Make function that returns a data frame with lower and upper limits of the slope
+#   for a given function and for a given data set
+# (Can modify this so it also works for a specific parameter, but in this case we usi)
+
+get_trendslope <- function(parameter, stationcode, data){
+  dat_selected <- data %>%
+    filter(PARAM %in% parameter & STATION_CODE %in% stationcode)
+  dat_interval <- dat_selected %>%
+    filter(VALUE_lo < VALUE_up)
+  if (nrow(dat_interval) >= 1){
+    # If there are actual intervals, run int_linear_qi
+    mod <- int_linear_qi(data = dat_selected, x = "MYEAR", y_lo = "VALUE_lo", y_up = "VALUE_up")
+    result <- data.frame(
+      PARAM = parameter,
+      STATION_CODE = stationcode,
+      slope_lo = mod$slope[["2.5%"]],
+      slope = mod$slope[["50%"]],
+      slope_up = mod$slope[["97.5%"]])
+  } else {
+    # If there are no intervals (alll data over LOQ), run lm
+    mod <- lm(VALUE_up ~ MYEAR, data = dat_selected)  
+    summ <- summary(mod)
+    result <- data.frame(
+      PARAM = parameter,
+      STATION_CODE = stationcode,
+      slope_lo =  summ$coefficients[2,1] - 2*summ$coefficients[2,2],
+      slope =  summ$coefficients[2,1],
+      slope_up = summ$coefficients[2,1] + 2*summ$coefficients[2,2])
+  }
+  result
+}
+
+if (FALSE){
+  
+  # *** test *** 
+  
+  # debugonce(get_trendslope)
+  test_trendslope1 <- get_trendslope("HG", "10A2", data = dat_bluemussel_medians)  # 10A2 11X 98A2
+  test_trendslope2 <- get_trendslope("CB_S7", "10A2", data = dat_bluemussel_medians) 
+  test_trendslope3 <- get_trendslope("HG", "HI_Barents1", data = dat_nifes_median)
+  test_trendslope4 <- get_trendslope("BDE6S", "HI_Barents2", data = dat_nifes_median)
+  
+  # test_trendslope1
+  
+}
+
+# Make "safe" version (doen't stop if there is an error)
+get_trendslope_s <- safely(get_trendslope)
+
+
+```
+
+
+## Prepare blue mussel data  
+
+### Get blue mussel data  
+
+```{r}
+
+stations_sel <- c("10A2", "11X", "98A2")
+params_ind <- c("CD", "DDEPP", "HCB", "HG", "PB")
+params_pcb <- c("CB28", "CB52", "CB101", "CB118", "CB138", "CB153", "CB180")
+params_bde <- c("BDE28", "BDE47", "BDE99", "BDE100", "BDE153", "BDE154")
+
+# Latest NIVA data ----
+dat_all <- readRDS("Input_data/NIVA_data_2022-09-01.rds")
+
+# 
+# Select stations and compunds
+#
+dat_bluemussel_all <- dat_all %>%
+  filter(
+    # STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
+    STATION_CODE %in% stations_sel,
+    PARAM %in% c(params_ind, params_pcb, params_bde)
+  ) %>%
+  mutate(
+    VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
+    VALUE_up = VALUE_WW
+  ) %>%
+  select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_WW, FLAG1, VALUE_lo, VALUE_up)
+
+xtabs(~PARAM + STATION_CODE, dat_bluemussel_all)  
+
+```
+
+### Get raw data    
+
+```{r}
+
+#
+# Individual compounds
+# 
+dat_bluemussel_ind <- dat_bluemussel_all %>%
+  filter(PARAM %in% params_ind)
+
+#
+# PCB
+#
+dat_bluemussel_pcb <- dat_bluemussel_all %>%
+  filter(PARAM %in% params_pcb) %>%
+  group_by(STATION_CODE, SAMPLE_NO2, MYEAR) %>%
+  summarise(
+    VALUE_lo = sum(VALUE_lo),
+    VALUE_up = sum(VALUE_up), .groups = "drop"
+  ) %>%
+  mutate(
+    PARAM = "CB_S7")
+
+#
+# BDE
+#
+dat_bluemussel_bde <- dat_bluemussel_all %>%
+  filter(PARAM %in% params_bde) %>%
+  group_by(STATION_CODE, SAMPLE_NO2, MYEAR) %>%
+  summarise(
+    VALUE_lo = sum(VALUE_lo),
+    VALUE_up = sum(VALUE_up), .groups = "drop"
+  ) %>%
+  mutate(
+    PARAM = "BDES7")
+
+dat_bluemussel_raw <- bind_rows(
+  dat_bluemussel_ind,
+  dat_bluemussel_pcb,
+  dat_bluemussel_bde)
+
+# xtabs(~PARAM + STATION_CODE, dat_bluemussel_all)  
+# xtabs(~MYEAR + STATION_CODE, dat_bluemussel_bde)  
+xtabs(~PARAM + STATION_CODE, dat_bluemussel_raw)  
+
+```
+
+### Get medians  
+```{r}
+
+dat_bluemussel_medians <- dat_bluemussel_raw %>%
+  group_by(PARAM, STATION_CODE, MYEAR) %>%
+  summarise(
+    VALUE_lo = median(VALUE_lo),
+    VALUE_up = median(VALUE_up), .groups = "drop"
+  )
+
+ggplot(dat_bluemussel_medians, aes(MYEAR, ymin = VALUE_lo, ymax = VALUE_up)) +
+  geom_errorbar() +
+  facet_grid(vars(PARAM), vars(STATION_CODE), scales = "free_y")
+
+```
+
+### Get last year's value  
+
+* Called Conc  
+
+```{r}
+
+dat_bluemussel_medians %>%
+  group_by(PARAM, STATION_CODE) %>%
+  summarize(last_year = max(MYEAR), .groups = "drop") %>%
+  pivot_wider(names_from = STATION_CODE, values_from = last_year) %>%
+  kable() 
+  
+dat_bluemussel_lastyear_1 <- dat_bluemussel_medians %>%
+  # data older than this are too old 
+  filter(MYEAR >= 2016) %>%   
+  # Arrange with last year first (so we can use first() in summarize)
+  arrange(PARAM, STATION_CODE, desc(MYEAR)) %>%
+  group_by(PARAM, STATION_CODE) %>%
+  summarize(
+    Conc = first(VALUE_lo),
+    MYEAR_last = first(MYEAR),  .groups = "drop")
+
+```
+
+
+### Lookup tables  
+* Thresholds  
+* Proref  
+* Coordinates
+
+```{r}
+
+# Food and EQS limits
+lookup_thresholds <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx")
+
+lookup_thresholds_bluemussel <- lookup_thresholds %>%
+  filter(LATIN_NAME %in% "Mytilus edulis") %>%
+  rename(EQS_threshold = EQS, Mattrygghet_threshold = Mattrygghet)
+
+# Proref (
+# lookup_proref <- readRDS("Input_data/lookup_proref.rds")
+
+lookup_proref <- readRDS("Input_data/lookup_proref.rds")
+
+lookup_proref_bluemussel <- lookup_proref %>%
+  filter(LATIN_NAME == "Mytilus edulis")
+
+# Coordinates  
+lookup_coord <- readRDS("Input_data/lookup_coordinates.rds")
+
+
+```
+
+
+### Classify regarding limits  
+```{r}
+
+nrow(dat_bluemussel_lastyear_1)
+
+dat_bluemussel_lastyear_2 <- dat_bluemussel_lastyear_1 %>%
+  left_join(
+    lookup_thresholds_bluemussel %>% select(PARAM, EQS_threshold, Mattrygghet_threshold),
+    by = "PARAM") %>%
+  left_join(
+    lookup_proref_bluemussel %>% select(PARAM, PROREF),
+    by = "PARAM") %>%
+  mutate(
+    EQS = case_when(
+      Conc/EQS_threshold <= 1 ~ 1,
+      Conc/EQS_threshold > 1 ~ 2),
+    Mattrygghet = case_when(
+      Conc/Mattrygghet_threshold <= 1 ~ 1,
+      Conc/Mattrygghet_threshold > 1 ~ 2),
+  CLASS = case_when(
+    Conc/PROREF < 1 ~ 1,
+    Conc/PROREF < 2 ~ 2,
+    Conc/PROREF < 10 ~ 3,
+    Conc/PROREF >= 10 ~ 4)
+  )
+ 
+nrow(dat_bluemussel_lastyear_2)
+
+
+```
+
+### Get trends    
+
+```{r}
+
+# data must contain PARAM, STATION_CODE, VALUE_lo, VALUE_up
+# relies on get_trendslope_s
+get_trendslope_all <- function(data){
+  
+  # Get all combinations:
+  df_combinations <- data %>%
+    distinct(PARAM, STATION_CODE) %>%
+    as.data.frame()
+  
+  df_slopes_list <- map2(df_combinations$PARAM, df_combinations$STATION_CODE, get_trendslope_s, 
+                                data = data)
+  
+  df_slopes_list <- transpose(df_slopes_list)  
+  
+  ok <- map_lgl(df_slopes_list$error, is.null)  
+  # ok
+  cat("\n=============================================================\n")
+  cat(round(100*mean(ok), 0), "percent of analyses succeeded (", sum(ok), " of a total of ", length(ok), ")\n", sep = "")
+  cat("=============================================================\n")
+  
+  df_slopes <- bind_rows(df_slopes_list$result[ok])
+  
+  df_slopes
+  
+}
+
+
+if (FALSE){
+  
+  dat_bluemussel_trends <- get_trendslope_all(dat_bluemussel_medians)
+  
+  # 86 percent of analyses succeeded (18 of a total of 21)
+  
+  saveRDS(dat_bluemussel_trends, "Data/15_dat_bluemussel_trends.rds")
+  write.csv(dat_bluemussel_trends, "Data/15_dat_bluemussel_trends.csv")
+  
+}
+
+dat_bluemussel_trends <- readRDS("Data/15_dat_bluemussel_trends.rds")
+
+```
+
+
+### Add rows to dat_indicator   
+
+```{r}
+
+n1 <- nrow(dat_bluemussel_lastyear_2)
+
+dat_indicator_bluemussel <- dat_bluemussel_lastyear_2 %>%
+  left_join(dat_bluemussel_trends, by = c("STATION_CODE", "PARAM")) %>%
+  left_join(lookup_coord %>% select(STATION_CODE, Long, Lat), by = "STATION_CODE") %>%
+  rename(LATITUDE = Lat, LONGITUDE = Long) %>%
+  select(-Mattrygghet_threshold, -EQS_threshold)
+
+n2 <- nrow(dat_indicator_bluemussel)
+
+if (n2 > n1)
+  stop("Number of rows increased, check left joins!")
+
+dat_indicator_draft2 <- dat_indicator_draft1 %>%
+  bind_rows(dat_indicator_bluemussel)
+
+names(dat_indicator_draft1)
+names(dat_indicator_draft2)
+
+```
+
+
+## Trends for HI (aka NIFES) cod   
+
+* Based on script 91
+
+### Data   
+
+```{r}
+
+#
+# Raw data for HI (NIFES) cod    
+# - includes CB_S7 and BDE6S
+#
+dat_hi <- readRDS("Data/11_df_nifes_cod (2022).rds")
+xtabs(~PARAM + STATION_CODE, dat_hi)
+
+# names(dat_hi)
+
+```
+
+
+### Data for individual parameters    
+
+```{r}
+
+# params
+
+# xtabs(~Prøvenr. + STATION_CODE, dat_hi %>% filter(Year == 2022))
+# xtabs(~Jnr + STATION_CODE, dat_hi %>% filter(Year == 2022))
+# dat_hi %>% filter(Prøvenr. == "2022-1450") %>% View()
+
+dat_nifes_raw1 <- dat_hi %>%
+  filter(
+    STATION_CODE %in% c("HI_Barents1", "HI_Barents2", "HI_Barents3"),
+    PARAM %in% c("CD", "DDEPP", "HCB", "HG", "PB")  
+  ) %>%
+  mutate(
+    Ind = paste0(Jnr, "__", Prøvenr.),
+    VALUE_lo = ifelse(grepl("<", Flag), 0, Conc),
+    VALUE_up = Conc) %>%
+  rename(
+    MYEAR = Year) %>%
+  select(STATION_CODE, Ind, MYEAR, PARAM, Conc, Flag, VALUE_lo, VALUE_up)
+
+
+```
+
+
+### Data for sum parameters    
+
+```{r}
+#
+# Calculate upper/lower bounds of PCB7 ----
+#
+
+#
+# PCB
+#
+dat_nifes_raw2_before_sum <- dat_hi %>%
+  filter(
+    STATION_CODE %in% c("HI_Barents1", "HI_Barents2", "HI_Barents3"),
+    PARAM %in% c("CB28", "CB52", "CB101", "CB118", "CB138", "CB153", "CB180")  # for BDE, replace here 
+  ) %>%
+  mutate(
+    Ind = paste0(Jnr, "__", Prøvenr.),
+    VALUE_lo = ifelse(grepl("<", Flag), 0, Conc),
+    VALUE_up = Conc) %>%
+  rename(
+    MYEAR = Year) %>%
+  select(STATION_CODE, Ind, MYEAR, PARAM, Conc, Flag, VALUE_lo, VALUE_up)
+  
+dat_nifes_raw2 <- dat_nifes_raw2_before_sum %>%
+  group_by(STATION_CODE, Ind, MYEAR) %>%
+  summarise(
+    VALUE_lo = sum(VALUE_lo),
+    VALUE_up = sum(VALUE_up)
+  ) %>%
+  mutate(
+    PARAM = "CB_S7")
+
+
+#
+# BDE
+#
+dat_nifes_raw3_before_sum <- dat_hi %>%
+  filter(
+    STATION_CODE %in% c("HI_Barents1", "HI_Barents2", "HI_Barents3"),
+    PARAM %in% c("BDE 28", "BDE 47", "BDE 99", "BDE 100", "BDE 153", "BDE 154")
+  ) %>%
+  mutate(
+    Ind = paste0(Jnr, "__", Prøvenr.),
+    VALUE_lo = ifelse(grepl("<", Flag), 0, Conc),
+    VALUE_up = Conc) %>%
+  rename(
+    MYEAR = Year) %>%
+  select(STATION_CODE, Ind, MYEAR, PARAM, Conc, Flag, VALUE_lo, VALUE_up)
+  
+dat_nifes_raw3 <- dat_nifes_raw3_before_sum %>%
+  group_by(STATION_CODE, Ind, MYEAR) %>%
+  summarise(
+    VALUE_lo = sum(VALUE_lo),
+    VALUE_up = sum(VALUE_up)
+  ) %>%
+  mutate(
+    PARAM = "BDE6S")
+
+```
+
+### Data, combined   
+
+```{r}
+
+dat_nifes_raw <- bind_rows(
+  dat_nifes_raw1, dat_nifes_raw2, dat_nifes_raw3
+)
+
+dat_nifes_median <- dat_nifes_raw %>%
+  group_by(PARAM, STATION_CODE, MYEAR) %>%
+  summarise(
+    VALUE_lo = median(VALUE_lo),
+    VALUE_up = median(VALUE_up)
+  )
+
+xtabs(~PARAM, dat_nifes_raw)
+xtabs(~PARAM, dat_nifes_median)
+
+```
+
+### Plots 
+
+```{r}
+
+ggplot(dat_nifes_median, aes(MYEAR, ymin = VALUE_lo, ymax = VALUE_up)) +
+  geom_errorbar() +
+  facet_wrap(vars(PARAM), scales = "free_y")
+
+ggplot(dat_nifes_median, aes(MYEAR)) +
+  geom_point(aes(y = VALUE_up), color = "red") +
+  geom_point(aes(y = VALUE_lo), color = "blue") +
+  facet_grid(vars(PARAM), vars(STATION_CODE), scales = "free_y")
+
+```
+
+
+### Get all slopes  
+
+```{r}
+
+# Make "safe" version (doen't stop if there is an error)
+get_trendslope_s <- safely(get_trendslope)
+
+# Get all combinations:
+df_combinations <- dat_nifes_median %>%
+  distinct(PARAM, STATION_CODE) %>%
+  as.data.frame()
+
+if (FALSE){
+  
+  dat_nifes_trends_list <- map2(df_combinations$PARAM, df_combinations$STATION_CODE, get_trendslope_s, 
+                                data = dat_nifes_median)
+  
+  dat_nifes_trends_list <- transpose(dat_nifes_trends_list)  
+  
+  ok <- map_lgl(dat_nifes_trends_list$error, is.null)  
+  # ok
+  
+  dat_nifes_trends <- bind_rows(dat_nifes_trends_list$result[ok])
+  
+  saveRDS(dat_nifes_trends, "Data/15_dat_nifes_trends.rds")
+  write.csv(dat_nifes_trends, "Data/15_dat_nifes_trends.csv")
+  
+}
+
+dat_nifes_trends <- readRDS("Data/15_dat_nifes_trends.rds")
+
+
+```
+
+
+
+
+## Add slopes for HI data   
+
+* Adding slopes to indicator data (dat_indicator_draft2)
+
+### Combine and check trend  
+```{r}
+
+head(dat_indicator_draft2)
+
+dat_indicator <- bind_rows(
+  # Rows with HI stations: remove slope columns and ad new ones from 'dat_nifes_trends'  
+  dat_indicator_draft2 %>% 
+    filter(STATION_CODE %in% c('HI_Barents1', 'HI_Barents2', 'HI_Barents3')) %>% 
+    select(-slope_lo, -slope, -slope_up) %>%
+    left_join(dat_nifes_trends, by = c("PARAM", "STATION_CODE")),
+  # Rows without HI stations: keep as they are    
+  dat_indicator_draft2 %>% 
+    filter(!STATION_CODE %in% c('HI_Barents1', 'HI_Barents2', 'HI_Barents3')) 
+)
+
+dat_indicator %>%
+  count(trend_text)
+
+dat_indicator <- dat_indicator %>%
+  filter(!PARAM %in% c("HEXACHLOROBENZENE (HCB)", "OP-DDD", "OP-DDE", "OP-DDT", "PBDE 100", 
+                       "PBDE 119", "PBDE 138", "PBDE 153", "PBDE 154", "PBDE 183", "PBDE 28", 
+                       "PBDE 47", "PBDE 66", "PBDE 99", "PCB-101", "PCB-118", "PCB-138", 
+                       "PCB-153", "PCB-180", "PCB-28", "PCB-52", "PP-DDD", "PP-DDE", 
+                       "PP-DDT", "SUM PCB 6")) %>%
+  mutate(
+    trend_text2 = case_when(
+    slope_lo > 0 ~ "Trend_up",
+    slope_up < 0 ~ "Trend_down",
+    !is.na(slope_lo) ~ "No trend")
+  )
+  
+dat_indicator %>%
+  count(trend_text, trend_text2)  
+
+
+```
+
+### Replace 'trend_text' by 'trend_text2' values   
+```{r}
+
+dat_indicator <- dat_indicator %>%
+  mutate(trend_text = trend_text2) %>%
+  select(-trend_text2)
+
+```
+
+
+
+
+## Plots for dat_indicator  
+```{r}
+
+# trends
+
+# Mattrygghet  
+dat_indicator %>% filter(PARAM %in% params) %>%
+  ggplot(aes(PARAM, STATION_CODE, color = addNA(Mattrygghet))) +
+  geom_point(size = rel(5))
+
+# EQS  
+dat_indicator %>% filter(PARAM %in% params) %>%
+  ggplot(aes(PARAM, STATION_CODE, color = addNA(EQS))) +
+  geom_point(size = rel(5))
+
+# Trends
+# OK for NIVA data (lacking for 20B, that's normal)
+# Lacking Barents trends! 
+dat_indicator %>% filter(PARAM %in% params) %>%
+  ggplot(aes(PARAM, STATION_CODE, color = addNA(trend_text))) +
+  geom_point(size = rel(5))
+
+```
+
+## Add positions for HI stations    
+
+### Check  
+```{r}
+
+# dat_indicator %>%
+#   count(STATION_CODE, LATITUDE, LONGITUDE)  
+
+dat_positions_hi <- dat_hi %>%
+  distinct(STATION_CODE, LATITUDE, LONGITUDE)  
+
+dat_positions_hi
+
+```
+
+### Add coordinates for HI stations   
+```{r}
+
+
+dat_indicator <- bind_rows(
+  # Rows with HI stations: remove slope columns and ad new ones from 'dat_indicator'  
+  dat_indicator %>% 
+    filter(STATION_CODE %in% c('HI_Barents1', 'HI_Barents2', 'HI_Barents3')) %>% 
+    select(-LATITUDE, -LONGITUDE) %>%
+    left_join(dat_positions_hi),
+  # Rows without HI stations: keep as they are    
+  dat_indicator %>% 
+    filter(!STATION_CODE %in% c('HI_Barents1', 'HI_Barents2', 'HI_Barents3'))
+)
+
+```
+
+### Check again   
+```{r}
+
+dat_indicator %>%
+  count(STATION_CODE, LATITUDE, LONGITUDE)  
+
+
+```
+
+## Save  
+
+```{r}
+
+saveRDS(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022.rds")
+write.csv(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022.csv")
+
+writexl::write_xlsx(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022.xlsx")
+
+```
+
+## Simple maps  
+
+```{r}
+
+
+```
+
+
+## APPENDIX
+
+### Get and save PROREF values  
+```{r}
+
+if (FALSE){
+  
+  # 
+  # Get and save PROREF values
+  #
+  
+  coltypes = c(rep("text",18),                  # PARAM - "Reference stations" [column A - R]
+               rep("numeric", 4),               # "Reference station count" - "PROREF" [column S - V]
+               rep(c("numeric","text"),41),     # Data 1980 - 2019 (2 columns per year) - INCREASE THIS NUMBER BY 1 EACH YEAR
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" last year 
+               "text","numeric","numeric","numeric","numeric",  # "N_string" - "EQS-threshold" this year 
+               "text",                                          # Dummy [DI]
+               rep("numeric", 10),                              # "Trend p(long) this year" - "No. of Years(short) this year" 
+               "text"                           # "Trends this year" [DV]
+  )
+  
+  #
+  # FOR 2020
+  #
+  
+  fn <- "../Milkys2_pc/Files_from_Jupyterhub_2020/Big_excel_table/Data_xl_2021-09-15_ver03.xlsm"
+  
+  # For getting number of rows:
+  data_xl_firstcol <- read_excel(fn, range = cell_cols("A:B"))
+
+  # 
+  # HARD-CODED for 2020! last column of 'data_xl_orig' - increases by 2 for each year
+  #
+  last_column <- "DV"
+  range_2020 <- paste0("A1:", last_column, nrow(data_xl_firstcol))
+  
+  data_xl <- read_excel(fn,
+                      range = range_2020,   
+                      col_types = coltypes)
+  
+  # For demo:
+  # data_xl %>% 
+  #   filter(`Parameter Code` == "HG" & Basis == "WW" & `Station Code` == "43B2") %>%
+  #   select(`Parameter Code`, Basis, `Station Code`, `Station Name`, Species, PROREF, V19, V20)
+  
+  lookup_proref <- data_xl %>% 
+    filter(Basis %in% "WW" & !is.na(PROREF)) %>%
+    rename(
+      PARAM = `Parameter Code`,
+      LATIN_NAME = Species) %>%
+    distinct(PARAM, LATIN_NAME, PROREF)
+
+  check <- lookup_proref %>% add_count(PARAM, LATIN_NAME) %>% filter(n > 1)
+  if (nrow(check) > 0)
+    stop("More than one PROREF per parameter * species!")
+      
+  # Save
+  saveRDS(lookup_proref, "Input_data/lookup_proref.rds")
+  
+  rm(data_xl)
+  
+  
+}
+
+```
+
+
+### Get and save coordinates  
+```{r}
+
+if (FALSE){
+  
+  data_coord <- read_excel("../Milkys2_pc/Files_to_Jupyterhub_2021/Kartbase_edit.xlsx")
+  
+  saveRDS(data_coord, "Input_data/lookup_coordinates.rds")
+  write.csv(data_coord, "Input_data/lookup_coordinates.csv")
+
+}
+
+
+```
+
