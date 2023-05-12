@@ -144,7 +144,10 @@ get_trendslope_s <- safely(get_trendslope)
 ```
 
 
-## Prepare blue mussel data  
+## Prepare extra NIVA data  
+
+* blue mussel  
+* HCB and DDEPP (to 2020 only)  
 
 ### Get blue mussel data  
 
@@ -177,7 +180,8 @@ xtabs(~PARAM + STATION_CODE, dat_bluemussel_all)
 
 ```
 
-### Get raw data    
+
+### Get raw data for blue mussel      
 
 ```{r}
 
@@ -211,12 +215,18 @@ dat_bluemussel_bde <- dat_bluemussel_all %>%
     VALUE_up = sum(VALUE_up), .groups = "drop"
   ) %>%
   mutate(
-    PARAM = "BDES7")
+    PARAM = "BDES6")
 
 dat_bluemussel_raw <- bind_rows(
   dat_bluemussel_ind,
   dat_bluemussel_pcb,
-  dat_bluemussel_bde)
+  dat_bluemussel_bde)  %>%
+  # Next 3 lines: keep only time series with data after 2016 
+  group_by(STATION_CODE, PARAM) %>%
+  mutate(Last_year = max(MYEAR)) %>%
+  filter(Last_year >= 2017) %>%
+  ungroup()
+
 
 # xtabs(~PARAM + STATION_CODE, dat_bluemussel_all)  
 # xtabs(~MYEAR + STATION_CODE, dat_bluemussel_bde)  
@@ -224,17 +234,63 @@ xtabs(~PARAM + STATION_CODE, dat_bluemussel_raw)
 
 ```
 
+
+### Get data for cod HCB and DDE(PP)     
+
+```{r}
+
+# dat_all2 <- readRDS("../Milkys2_pc/Files_from_Jupyterhub_2021/Raw_data/109_adjusted_data_2022-09-23.rds")
+
+stations_sel <- c("10B", "19B", "98B1", "20B", "43B2", "45B2")
+params_ind <- c("DDEPP", "HCB")
+
+# 
+# Select stations and compunds
+#
+dat_cod_pesticides_raw <- dat_all %>%
+  filter(
+    # STATION_CODE %in% c("10A2", "10B", "11X", "19B", "43B2", "45B2", "98A2", "98B1", "20B"),
+    STATION_CODE %in% stations_sel,
+    LATIN_NAME == "Gadus morhua",
+    PARAM %in% c(params_ind)
+  ) %>%
+  # Next 3 lines: keep only time series with data after 2016 
+  group_by(STATION_CODE, PARAM) %>%
+  mutate(Last_year = max(MYEAR)) %>%
+  filter(Last_year >= 2017) %>%
+  mutate(
+    VALUE_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
+    VALUE_up = VALUE_WW
+  ) %>%
+  select(STATION_CODE, SAMPLE_NO2, MYEAR, PARAM, VALUE_WW, FLAG1, VALUE_lo, VALUE_up)
+
+xtabs(~PARAM + STATION_CODE, dat_cod_pesticides_raw)  
+# xtabs(~PARAM + MYEAR, dat_cod_pesticides_raw)  
+
+```
+
+### Combine blue mussel and cod  
+```{r}
+
+dat_extra_raw <- bind_rows(
+  dat_bluemussel_raw %>% mutate(LATIN_NAME = "Mytilus edulis"),
+  dat_cod_pesticides_raw %>% mutate(LATIN_NAME = "Gadus morhua")
+)
+
+```
+
+
 ### Get medians  
 ```{r}
 
-dat_bluemussel_medians <- dat_bluemussel_raw %>%
-  group_by(PARAM, STATION_CODE, MYEAR) %>%
+dat_extra_medians <- dat_extra_raw %>%
+  group_by(PARAM, STATION_CODE, LATIN_NAME, MYEAR) %>%
   summarise(
     VALUE_lo = median(VALUE_lo),
     VALUE_up = median(VALUE_up), .groups = "drop"
   )
 
-ggplot(dat_bluemussel_medians, aes(MYEAR, ymin = VALUE_lo, ymax = VALUE_up)) +
+ggplot(dat_extra_medians, aes(MYEAR, ymin = VALUE_lo, ymax = VALUE_up)) +
   geom_errorbar() +
   facet_grid(vars(PARAM), vars(STATION_CODE), scales = "free_y")
 
@@ -246,18 +302,18 @@ ggplot(dat_bluemussel_medians, aes(MYEAR, ymin = VALUE_lo, ymax = VALUE_up)) +
 
 ```{r}
 
-dat_bluemussel_medians %>%
-  group_by(PARAM, STATION_CODE) %>%
+dat_extra_medians %>%
+  group_by(PARAM, STATION_CODE, LATIN_NAME) %>%
   summarize(last_year = max(MYEAR), .groups = "drop") %>%
   pivot_wider(names_from = STATION_CODE, values_from = last_year) %>%
   kable() 
   
-dat_bluemussel_lastyear_1 <- dat_bluemussel_medians %>%
+dat_extra_lastyear_1 <- dat_extra_medians %>%
   # data older than this are too old 
   filter(MYEAR >= 2016) %>%   
   # Arrange with last year first (so we can use first() in summarize)
   arrange(PARAM, STATION_CODE, desc(MYEAR)) %>%
-  group_by(PARAM, STATION_CODE) %>%
+  group_by(PARAM, STATION_CODE, LATIN_NAME) %>%
   summarize(
     Conc = first(VALUE_lo),
     MYEAR_last = first(MYEAR),  .groups = "drop")
@@ -266,26 +322,37 @@ dat_bluemussel_lastyear_1 <- dat_bluemussel_medians %>%
 
 
 ### Lookup tables  
+
 * Thresholds  
 * Proref  
 * Coordinates
 
 ```{r}
 
-# Food and EQS limits
-lookup_thresholds <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx")
-
-lookup_thresholds_bluemussel <- lookup_thresholds %>%
-  filter(LATIN_NAME %in% "Mytilus edulis") %>%
+# Food and EQS limits  
+lookup_thresholds <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx") %>%
   rename(EQS_threshold = EQS, Mattrygghet_threshold = Mattrygghet)
+
+# Set EQS for PCB7
+
+lookup_thresholds <- lookup_thresholds %>%
+  mutate(
+    EQS_threshold = case_when(
+      PARAM == "CB_S7" ~ 0.6,
+      TRUE ~ EQS_threshold))
+
+
+# lookup_thresholds_bluemussel <- lookup_thresholds %>%
+#   rename(EQS_threshold = EQS, Mattrygghet_threshold = Mattrygghet)
 
 # Proref (
 # lookup_proref <- readRDS("Input_data/lookup_proref.rds")
 
 lookup_proref <- readRDS("Input_data/lookup_proref.rds")
 
-lookup_proref_bluemussel <- lookup_proref %>%
-  filter(LATIN_NAME == "Mytilus edulis")
+
+# lookup_proref_bluemussel <- lookup_proref %>%
+#   filter(LATIN_NAME == "Mytilus edulis")
 
 # Coordinates  
 lookup_coord <- readRDS("Input_data/lookup_coordinates.rds")
@@ -297,15 +364,15 @@ lookup_coord <- readRDS("Input_data/lookup_coordinates.rds")
 ### Classify regarding limits  
 ```{r}
 
-nrow(dat_bluemussel_lastyear_1)
+n1 <- nrow(dat_extra_lastyear_1)
 
-dat_bluemussel_lastyear_2 <- dat_bluemussel_lastyear_1 %>%
+dat_extra_lastyear_2 <- dat_extra_lastyear_1 %>%
   left_join(
-    lookup_thresholds_bluemussel %>% select(PARAM, EQS_threshold, Mattrygghet_threshold),
-    by = "PARAM") %>%
+    lookup_thresholds %>% select(PARAM, LATIN_NAME, EQS_threshold, Mattrygghet_threshold),
+    by = c("PARAM", "LATIN_NAME")) %>%
   left_join(
-    lookup_proref_bluemussel %>% select(PARAM, PROREF),
-    by = "PARAM") %>%
+    lookup_proref %>% select(PARAM, LATIN_NAME, PROREF),
+    by = c("PARAM", "LATIN_NAME")) %>%
   mutate(
     EQS = case_when(
       Conc/EQS_threshold <= 1 ~ 1,
@@ -320,7 +387,16 @@ dat_bluemussel_lastyear_2 <- dat_bluemussel_lastyear_1 %>%
     Conc/PROREF >= 10 ~ 4)
   )
  
-nrow(dat_bluemussel_lastyear_2)
+n2 <- nrow(dat_extra_lastyear_2)  
+
+if (n2 > n1)
+  stop("Number of rows increased, check left joins!")
+
+
+# Check EQS
+# dat_extra_lastyear_2 %>%
+#   count(PARAM, EQS_threshold, EQS) %>%
+#   kable()
 
 
 ```
@@ -346,7 +422,7 @@ get_trendslope_all <- function(data){
   ok <- map_lgl(df_slopes_list$error, is.null)  
   # ok
   cat("\n=============================================================\n")
-  cat(round(100*mean(ok), 0), "percent of analyses succeeded (", sum(ok), " of a total of ", length(ok), ")\n", sep = "")
+  cat(round(100*mean(ok), 0), " percent of analyses succeeded (", sum(ok), " of a total of ", length(ok), ")\n", sep = "")
   cat("=============================================================\n")
   
   df_slopes <- bind_rows(df_slopes_list$result[ok])
@@ -358,42 +434,62 @@ get_trendslope_all <- function(data){
 
 if (FALSE){
   
-  dat_bluemussel_trends <- get_trendslope_all(dat_bluemussel_medians)
+  dat_extra_trends <- get_trendslope_all(dat_extra_medians)
   
-  # 86 percent of analyses succeeded (18 of a total of 21)
+  # debugonce(get_trendslope_all)
+  # dat_extra_trends_test <- get_trendslope_all(dat_extra_medians)
   
-  saveRDS(dat_bluemussel_trends, "Data/15_dat_bluemussel_trends.rds")
-  write.csv(dat_bluemussel_trends, "Data/15_dat_bluemussel_trends.csv")
+  # 95 percent of analyses succeeded (20 of a total of 21)
+  
+  saveRDS(dat_extra_trends, "Data/15_dat_extra_trends.rds")
+  write.csv(dat_extra_trends, "Data/15_dat_extra_trends.csv")
   
 }
 
-dat_bluemussel_trends <- readRDS("Data/15_dat_bluemussel_trends.rds")
+dat_extra_trends <- readRDS("Data/15_dat_extra_trends.rds")
 
 ```
 
+
+### Add trend columns   
+
+* Creates 'dat_indicator_extra'  
+
+```{r}
+
+n1 <- nrow(dat_extra_lastyear_2)
+
+dat_indicator_extra <- dat_extra_lastyear_2 %>%
+  left_join(dat_extra_trends, by = c("STATION_CODE", "PARAM")) %>%
+  left_join(lookup_coord %>% select(STATION_CODE, Long, Lat), by = "STATION_CODE") %>%
+  rename(LATITUDE = Lat, LONGITUDE = Long) %>%
+  select(-Mattrygghet_threshold, -EQS_threshold)
+
+n2 <- nrow(dat_indicator_extra)
+
+if (n2 > n1)
+  stop("Number of rows increased, check left joins!")
+
+```
 
 ### Add rows to dat_indicator   
 
 ```{r}
 
-n1 <- nrow(dat_bluemussel_lastyear_2)
+check <- dat_indicator_draft1 %>%
+  inner_join(dat_indicator_extra %>% select(STATION_CODE, PARAM))
 
-dat_indicator_bluemussel <- dat_bluemussel_lastyear_2 %>%
-  left_join(dat_bluemussel_trends, by = c("STATION_CODE", "PARAM")) %>%
-  left_join(lookup_coord %>% select(STATION_CODE, Long, Lat), by = "STATION_CODE") %>%
-  rename(LATITUDE = Lat, LONGITUDE = Long) %>%
-  select(-Mattrygghet_threshold, -EQS_threshold)
-
-n2 <- nrow(dat_indicator_bluemussel)
-
-if (n2 > n1)
-  stop("Number of rows increased, check left joins!")
+if (nrow(check) > 0)
+  stop("Some STATION_CODE x PARAM combinations already exist in dat_indicator_draft1")
 
 dat_indicator_draft2 <- dat_indicator_draft1 %>%
-  bind_rows(dat_indicator_bluemussel)
+  bind_rows(dat_indicator_extra %>% select(-MYEAR_last))
 
-names(dat_indicator_draft1)
-names(dat_indicator_draft2)
+n1 <- names(dat_indicator_draft1)
+n2 <- names(dat_indicator_extra)
+
+setdiff(n1, n2)
+setdiff(n2, n1)
 
 ```
 
@@ -472,7 +568,7 @@ dat_nifes_raw2 <- dat_nifes_raw2_before_sum %>%
   group_by(STATION_CODE, Ind, MYEAR) %>%
   summarise(
     VALUE_lo = sum(VALUE_lo),
-    VALUE_up = sum(VALUE_up)
+    VALUE_up = sum(VALUE_up), .groups = "drop"
   ) %>%
   mutate(
     PARAM = "CB_S7")
@@ -498,7 +594,7 @@ dat_nifes_raw3 <- dat_nifes_raw3_before_sum %>%
   group_by(STATION_CODE, Ind, MYEAR) %>%
   summarise(
     VALUE_lo = sum(VALUE_lo),
-    VALUE_up = sum(VALUE_up)
+    VALUE_up = sum(VALUE_up), .groups = "drop"
   ) %>%
   mutate(
     PARAM = "BDE6S")
@@ -590,7 +686,12 @@ head(dat_indicator_draft2)
 dat_indicator <- bind_rows(
   # Rows with HI stations: remove slope columns and ad new ones from 'dat_nifes_trends'  
   dat_indicator_draft2 %>% 
-    filter(STATION_CODE %in% c('HI_Barents1', 'HI_Barents2', 'HI_Barents3')) %>% 
+    filter(STATION_CODE %in% c('HI_Barents1', 'HI_Barents2', 'HI_Barents3')) %>%
+    mutate(
+      PARAM = case_when(
+        PARAM %in% "PP-DDE" ~ "DDEPP",
+      PARAM %in% "HEXACHLOROBENZENE (HCB)" ~ "HCB",
+      TRUE ~ PARAM)) %>%
     select(-slope_lo, -slope, -slope_up) %>%
     left_join(dat_nifes_trends, by = c("PARAM", "STATION_CODE")),
   # Rows without HI stations: keep as they are    
@@ -630,6 +731,118 @@ dat_indicator <- dat_indicator %>%
 ```
 
 
+### Fixing trend code and trend text    
+
+```{r}
+
+# xtabs(~addNA(trend) + addNA(trend_text), dat_indicator)
+
+dat_indicator <- dat_indicator %>%
+  mutate(
+    trend = case_when(
+      !is.na(trend) ~ trend,
+      is.na(trend_text) ~ 0,
+      trend_text == "No trend" ~ 1,
+      trend_text == "Trend_up" ~ 2,
+      trend_text == "Trend_down" ~ 3),
+    trend_text = case_when(
+      !is.na(trend_text) ~ trend_text,
+      is.na(trend_text) ~ "Not calc.")
+  )
+
+xtabs(~addNA(trend) + addNA(trend_text), dat_indicator)
+
+```
+
+
+### Fixing station name      
+
+```{r}
+
+# xtabs(~addNA(trend) + addNA(trend_text), dat_indicator)
+
+df_stations <- readRDS("Input_data/NIVA_data_stations.rds")
+
+dat_indicator <- dat_indicator %>%
+  left_join(df_stations %>% select(STATION_CODE, STATION_NAME2 = STATION_NAME)) %>%
+  mutate(
+    STATION_NAME = case_when(
+      !is.na(STATION_NAME) ~ STATION_NAME,
+      STATION_CODE == "HI_Barents1" ~ "Barentshavet 1 (HI)",
+      STATION_CODE == "HI_Barents2" ~ "Barentshavet 2 (HI)",
+      STATION_CODE == "HI_Barents3" ~ "Barentshavet 3 (HI)",
+      TRUE ~ STATION_NAME2)
+  ) %>%
+  select(-STATION_NAME2)
+
+
+dat_indicator %>%
+  count(STATION_CODE, STATION_NAME) %>%
+  kable()
+
+```
+
+
+### Classify regarding limits (again!)   
+
+
+```{r}
+
+# dat_indicator_back <- dat_indicator
+# restore:
+# dat_indicator <- dat_indicator_back
+
+# Checking for duplicates of PARAM x LATIN_NAME
+check <- lookup_thresholds %>%
+  add_count(PARAM, LATIN_NAME) %>%
+  filter(n > 1)
+
+lookup_thresholds <- lookup_thresholds %>%
+  filter(!(PARAM == "CB_S7" & NIVA_CODE == "MU"))
+
+# Fix error on BDE name
+sel <- dat_indicator$PARAM %in% "BDES6"
+dat_indicator$PARAM[sel] <- "BDE6S"
+
+n1 <- nrow(dat_indicator)
+
+dat_indicator <- dat_indicator %>%
+  select(-EQS_threshold) %>%
+  left_join(
+    lookup_thresholds %>% select(PARAM, LATIN_NAME, EQS_threshold, Mattrygghet_threshold),
+    by = c("PARAM", "LATIN_NAME")) %>%
+  mutate(
+    EQS = case_when(
+      Conc/EQS_threshold <= 1 ~ 1,
+      Conc/EQS_threshold > 1 ~ 2),
+    Mattrygghet = case_when(
+      Conc/Mattrygghet_threshold <= 1 ~ 1,
+      Conc/Mattrygghet_threshold > 1 ~ 2)
+  )
+ 
+n2 <- nrow(dat_indicator)  
+
+if (n2 > n1)
+  stop("Number of rows increased, check left joins!")
+
+
+# Check EQS
+# dat_indicator %>%
+#   count(PARAM, EQS_threshold, EQS) %>%
+#   kable()
+
+
+```
+
+### Check EQS        
+
+```{r}
+
+dat_indicator %>%
+  count(PARAM, EQS_threshold, EQS) %>%
+  kable()
+
+```
 
 
 ## Plots for dat_indicator  
@@ -705,6 +918,7 @@ saveRDS(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_S
 write.csv(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022.csv")
 
 writexl::write_xlsx(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022.xlsx")
+# renamed to "ver5"
 
 ```
 
