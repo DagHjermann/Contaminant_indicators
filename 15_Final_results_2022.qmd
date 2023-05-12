@@ -677,6 +677,7 @@ dat_nifes_trends <- readRDS("Data/15_dat_nifes_trends.rds")
 ## Add slopes for HI data   
 
 * Adding slopes to indicator data (dat_indicator_draft2)
+* Creates dat_indicator
 
 ### Combine and check trend  
 ```{r}
@@ -730,6 +731,8 @@ dat_indicator <- dat_indicator %>%
 
 ```
 
+
+## Fixing stuff
 
 ### Fixing trend code and trend text    
 
@@ -807,9 +810,12 @@ dat_indicator$PARAM[sel] <- "BDE6S"
 n1 <- nrow(dat_indicator)
 
 dat_indicator <- dat_indicator %>%
-  select(-EQS_threshold) %>%
+  select(-EQS_threshold, -PROREF) %>%
   left_join(
     lookup_thresholds %>% select(PARAM, LATIN_NAME, EQS_threshold, Mattrygghet_threshold),
+    by = c("PARAM", "LATIN_NAME")) %>%
+  left_join(
+    lookup_proref %>% select(PARAM, LATIN_NAME, PROREF),
     by = c("PARAM", "LATIN_NAME")) %>%
   mutate(
     EQS = case_when(
@@ -817,9 +823,15 @@ dat_indicator <- dat_indicator %>%
       Conc/EQS_threshold > 1 ~ 2),
     Mattrygghet = case_when(
       Conc/Mattrygghet_threshold <= 1 ~ 1,
-      Conc/Mattrygghet_threshold > 1 ~ 2)
+      Conc/Mattrygghet_threshold > 1 ~ 2),
+    CLASS = case_when(
+      Conc/PROREF < 1 ~ 1,
+      Conc/PROREF < 2 ~ 2,
+      Conc/PROREF < 10 ~ 3,
+      Conc/PROREF >= 10 ~ 4)
   )
- 
+
+
 n2 <- nrow(dat_indicator)  
 
 if (n2 > n1)
@@ -859,6 +871,13 @@ dat_indicator %>% filter(PARAM %in% params) %>%
 dat_indicator %>% filter(PARAM %in% params) %>%
   ggplot(aes(PARAM, STATION_CODE, color = addNA(EQS))) +
   geom_point(size = rel(5))
+
+# PROREF class 
+dat_indicator %>% filter(PARAM %in% params) %>%
+  ggplot(aes(PARAM, STATION_CODE, color = addNA(CLASS))) +
+  geom_point(size = rel(5)) +
+  scale_color_brewer() +
+  theme_dark()
 
 # Trends
 # OK for NIVA data (lacking for 20B, that's normal)
@@ -909,25 +928,43 @@ dat_indicator %>%
 
 
 ```
-
 ## Save  
 
+### Add units  
+```{r}
+
+dat_indicator <- dat_indicator %>%
+  mutate(
+    Conc_unit = case_when(
+      PARAM %in% c("BDE6S", "CB_S7", "HCB", "DDEPP") ~ "ug/kg w.w.",
+      PARAM %in% c("CD", "HG", "PB") ~ "mg/kg w.w."),
+    .after = Conc) %>%
+  mutate(
+    EQS_unit = Conc_unit, .after = EQS_threshold) %>%
+  mutate(
+    PROREF_unit = Conc_unit, .after = PROREF)
+
+
+```
+
+```{r}
+
+unique(dat_indicator$PARAM)
+
+```
+
+
+### Saving  
 ```{r}
 
 saveRDS(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022.rds")
 write.csv(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022.csv")
 
-writexl::write_xlsx(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022.xlsx")
-# renamed to "ver5"
+writexl::write_xlsx(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022_ver6.xlsx")
 
 ```
 
-## Simple maps  
 
-```{r}
-
-
-```
 
 
 ## APPENDIX
