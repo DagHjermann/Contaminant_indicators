@@ -69,7 +69,7 @@ area <- "Norwegian_Sea"
 
 ### 'data_xl_sel' = selected rows of excel table
 ```{r}
-av
+
 #
 # NOTE: ADD station 20B as well
 #

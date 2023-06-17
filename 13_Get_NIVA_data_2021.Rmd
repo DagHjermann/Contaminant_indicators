@@ -31,7 +31,6 @@ year_2020_data <- TRUE
 ```
 
 
-
 ### Area
 ```{r}
 
