@@ -48,6 +48,7 @@ nifes_standardize_data <- function(data){
   data <- left_join(data_conc, data_unit, by = c("Jnr","Prøvenr.","Parameter"))
   # Remove less-than sign and make Conc variable
   data <- data %>%
+    filter(!is.na(Conc_chr)) %>%
     mutate(
       Conc = sub("<", "", Conc_chr, fixed = TRUE) %>% 
         sub("*", "", ., fixed = TRUE) %>%
