@@ -18,6 +18,7 @@ library(dplyr)
 library(tidyr)
 library(readxl)
 library(ggplot2)
+library(purrr)
 
 source("11_Import_and_fix_NIFES_data_2021_functions.R")
 
@@ -65,15 +66,22 @@ data.frame(
 ```
 
 
-### Check sample identifiers   
+### Check sample identifier Prøvenr.     
 ```{r}
 # All should be zero - not the case for dat2 (16)
 for (dat in list(dat1, dat2, dat3))
   print(
-    dat2 %>%
-      add_count(Jnr, Prøvenr.) %>%
+    dat %>%
+      add_count(Prøvenr.) %>%
       filter(n > 1) %>% nrow()
   )
+
+# If we now run the stuff on top again, it's OK (zero for all 3)
+
+```
+#### Fix dat2  
+
+```{r}
 
 # Prøvenr. lacking for all in dat2:
 dat2 %>%
@@ -81,16 +89,106 @@ dat2 %>%
   filter(n > 1)
 
 # Set prøvenr. for dat2:
-dat2 <- dat2 %>%
-  group_by(Jnr) %>%
-  mutate(Prøvenr. = 1:length(Jnr) %>% as.character())
+# dat2 <- dat2 %>%
+#   ungroup() %>%
+#   # group_by(Jnr) %>%
+#   group_by(År, Posisjon) %>%
+#   mutate(Prøvenr. = 1:length(År) %>% as.character())
 
-# If we now run the stuff on top again, it's OK (zero for all 3)
+dat2$Prøvenr. <- as.character(1:nrow(dat2))
 
 ```
 
-## 3. Standardize and combine data
-  
+#### Fix dat3  
+
+- Prøvenr. lacking the part after the slash
+
+```{r}
+
+# Prøvenr. lacking for all in dat2:
+check <- dat3 %>%
+  select(Jnr, Prøvenr.) %>%
+  add_count(Prøvenr.) %>%
+  filter(n > 1)
+
+affected_samples <- unique(check$Prøvenr.)
+
+dat3 <- dat3 %>%
+  mutate(
+    Prøvenr. = case_when(
+      Prøvenr. %in% affected_samples ~ Jnr,
+      TRUE ~ Prøvenr.)
+  )
+
+```
+
+
+### Check sample identifier Prøvenr.     
+```{r}
+
+check1 <- list(dat1, dat2, dat3) %>%
+  map(
+    ~ .x %>%
+      select(Jnr, Prøvenr.) %>%
+      add_count(Prøvenr.) %>%
+      filter(n > 1)
+  )
+
+check2 <- map_int(check1, nrow)
+
+if (sum(check2) > 0){
+  stop(sum(sum(check2) > 0), " of the datasets have duplicate Prøvenr.! Check 'check1'")
+}
+
+```
+
+
+## 3. Standardize and combine data  
+
+### Check that there is one sample number 
+
+```{r}
+
+# Jnr, Prøvenr.
+# for (dt in list(dat1, dat2, dat3)){
+#   check <- dt %>%
+#     count(Jnr, Prøvenr.) %>%
+#     filter(n > 1)
+#   print(nrow(check))
+# }
+
+# Only Prøvenr.
+for (dt in list(dat1, dat2, dat3)){
+  check <- dt %>%
+    count(Prøvenr.) %>%
+    filter(n > 1)
+  print(nrow(check))
+}
+
+```
+
+
+### Check sample identifier Prøvenr.     
+```{r}
+
+check1 <- list(dat1, dat2, dat3) %>%
+  map(
+    ~ .x %>%
+      select(Jnr, Prøvenr.) %>%
+      add_count(Prøvenr.) %>%
+      filter(n > 1)
+  )
+
+check2 <- map_int(check1, nrow)
+
+if (sum(check2) > 0){
+  stop(sum(sum(check2) > 0), " of the datasets have duplicate Prøvenr.! Check 'check1'")
+}
+
+```
+
+
+### Standardize and combine    
 Put all data sets on long format and combine
 ```{r}
 
@@ -116,7 +214,73 @@ df_nifes_cod <- bind_rows(
 )
 
 
+
 ```
+
+### Check measurements where conversion failed  
+
+```{r}
+
+check <- df_nifes_cod %>% filter(is.na(Conc))
+
+if (nrow(check) > 0)
+  warning(nrow(check), " measurements were not converted to numeric values - look at 'check'")
+
+# View(check)
+
+```
+
+
+### Check that there is one unique value per sample and parameter  
+
+```{r}
+
+check <- df_nifes_cod %>% 
+  add_count(År, Posisjon, Organ, Prøvenr., Parameter) %>%
+  filter(n > 1)
+
+xtabs(~n, check)
+xtabs(~År, check)
+xtabs(~Parameter, check)
+
+```
+
+```{r}
+
+#### testing nifes_standardize_data()   
+
+if (FALSE){
+
+  # debugonce(nifes_standardize_data)
+# debugonce(nifes_standardize_conc)
+test1 <- nifes_standardize_data(dat1)
+test2 <- nifes_standardize_data(dat2)
+test3 <- nifes_standardize_data(dat3)
+table(test1$Parameter)
+table(test2$Parameter)
+table(test3$Parameter)
+
+  
+}
+
+
+
+```
+
+
+### Checking PBDEs   
+
+```{r}
+
+pars_bde6s <- c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154")
+
+ggplot(df_nifes_cod %>% filter(Parameter %in% pars_bde6s), 
+       aes(as.numeric(År), Conc, color = Flag)) + 
+  geom_jitter(width = 0.2) + 
+  facet_grid(vars(Parameter), vars(Område))
+
+```
+
 
 ## 4. Missing values  
 
@@ -241,6 +405,20 @@ xtabs(~Year + Organ + Art, df_nifes_cod)
 
 ###  Add BDE6S
 
+#### Checking PBDEs   
+
+```{r}
+
+pars_bde6s <- c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154")
+
+ggplot(df_nifes_cod %>% filter(Parameter %in% pars_bde6s), 
+       aes(Year, Conc, color = Flag)) + 
+  geom_jitter(width = 0.2) + 
+  facet_grid(vars(Parameter), vars(Område))
+
+```
+
+
 #### Add sum
 ```{r}
 
@@ -250,14 +428,47 @@ df_nifes_cod_BACKUP <- df_nifes_cod
 
 pars_bde6s <- c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154")
 
+table(addNA(df_nifes_cod$Flag))
+
 df_nifes_cod_extra <- df_nifes_cod %>%
   filter(Parameter %in% pars_bde6s & !is.na(Flag)) %>%
   group_by(Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ, Prøvenr.) %>%
   summarise(Conc = sum(Conc),
-            Flag = ifelse(sum(Flag %in% "") > 1, "", "<")
+            Flag = ifelse(sum(Flag %in% "") > 1, "", "<"),
+            N_congeners = n()
             ) %>%
   ungroup() %>%
   mutate(Parameter = "BDE6S")
+
+xtabs(~Year + N_congeners, df_nifes_cod_extra)
+
+```
+
+
+#### Check sum value  
+```{r}
+
+# df_nifes_cod_extra
+
+df_nifes_cod_extra %>%
+  ggplot(aes(Year, Conc, color = Posisjon)) +
+  geom_jitter(size = 1) +
+  facet_wrap(vars(Posisjon))
+
+# df_nifes_cod %>% 
+#   filter(Prøvenr. == "2019-390" & Parameter %in% pars_bde6s) %>%
+#   View("example1")
+
+df_nifes_cod %>% 
+  count(Year, Prøvenr., Parameter) %>%
+  arrange(n, Year) %>%
+  filter(n > 1)
+
+
+```
+#### Add BDE sum to the rest
+
+```{r}
 
 if (!"BDE6S" %in% unique(df_nifes_cod$Parameter)){
   df_nifes_cod <- bind_rows(
@@ -351,6 +562,7 @@ if (FALSE)
   count(df_nifes_cod, Parameter, PARAM)
 
 ```
+
 ### Save  
 ```{r}
 
