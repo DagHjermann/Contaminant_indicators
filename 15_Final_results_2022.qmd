@@ -679,6 +679,18 @@ dat_nifes_raw3 <- dat_nifes_raw3_before_sum %>%
 
 ```
 
+
+#### Check BDE sum  
+
+```{r}
+
+ggplot(dat_nifes_raw3, aes(MYEAR, VALUE_up)) +
+  geom_jitter(width = 0.2) +
+  geom_jitter(aes(y = VALUE_lo), shape = 1, color = "red", width = 0.2) 
+  
+  
+```
+
 ### Data, combined   
 
 ```{r}
@@ -726,6 +738,9 @@ get_trendslope_s <- safely(get_trendslope)
 df_combinations <- dat_nifes_median %>%
   distinct(PARAM, STATION_CODE) %>%
   as.data.frame()
+
+# df_combinations <- df_combinations %>%
+#   filter(PARAM == "BDE6S")
 
 if (FALSE){
   
