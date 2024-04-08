@@ -52,6 +52,54 @@ xtabs(~PARAM + STATION_CODE, dat_indicator_draft1 %>% filter(PARAM %in% params))
 
 ```
 
+### Get trends from Milkys assessment 2021   
+
+```{r}
+
+milkys_big_table <- read_excel(
+   "../Milkys2_pc/Files_from_Jupyterhub_2021/Big_excel_table/Data_xl_2022-09-23_ver09.xlsm", 
+   col_types = "text"
+)
+
+df_trends_all <- milkys_big_table %>%
+  select(PARAM, STATION_CODE, LATIN_NAME, TISSUE_NAME, Basis, Trends.2021) %>%
+  filter(PARAM %in% params)
+
+
+```
+
+```{r}
+
+trends_from_milkys_all <- readRDS(
+  "../Milkys2_pc/Files_from_Jupyterhub_2021/Raw_data/126_df_trend_2021.rds")  
+trends_from_milkys_all2 <- readRDS(
+  "../Milkys2_pc/Files_from_Jupyterhub_2021/Raw_data/126_df_trend_wide_2021.rds")  
+
+trends_from_milkys_all <- readRDS(
+  "../Milkys2_pc/Files_from_Jupyterhub_2021/Big_excel_table/")  
+
+
+trends_from_milkys1 <- trends_from_milkys_all %>%
+  filter(
+    STATION_CODE %in% c("10B", "19B", "20B", "43B2", "45B2", "98B1"),
+    PARAM %in% params
+  ) 
+# xtabs(~STATION_CODE + x, trends_from_milkys1)  
+# xtabs(~paste(STATION_CODE, PARAM) + x, trends_from_milkys1)  
+
+trends_from_milkys <- trends_from_milkys1 %>%
+  group_by(STATION_CODE, PARAM) %>%
+  mutate(largest_x = max(x)) %>%
+  filter(
+    x == largest_x
+  ) %>%
+  ungroup()
+
+xtabs(~PARAM + STATION_CODE, trends_from_milkys)  
+
+```
+
+
 ### Plots   
 ```{r}
 
@@ -73,6 +121,36 @@ dat_indicator_draft1 %>% filter(PARAM %in% params) %>%
   geom_point(size = rel(5))
 
 ```
+
+### Trends in Milkys assessment data  
+
+```{r}
+
+
+
+trends_from_milkys %>%
+  ggplot(aes(PARAM, STATION_CODE, color = addNA(Trend_string))) +
+  geom_point(size = rel(5))
+
+trends_from_milkys %>%
+  ungroup() %>%
+  count(Trend_model, Trend_symbol)
+
+trends_from_milkys %>%
+  mutate(
+    trend_text = case_when(
+      Trend_string %in% "Decreasing" ~ "Trend_down",
+      Trend_string %in% "Increasing" ~ "Trend_up",
+      Trend_string %in% "No change" ~ "No trend"
+    )
+  ) %>%
+  ggplot(aes(PARAM, STATION_CODE, color = addNA(trend_text))) +
+  geom_point(size = rel(5)) +
+  geom_text(aes(label = x), color = "black")
+
+```
+
+
 
 ## Add EQS classification  
 ```{r}
