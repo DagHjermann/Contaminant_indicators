@@ -75,8 +75,8 @@ trends_from_milkys_all <- readRDS(
 trends_from_milkys_all2 <- readRDS(
   "../Milkys2_pc/Files_from_Jupyterhub_2021/Raw_data/126_df_trend_wide_2021.rds")  
 
-trends_from_milkys_all <- readRDS(
-  "../Milkys2_pc/Files_from_Jupyterhub_2021/Big_excel_table/")  
+# trends_from_milkys_all <- readRDS(
+#   "../Milkys2_pc/Files_from_Jupyterhub_2021/Big_excel_table/")  
 
 
 trends_from_milkys1 <- trends_from_milkys_all %>%
@@ -726,6 +726,38 @@ ggplot(dat_nifes_median, aes(MYEAR)) +
 
 ```
 
+### Fix BDE sum in 'dat_indicator_draft2'  
+
+- Creating dat_indicator_draft2b
+
+```{r}
+
+dat_indicator_draft2 %>%
+  filter(grepl("HI_Barents", STATION_CODE) & PARAM == "BDE6S")  
+
+dat_nifes_median_bde6S <- dat_nifes_median %>%
+  filter(grepl("HI_Barents", STATION_CODE) & PARAM == "BDE6S") %>%
+  group_by(STATION_CODE, PARAM) %>%
+  mutate(MYEAR_max = max(MYEAR)) %>%
+  filter(MYEAR == MYEAR_max) %>%
+  select(STATION_CODE, PARAM, VALUE_lo)
+
+dat_indicator_draft2b <- dat_indicator_draft2 %>%
+  left_join(dat_nifes_median_bde6S, by = join_by(STATION_CODE, PARAM)) %>%
+  mutate(
+    Conc = case_when(
+      !is.na(VALUE_lo) ~ VALUE_lo,
+      is.na(VALUE_lo) ~ Conc),
+    CLASS = case_when(
+      is.na(VALUE_lo) ~ CLASS,
+      Conc/PROREF < 1 ~ 1,
+      Conc/PROREF < 2 ~ 2,
+      Conc/PROREF < 10 ~ 3,
+      Conc/PROREF >= 10 ~ 4)
+  )
+
+```
+
 
 ### Get all slopes  
 
@@ -754,32 +786,55 @@ if (FALSE){
   
   dat_nifes_trends <- bind_rows(dat_nifes_trends_list$result[ok])
   
+  # file.copy("Data/15_dat_nifes_trends.rds", "Data/15_dat_nifes_trends_OLD.rds")   # copy 23-04-2024
   saveRDS(dat_nifes_trends, "Data/15_dat_nifes_trends.rds")
   write.csv(dat_nifes_trends, "Data/15_dat_nifes_trends.csv")
+  
+  # dat_nifes_trends %>% filter(PARAM == "BDE6S") %>% readr::write_csv("clipboard")
   
 }
 
 dat_nifes_trends <- readRDS("Data/15_dat_nifes_trends.rds")
 
+```
+
+
+```{r}
+
+if (FALSE){
+  
+  # Compare old and new trend
+  
+  dat_nifes_trends_old <- readRDS("Data/15_dat_nifes_trends_OLD.rds")
+  
+  check <- bind_rows(
+    dat_nifes_trends %>% mutate(run = "new"),
+    dat_nifes_trends_old %>% mutate(run = "old")
+  ) 
+  
+  ggplot(check, aes(paste(STATION_CODE, run), slope, color = run)) +
+    geom_pointrange(aes(ymin = slope_lo, ymax = slope_up)) +
+    facet_wrap(vars(PARAM), scale = "free_y")
+  
+}
 
 ```
 
 
 
-
 ## Add slopes for HI data   
 
-* Adding slopes to indicator data (dat_indicator_draft2)
+* Adding slopes to indicator data (dat_indicator_draft2b)
 * Creates dat_indicator
 
 ### Combine and check trend  
 ```{r}
 
-head(dat_indicator_draft2)
+head(dat_indicator_draft2b)
 
 dat_indicator <- bind_rows(
   # Rows with HI stations: remove slope columns and ad new ones from 'dat_nifes_trends'  
-  dat_indicator_draft2 %>% 
+  dat_indicator_draft2b %>% 
     filter(STATION_CODE %in% c('HI_Barents1', 'HI_Barents2', 'HI_Barents3')) %>%
     mutate(
       PARAM = case_when(
@@ -789,7 +844,7 @@ dat_indicator <- bind_rows(
     select(-slope_lo, -slope, -slope_up) %>%
     left_join(dat_nifes_trends, by = c("PARAM", "STATION_CODE")),
   # Rows without HI stations: keep as they are    
-  dat_indicator_draft2 %>% 
+  dat_indicator_draft2b %>% 
     filter(!STATION_CODE %in% c('HI_Barents1', 'HI_Barents2', 'HI_Barents3')) 
 )
 
@@ -1053,7 +1108,7 @@ unique(dat_indicator$PARAM)
 saveRDS(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022.rds")
 write.csv(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022.csv")
 
-writexl::write_xlsx(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022_ver6.xlsx")
+writexl::write_xlsx(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022_ver7.xlsx")
 
 ```
 

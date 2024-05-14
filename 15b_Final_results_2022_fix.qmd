@@ -1,0 +1,224 @@
+---
+title: "15b_Final_results_fix"
+format: html
+---
+
+Checking and fixing errors iin PBDE6 for HI's Barents Sea stations  
+
+## Packages + functions  
+```{r}
+
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(ggplot2)
+library(stringr)
+library(knitr)    # for kable
+
+# for JAGS (interval regression)  
+library(R2jags)
+library(rjags)
+library(purrr)
+source("interval_lm_qi.R")  # function 'int_linear_qi'  
+
+pars_bde6s <- c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154")
+
+```
+## Checking  
+
+### Check summary data sent by Sylvia   
+
+- attachement in mail from Merete S 20-3-2024   
+
+```{r}
+
+fn <- "Input_data/Data til figurer Barentshav 2023.xlsx"  
+excel_sheets(fn)
+
+df_sylvia_headers <- read_xlsx(fn, sheet = "Torsk, lever")
+df_sylvia_headers2 <- read_xlsx(fn, sheet = "Torsk, lever", col_names = FALSE)
+df_sylvia <- read_xlsx(fn, sheet = "Torsk, lever", skip = 3, col_names = FALSE)
+
+names(df_sylvia) <- names(df_sylvia_headers)
+df_sylvia_headers2[1:3, 13:16]
+names(df_sylvia)[13:16] <- paste0("PBDE_", c("N", "mean", "min", "max"))
+  
+ggplot(df_sylvia, aes(År, PBDE_mean)) + 
+  geom_point() + 
+  geom_line() + 
+  theme_minimal()
+
+```
+
+
+### Check delivered data   
+
+```{r}
+  
+df_deliver <- read_xlsx("Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022_ver6_for Sylvia.xlsx")
+table(df_deliver$PARAM)
+ggplot(df_deliver %>% filter(PARAM == "BDE6S"), aes(STATION_CODE, Conc)) + 
+  geom_col()
+
+df_deliver <- read_xlsx("Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022_ver6.xlsx")
+df_deliver <- read_xlsx("Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022_ver3.xlsx")
+# table(df_deliver$PARAM)
+ggplot(df_deliver %>% filter(PARAM == "BDE6S"), aes(STATION_CODE, Conc)) + 
+  geom_col()
+
+```
+
+###  Data used in script 15    
+
+- data created by script 11  
+
+```{r}
+
+#
+# Raw data for HI (NIFES) cod    
+# - includes CB_S7 and BDE6S
+#
+dat_hi <- readRDS("Data/11_df_nifes_cod (2022).rds")
+xtabs(~PARAM + STATION_CODE, dat_hi)
+
+# names(dat_hi)
+
+```
+
+#### Check sum PBDE  
+
+```{r}
+
+ggplot(dat_hi %>% filter(PARAM == "BDE6S"), aes(Year, Conc, color = Flag)) + 
+  geom_jitter(width = 0.2) + 
+  facet_wrap(vars(STATION_CODE))
+
+```
+
+### Original data supplied by Sylvia   
+
+- from the start of script 11  
+
+```{r}
+
+fn <- "Input_data/POPs torskelever Bhav 2006-2022 inkl. PBDE HI.xlsx"
+# excel_sheets(fn)
+df_nifes_cod1 <- read_excel(fn, col_types = "text") %>%
+  rename(Prøvenr. = `Prøve nr.`)  %>%     # fix this column name (equal to dat1)
+  mutate(Year = as.numeric(År))
+
+# df_nifes_cod1[,c("Year", pars_bde6s)]
+
+```
+
+#### Add "station code"  
+
+- Based on the dataset created at the end of script 11
+
+```{r}
+
+table(addNA(df_nifes_cod1$Posisjon))
+table(addNA(df_nifes_cod1$Område))
+
+# dat_hi is the data made by script 11
+df_nifes_stations <- dat_hi %>%
+  distinct(Posisjon, STATION_CODE)
+
+df_nifes_cod2 <- df_nifes_cod1 %>%
+  left_join(df_nifes_stations, by = c("Posisjon"))
+
+dat_stations
+
+```
+
+
+
+#### Check for units different than ng/g  
+
+- NOTE: visual check
+
+```{r}
+
+columns_unit <- which(names(dat3) %in% pars_bde6s) + 1
+dat3[,columns_unit]
+
+# Check for units different than ng/g  
+for (i in columns_unit)
+  print(table(dat3[[i]]))
+
+```
+### BDE data  
+
+#### Select columns, reformat to get data   
+```{r}
+
+df_nifes_bde_wide <- df_nifes_cod2[,c("Year", "Posisjon", "STATION_CODE", "Prøvenr.", pars_bde6s)]
+
+df_nifes_bde <- df_nifes_bde_wide %>%
+  pivot_longer(-c(Year, Posisjon, STATION_CODE, Prøvenr.), names_to = "Parameter", values_to = "Conc_chr") %>%
+  filter(!is.na(Conc_chr)) %>%
+  mutate(
+    Conc = sub("<", "", Conc_chr, fixed = TRUE) %>% 
+      sub("*", "", ., fixed = TRUE) %>%
+      as.numeric(),
+    Flag = ifelse(grepl("<", Conc_chr), "<", ""),
+    Comment = ifelse(grepl("*", Conc_chr, fixed = TRUE), "*", "")
+  )
+
+```
+
+#### Test plot by parameter  
+
+```{r}
+
+ggplot(df_nifes_bde, aes(Year, Conc, color = Flag)) + 
+  geom_jitter(width = 0.2) + 
+  facet_grid(vars(Parameter), vars(STATION_CODE))
+
+```
+#### Overl LOQ  
+```{r}
+
+df_nifes_bde %>%
+  group_by(Year, Parameter, STATION_CODE) %>%
+  summarise(
+    Above_LOQ = 100*mean(is.na(Flag) | Flag %in% "")
+  ) %>%
+  ggplot(aes(Year, Above_LOQ)) + 
+  geom_point() +
+  geom_line() +
+  facet_grid(vars(Parameter), vars(STATION_CODE))
+
+```
+
+#### Sum BDE6S  
+
+```{r}
+
+# sel <- is.na(df_nifes_bde$Flag); sum(sel)
+# View(df_nifes_bde[sel,])
+
+table(addNA(df_nifes_bde$Flag))
+
+df_nifes_bde6S <- df_nifes_bde %>%
+  group_by(Year, Posisjon, STATION_CODE, Prøvenr.) %>%
+  summarise(
+    Above_LOQ = sum(is.na(Flag) | Flag %in% ""),
+    Conc_incl_LOQ = sum(Conc),
+    Conc_excl_LOQ = sum(Conc[is.na(Flag) | Flag %in% ""])
+  )
+
+table(df_nifes_bde6S$Conc_incl_LOQ - df_nifes_bde6S$Conc_excl_LOQ > 0)
+```
+#### test plot sum  
+
+```{r}
+
+ggplot(df_nifes_bde6S, aes(Year, Conc, color = Flag)) + 
+  geom_jitter(width = 0.2) + 
+  facet_grid(vars(Parameter), vars(STATION_CODE))
+
+```
+
+
+```{r}
