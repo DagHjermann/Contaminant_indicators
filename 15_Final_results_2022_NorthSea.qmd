@@ -1,14 +1,14 @@
 ---
-title: "15_Final_results"
+title: "15_Final_results_2022_NorthSea"
 format: html
 ---
 
-* Area: Barents Sea  
-* Data until 2021 (NIVA) and 2019-2022 (HI)      
+* Area: North Sea  
+* Data until 2022 (NIVA) and 2019-2022 (HI)      
 
-* This scripts collects the final results (from Sophie doing script 11-14), and add some new ones  
+* NIVA levels and trends from Milkys  
+* HI levels and trends from data + linear trends    
 
-* Version OLD1 generated using this script  
 
 * Version ver3, manual changes added afterwards:  
     - EQS for HG in blue mussel added  
@@ -33,12 +33,448 @@ source("interval_lm_qi.R")  # function 'int_linear_qi'
 
 ```
 
-## Indicator results from Sophie  
+## Set up
+
+```{r}
+
+selected_year <- 2022
+
+```
+
+## Lookup tables  
+
+```{r}
+
+# Lookup file for station names  
+lookup_stations <- read.csv("../Milkys2_pc/Files_from_Jupyterhub_2022/Lookup_tables/Lookup_stationorder.csv") %>%
+  mutate(Station = paste(STATION_CODE, Station_name)) %>%
+  select(STATION_CODE, Station_name, Station, Region)
+
+# Food and EQS limits  
+lookup_thresholds_1 <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx") %>%
+  rename(EQS_threshold = EQS, Mattrygghet_threshold = Mattrygghet) %>%
+  mutate(
+    # Set EQS for PCB7
+    EQS_threshold = case_when(
+      PARAM == "CB_S7" ~ 0.6,
+      TRUE ~ EQS_threshold),
+    TISSUE_NAME = case_when(
+      NIVA_CODE %in% "MU" ~ "Muskel",
+      NIVA_CODE %in% "LI" ~ "Lever",
+      NIVA_CODE %in% "SB" ~ "Whole soft body")
+    )
+
+# Check HARSAT values
+# lookup_thresholds_harsat <- read.csv(
+#   "https://raw.githubusercontent.com/osparcomm/HARSAT/develop/information/OSPAR_2022/thresholds_biota.csv")
+# lookup_thresholds_harsat %>% filter(determinand == "TBSN+") %>% View("harsat")
+# lookup_thresholds_harsat %>% filter(determinand == "VDS") %>% View("harsat")
+
+lookup_thresholds_tbt <- data.frame(
+  PARAM = "TBT",
+  LATIN_NAME = c("Gadus morhua", "Littorina littorea", "Mytilus edulis", 
+                 "N. lapillus / L. littorea", "Nucella lapillus"),
+  TISSUE_NAME = c("Lever", "Whole soft body", "Whole soft body",
+                  "Whole soft body", "Whole soft body"),
+  EQS_threshold = 15.2, 
+  Mattrygghet_threshold = 15.2
+)
+
+lookup_thresholds_vdsi <- data.frame(
+  PARAM = "VDSI",
+  LATIN_NAME = c("Littorina littorea", "N. lapillus / L. littorea", "Nucella lapillus"),
+  TISSUE_NAME = c("Whole soft body", "Whole soft body", "Whole soft body"),
+  EQS_threshold = 2, 
+  Mattrygghet_threshold = NA
+)
+
+lookup_thresholds <- bind_rows(
+  lookup_thresholds_1,
+  lookup_thresholds_tbt,
+  lookup_thresholds_vdsi
+)
+
+
+lookup_coordinates <- read.csv("Input_data/lookup_coordinates.csv")
+
+# From Milkys2
+# lookup_eqs <- read.csv("../Milkys2_pc/Files_from_Jupyterhub_2022/Lookup_tables/Lookup_EQS_limits.csv") %>%
+#   filter(Basis %in% c("WW", "WWa")) %>%
+#   select(-Long_name, -Kommentar) %>%
+#   rename(EQS = Limit)
+
+lookup_proref <- readRDS("Input_data/lookup_proref.rds")
+
+# From Milkys2
+# lookup_proref <- read.csv("../Milkys2_pc/Files_from_Jupyterhub_2022/Lookup_tables/Lookup_proref_ELU.csv") %>%
+#   filter(Basis %in% c("WW", "WWa")) %>%
+#   select(PARAM, LATIN_NAME, TISSUE_NAME, Basis, Proref) 
+
+lookup_old_mussel <- read.csv2(
+  "Data_export/2021 report North Sea blue mussel/MytiEdu_Snegl_2020_ver4.csv")
+lookup_old_cod <- read.csv2(
+  "Data_export/2021 report North Sea blue mussel/GaduMor_2020data_ver01.csv")
+
+```
+
+## Data
+
+### NIVA data  
 
 * Includes 20B   
-* Includes CLASS variable (EQS)   
+* Includes sums (CB_S7, BDE6S)
+* Lacking PROREF classification     
 * Lacking EQS classification  
-* Lacking trends for HI data 
+* Lacking HI cod data 
+
+
+```{r}
+
+dat_all <- readRDS("../Milkys2_pc/Files_from_Jupyterhub_2022/Raw_data/dat_raw5.rds") %>%
+  left_join(lookup_stations %>% select(STATION_CODE, Station), by = "STATION_CODE") %>%
+  rename(MYEAR = x) %>%
+  mutate(
+    VALUE_lo = case_when(
+      is.na(Flag) ~ VALUE,
+      !is.na(Flag) ~ 0),
+  )
+
+# xtabs(~transform, dat_all)
+# xtabs(~PARAM + transform, dat_all)
+
+dat_trend_all_01 <- readRDS("../Milkys2_pc/Files_from_Jupyterhub_2022/Trend_data/dat_trend.rds") %>%
+    left_join(lookup_stations %>% select(STATION_CODE, Station), by = "STATION_CODE") %>%
+    mutate(
+      Perc_change = round((exp(-y_mean)-1)*100, 1),
+      D_year = selected_year - First_year,
+      Perc_annual = round((exp(-y_mean/D_year)-1)*100, 1),
+      Perc_annual_lo = round((exp(-y_q2.5/D_year)-1)*100, 1),
+      Perc_annual_hi = round((exp(-y_q97.5/D_year)-1)*100, 1)
+    )
+
+dat_trend_all_02 <- dat_trend_all_01 %>%
+  mutate(
+    Basis_selected = case_when(
+      PARAM %in% "HG" ~ "WWa",
+      TRUE ~ "WW")
+  ) %>%
+  filter(
+    Trend_type == "short",
+    Basis == Basis_selected) 
+
+# table(subset(dat_trend_all_01, PARAM == "HG")$Basis)
+# table(subset(dat_trend_all_02, PARAM == "HG")$Basis)
+# table(dat_trend_all_02$Basis)
+
+```
+
+
+### Medians
+
+* Using lower bound for assessment of levels
+
+```{r}
+
+dat_medians_1 <- dat_all %>%
+  group_by(PARAM, STATION_CODE, LATIN_NAME, TISSUE_NAME, MYEAR) %>%
+  summarise(
+    Conc = median(VALUE_lo), .groups = "drop"
+  )
+
+dat_medians_2 <- dat_medians_1 %>%
+  left_join(
+    lookup_thresholds %>% select(PARAM, LATIN_NAME, TISSUE_NAMEME, EQS_threshold, Mattrygghet_threshold),
+    by = c("PARAM", "LATIN_NAME", "TISSUE_NAME"))
+
+dat_medians_3 <- dat_medians_2 %>%
+  left_join(
+    lookup_proref %>% select(PARAM, LATIN_NAME, PROREF),
+    by = c("PARAM", "LATIN_NAME"))
+
+dat_medians_4 <- dat_medians_3 %>%
+  mutate(
+    EQS = case_when(
+      Conc/EQS_threshold <= 1 ~ 1,
+      Conc/EQS_threshold > 1 ~ 2),
+    Mattrygghet = case_when(
+      Conc/Mattrygghet_threshold <= 1 ~ 1,
+      Conc/Mattrygghet_threshold > 1 ~ 2),
+  CLASS_proref = case_when(
+    Conc/PROREF < 1 ~ 1,
+    Conc/PROREF < 2 ~ 2,
+    Conc/PROREF < 10 ~ 3,
+    Conc/PROREF >= 10 ~4)
+  )
+
+```
+
+### Add trends  
+
+```{r}
+
+dat_medians_5 <- dat_medians_4 %>%
+  left_join(
+    dat_trend_all_02 %>% select(PARAM, LATIN_NAME, TISSUE_NAME, STATION_CODE, Year_pick, Trend_string, Perc_annual),
+    by = c("PARAM", "STATION_CODE", "LATIN_NAME", "TISSUE_NAME")
+  )
+ 
+```
+
+
+
+
+## Blue mussel and snails  
+
+### Select rows  
+
+* We normally select the last year  
+    - but if median concentration is under LOQ, the last year with data over LOQ is picked  
+    - if no year has data over LOQ the last 10 years, no data  
+
+```{r}
+
+dat_medians_sel_1 <- dat_medians_5 %>%
+  filter(
+    STATION_CODE %in% unique(lookup_old_mussel$STATION_CODE),
+    PARAM %in% unique(lookup_old_mussel$PARAM),
+    MYEAR >= (selected_year - 10),
+    !(PARAM != "VDSI" & Conc == 0)    
+  ) %>%
+  # Get last year with data over LOQ
+  group_by(STATION_CODE, PARAM) %>%
+  mutate(Last_year_over_LOQ = max(MYEAR)) %>%
+  # Pick only that year
+  filter(MYEAR == Last_year_over_LOQ) %>%
+  select(-MYEAR) %>%
+  # Add station name and coordinates
+  left_join(
+    lookup_coordinates %>% select(STATION_CODE, Station_short, Lat, Long),
+    by = "STATION_CODE"
+  )
+
+```
+
+### Add comparison with last year  
+
+```{r}
+
+df_old <- lookup_old_mussel %>%
+  select(STATION_CODE, PARAM, trend, KLASSE, EQS, Mattrygghet)
+names(df_old)[-(1:2)] <- paste0(names(df_old)[-(1:2)], "_old")
+# df_old
+
+
+dat_indicator <- dat_medians_sel_1 %>%
+  left_join(
+    df_old, by = c("PARAM", "STATION_CODE") 
+  )
+
+dat_indicator %>%
+  select(STATION_CODE, PARAM, CLASS_proref, KLASSE_old)
+# CD I301, I304
+# HCB 56A fra 3 til 1
+
+dat_indicator %>%
+  select(STATION_CODE, PARAM, EQS, EQS_old)
+
+
+```
+
+
+### Saving  
+```{r}
+
+save_folder <- "Data_export/2022 report North Sea"
+save_filename_csv <- "Indicators_North_sea_mussels_2022.csv"
+save_filename_xlsx <- sub(".csv", "_fromR.xlsx", save_filename_csv, fixed = TRUE)
+
+readr::write_csv(dat_indicator, paste0(save_folder, "/", save_filename_csv))
+writexl::write_xlsx(dat_indicator, paste0(save_folder, "/", save_filename_xlsx))
+  
+# writexl::write_xlsx(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022_ver7.xlsx")
+
+```
+
+## .
+## ThE REST
+## .
+
+```{r}
+
+
+ggplot(dat_extra_medians, aes(MYEAR, ymin = VALUE_lo, ymax = VALUE_up)) +
+  geom_errorbar() +
+  facet_grid(vars(PARAM), vars(STATION_CODE), scales = "free_y")
+
+
+dat_extra_medians %>%
+  group_by(PARAM, STATION_CODE, LATIN_NAME) %>%
+  summarize(last_year = max(MYEAR), .groups = "drop") %>%
+  pivot_wider(names_from = STATION_CODE, values_from = last_year) %>%
+  kable() 
+  
+dat_extra_lastyear_1 <- dat_extra_medians %>%
+  # data older than this are too old 
+  filter(MYEAR >= 2016) %>%   
+  # Arrange with last year first (so we can use first() in summarize)
+  arrange(PARAM, STATION_CODE, desc(MYEAR)) %>%
+  group_by(PARAM, STATION_CODE, LATIN_NAME) %>%
+  summarize(
+    Conc = first(VALUE_lo),
+    MYEAR_last = first(MYEAR),  .groups = "drop")
+
+
+```
+
+
+### Time series     
+
+```{r}
+
+prev_results_mussel <- readxl::read_excel(
+  "Data_export/2021 report North Sea blue mussel/MytiEdu_Snegl_2020_ver4.xlsx")
+
+lookup_coordinates <- prev_results_mussel %>%
+  group_by(PARAM, STATION_CODE) %>%
+  summarise(
+    LONGITUDE = first(LONGITUDE),
+    LATITUDE = first(LATITUDE)
+  )
+
+```
+
+
+### NIVA, medians  
+
+```{r}
+
+# code based on plot_timeseries2b() in '402_Plot_time_series_functions.R' (Milkys2) 
+
+dat_niva_1 <- dat_all %>%
+  ungroup() %>%
+  filter(
+    PARAM %in% prev_results_mussel$PARAM,
+    STATION_CODE %in% prev_results_mussel$STATION_CODE) %>% # xtabs(~PARAM, .)
+  mutate(y_comb = ifelse(is.na(y), threshold, y)) %>%
+  group_by(PARAM, STATION_CODE, TISSUE_NAME, LATIN_NAME) %>%
+  mutate(MYEAR_max = max(x)) %>%
+  filter(x %in% MYEAR_max) %>% # xtabs(~PARAM, .)
+  summarise(
+    Conc = median(VALUE, na.rm = TRUE),
+    n = n(),
+    n_under_loq = sum(is.na(y)),
+    .groups = "drop") #%>%
+ #  mutate(overLOQ = n_overLOQ > (0.5*n))
+
+
+```
+
+
+### NIVA, trends  
+
+```{r}
+
+dat_niva_2 <- dat_niva_1 %>%
+  left_join(
+    dat_trend_all %>% filter(Trend_type %in% "short") %>% select(PARAM, STATION_CODE, Trend_string),
+    by = c("PARAM", "STATION_CODE"), 
+    relationship = "many-to-one")
+
+```
+
+### Complete data  
+
+```{r}
+
+dat <- dat_niva_2
+
+```
+
+
+### Add classes and thresholds  
+
+```{r}
+
+dat <- dat %>%
+  left_join(
+    lookup_thresholds %>% select(PARAM, LATIN_NAME, EQS_threshold, Mattrygghet_threshold),
+    by = c("PARAM", "LATIN_NAME")) %>%
+  left_join(
+    lookup_proref %>% select(PARAM, LATIN_NAME, PROREF),
+    by = c("PARAM", "LATIN_NAME")) %>%
+  mutate(
+    EQS = case_when(
+      Conc/EQS_threshold <= 1 ~ 1,
+      Conc/EQS_threshold > 1 ~ 2),
+    Mattrygghet = case_when(
+      Conc/Mattrygghet_threshold <= 1 ~ 1,
+      Conc/Mattrygghet_threshold > 1 ~ 2),
+  CLASS = case_when(
+    Conc/PROREF < 1 ~ 1,
+    Conc/PROREF < 2 ~ 2,
+    Conc/PROREF < 10 ~ 3,
+    Conc/PROREF >= 10 ~ 4)
+  ) %>%
+  left_join(
+    lookup_coordinates
+  )
+
+```
+### Check 
+
+```{r}
+
+xtabs(~CLASS + PARAM, dat)
+xtabs(~KLASSE + PARAM, prev_results_mussel)
+
+#ggplot(dat, aes(STATION_CODE, Conc, color = factor(CLASS, levels = 1:4))) +
+ggplot(dat, aes(STATION_CODE, Conc, color = CLASS)) +
+  geom_point() +
+  scale_color_steps2() +
+  facet_wrap("PARAM", scales = "free_y")
+
+```
+
+
+
+```{r}
+
+# Add station names + Region 
+  dat_all_prep3 <- dat_all_prep3 %>%
+    left_join(lookup_stations %>% select(STATION_CODE, Station_name, Region), by = "STATION_CODE")
+  
+  # Add EQS and Proref to data    
+  lookup_no_eqs <- dat_all_prep3 %>%
+    distinct(PARAM) %>%
+    anti_join(lookup_eqs, by = "PARAM")
+  lookup_eqs_nospecies <- lookup_eqs %>%
+    filter(is.na(LATIN_NAME))
+  lookup_eqs_species <- lookup_eqs %>%
+    filter(!is.na(LATIN_NAME))
+  overlap <- intersect(lookup_eqs_species$PARAM, lookup_eqs_nospecies$PARAM)
+  if (length(overlap) > 0)
+    stop("In the EQS file, each parameter must have either LATIN_NAME empty, or LATIN_NAME for all rows")
+  if (sum(is.na(lookup_eqs_species$Basis)) > 0)
+    stop("In the EQS file, all rows with LATIN_NAME must also have Basis given")
+  
+  dat_all_prep3 <- bind_rows(
+    dat_all_prep3 %>% 
+      filter(PARAM %in% lookup_no_eqs$PARAM),
+    dat_all_prep3 %>% 
+      filter(PARAM %in% lookup_eqs_nospecies$PARAM) %>%
+      left_join(lookup_eqs_nospecies %>% select(-LATIN_NAME, -Basis), by = c("PARAM")),
+    dat_all_prep3 %>%
+      filter(PARAM %in% lookup_eqs_species$PARAM) %>%
+      left_join(lookup_eqs_species, by = c("PARAM", "LATIN_NAME", "Basis")),
+  ) %>%
+    left_join(lookup_proref, by = c("PARAM", "LATIN_NAME", "TISSUE_NAME", "Basis"))
+  
+
+```
+
+
+
+
 
 ### Read file    
 ```{r}
@@ -412,7 +848,6 @@ lookup_thresholds <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx") %>%
   rename(EQS_threshold = EQS, Mattrygghet_threshold = Mattrygghet)
 
 # Set EQS for PCB7
-
 lookup_thresholds <- lookup_thresholds %>%
   mutate(
     EQS_threshold = case_when(
