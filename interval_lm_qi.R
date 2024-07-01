@@ -112,12 +112,12 @@ model
   if (is.null(mean_y)){
     mean_y1 <- mean(data[[y_lo]], na.rm = TRUE)
     mean_y2 <- mean(data[[y_up]], na.rm = TRUE)
-    mean_y <- mean(mean_y1, mean_y2)
+    mean_y <- mean(c(mean_y1, mean_y2))
   }
   if (is.null(sd_y)){
     sd_y1 <- sd(data[[y_lo]], na.rm = TRUE)
     sd_y2 <- sd(data[[y_up]], na.rm = TRUE)
-    sd_y <- mean(sd_y1, sd_y2)
+    sd_y <- mean(c(sd_y1, sd_y2))
   }
   # Functions for normalization and "un-normalization" (back-transformation)
   norm_y <- function(x) (x-mean_y)/sd_y
