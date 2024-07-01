@@ -27,6 +27,9 @@ int_linear_qi <- function(data,
   if (sum(data[[y_up]] < data[[y_lo]]) > 0)
     stop("Values of ", sQuote(y_up), " must be higher than the values of ", sQuote(y_lo))
   
+  if (!class(data[[x]]) %in% c("numeric","integer"))
+    stop("Values of ", sQuote(x), " must be numeric")
+  
   # Set 'uncensored' and 'y'  
   data$uncensored <- ifelse(data[[y_up]]-data[[y_lo]] < 0.000001, 1, 0)
   data$y <- data[[y_up]]
@@ -34,6 +37,7 @@ int_linear_qi <- function(data,
   # Set all censored data to NA (if not already done)
   # Important! Otherwise all LOQ stuff is ignored
   data$y[data$uncensored %in% 0] <- NA
+  
 
   if (plot_input){
     plot(data$x, data$y, ylim = range(data$y, data$y_up, na.rm = TRUE))
