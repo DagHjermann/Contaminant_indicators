@@ -29,6 +29,7 @@ library(knitr)    # for kable
 library(R2jags)
 library(rjags)
 library(purrr)
+
 source("interval_lm_qi.R")  # function 'int_linear_qi'  
 
 ```
@@ -57,6 +58,7 @@ lookup_thresholds_1 <- read_excel("Input_data/Grenseverdier_fra_Sylvia.xlsx") %>
     # Set EQS for PCB7
     EQS_threshold = case_when(
       PARAM == "CB_S7" ~ 0.6,
+      PARAM == "HG" ~ 0.020,    # the excel file uses ug/kg, not mg/kg
       TRUE ~ EQS_threshold),
     TISSUE_NAME = case_when(
       NIVA_CODE %in% "MU" ~ "Muskel",
@@ -112,12 +114,13 @@ lookup_proref <- readRDS("Input_data/lookup_proref.rds")
 
 lookup_old_mussel <- read.csv2(
   "Data_export/2021 report North Sea blue mussel/MytiEdu_Snegl_2020_ver4.csv")
-lookup_old_cod <- read.csv2(
+lookup_old_cod <- read.csv(
   "Data_export/2021 report North Sea blue mussel/GaduMor_2020data_ver01.csv")
 
 ```
 
 ## Data
+
 
 ### NIVA data  
 
@@ -168,6 +171,31 @@ dat_trend_all_02 <- dat_trend_all_01 %>%
 
 ```
 
+### HI data
+
+* Data from HI (a.k.a. NIFES in the old days)
+
+```{r}
+
+dat_medians_hi <- read.csv("Data_export/2022 report North Sea/Results_North_sea_cod_HI_medians.csv") %>%
+  mutate(
+    TISSUE_NAME = case_when(
+      Organ %in% "Filet" ~ "Muskel",
+      Organ %in% "Lever" ~ "Lever"),
+    LATIN_NAME = "Gadus morhua",
+    Conc = VALUE_WW_lo
+  ) 
+
+dat_trends_hi <- read.csv("Data_export/2022 report North Sea/Results_North_sea_cod_HI_trends.csv") %>%
+  mutate(
+    TISSUE_NAME = case_when(
+      Organ %in% "Filet" ~ "Muskel",
+      Organ %in% "Lever" ~ "Lever"),
+    LATIN_NAME = "Gadus morhua",
+    Basis_selected = "WW"
+  ) 
+
+```
 
 ### Medians
 
@@ -181,9 +209,14 @@ dat_medians_1 <- dat_all %>%
     Conc = median(VALUE_lo), .groups = "drop"
   )
 
-dat_medians_2 <- dat_medians_1 %>%
+dat_medians_1b <- dat_medians_1 %>%
+  bind_rows(
+    dat_medians_hi %>% select(PARAM, STATION_CODE, LATIN_NAME, TISSUE_NAME, MYEAR, Conc)
+  )
+
+dat_medians_2 <- dat_medians_1b %>%
   left_join(
-    lookup_thresholds %>% select(PARAM, LATIN_NAME, TISSUE_NAMEME, EQS_threshold, Mattrygghet_threshold),
+    lookup_thresholds %>% select(PARAM, LATIN_NAME, TISSUE_NAME, EQS_threshold, Mattrygghet_threshold),
     by = c("PARAM", "LATIN_NAME", "TISSUE_NAME"))
 
 dat_medians_3 <- dat_medians_2 %>%
@@ -208,17 +241,18 @@ dat_medians_4 <- dat_medians_3 %>%
 
 ```
 
-### Add trends  
+### Trend data NIVA + HI  
 
 ```{r}
 
-dat_medians_5 <- dat_medians_4 %>%
-  left_join(
-    dat_trend_all_02 %>% select(PARAM, LATIN_NAME, TISSUE_NAME, STATION_CODE, Year_pick, Trend_string, Perc_annual),
-    by = c("PARAM", "STATION_CODE", "LATIN_NAME", "TISSUE_NAME")
+dat_trend_all_03 <- dat_trend_all_02 %>%
+  bind_rows(
+    dat_trends_hi %>%
+      select(PARAM, LATIN_NAME, TISSUE_NAME, STATION_CODE, Trend_string, Perc_annual)
   )
- 
+
 ```
+
 
 
 
@@ -254,7 +288,11 @@ dat_medians_sel_1 <- dat_medians_5 %>%
 
 ```
 
-### Add comparison with last year  
+
+
+### Add trends and last year  
+
+* last year is only for comparison with the present  
 
 ```{r}
 
@@ -263,8 +301,11 @@ df_old <- lookup_old_mussel %>%
 names(df_old)[-(1:2)] <- paste0(names(df_old)[-(1:2)], "_old")
 # df_old
 
-
 dat_indicator <- dat_medians_sel_1 %>%
+  left_join(
+    dat_trend_all_03 %>% select(PARAM, LATIN_NAME, TISSUE_NAME, STATION_CODE, Year_pick, Trend_string, Perc_annual),
+    by = c("PARAM", "STATION_CODE", "LATIN_NAME", "TISSUE_NAME")
+  ) %>%
   left_join(
     df_old, by = c("PARAM", "STATION_CODE") 
   )
@@ -291,9 +332,91 @@ save_filename_xlsx <- sub(".csv", "_fromR.xlsx", save_filename_csv, fixed = TRUE
 readr::write_csv(dat_indicator, paste0(save_folder, "/", save_filename_csv))
 writexl::write_xlsx(dat_indicator, paste0(save_folder, "/", save_filename_xlsx))
   
-# writexl::write_xlsx(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022_ver7.xlsx")
+# dat_indicator <- read.csv(paste0(save_folder, "/", save_filename_csv))
 
 ```
+
+## Cod    
+
+### Select rows  
+
+* We normally select the last year  
+    - but if median concentration is under LOQ, the last year with data over LOQ is picked  
+    - if no year has data over LOQ the last 10 years, no data  
+
+```{r}
+
+stations <- c(
+  unique(lookup_old_cod$STATION_CODE),    # lookup_old_mussel -> lookup_old_cod
+  unique(dat_medians_hi$STATION_CODE)
+)
+
+dat_medians_sel_1 <- dat_medians_5 %>%
+  filter(
+    STATION_CODE %in% stations,
+    PARAM %in% unique(lookup_old_cod$PARAM),                  # lookup_old_mussel -> lookup_old_cod
+    MYEAR >= (selected_year - 10),
+    !(PARAM != "VDSI" & Conc == 0)    
+  ) %>%
+  # Get last year with data over LOQ
+  group_by(STATION_CODE, PARAM) %>%
+  mutate(Last_year_over_LOQ = max(MYEAR)) %>%
+  # Pick only that year
+  filter(MYEAR == Last_year_over_LOQ) %>%
+  select(-MYEAR) %>%
+  # Add station name and coordinates
+  left_join(
+    lookup_coordinates %>% select(STATION_CODE, Station_short, Lat, Long),
+    by = "STATION_CODE"
+  )
+
+```
+
+### Add comparison with last year  
+
+```{r}
+
+df_old <- lookup_old_cod %>%
+  select(STATION_CODE, PARAM, trend, KLASSE, EQS, Mattrygghet)
+names(df_old)[-(1:2)] <- paste0(names(df_old)[-(1:2)], "_old")
+# df_old
+
+
+dat_indicator <- dat_medians_sel_1 %>%
+  left_join(
+    dat_trend_all_03 %>% select(PARAM, LATIN_NAME, TISSUE_NAME, STATION_CODE, Year_pick, Trend_string, Perc_annual),
+    by = c("PARAM", "STATION_CODE", "LATIN_NAME", "TISSUE_NAME")
+  ) %>%
+  left_join(
+    df_old, by = c("PARAM", "STATION_CODE") 
+  )
+
+dat_indicator %>%
+  select(STATION_CODE, PARAM, CLASS_proref, KLASSE_old)
+# CD I301, I304
+# HCB 56A fra 3 til 1
+
+dat_indicator %>%
+  select(STATION_CODE, PARAM, EQS, EQS_old)
+
+
+```
+
+
+### Saving  
+```{r}
+
+save_folder <- "Data_export/2022 report North Sea"
+save_filename_csv <- "Indicators_North_sea_cod_2022.csv"
+save_filename_xlsx <- sub(".csv", "_fromR.xlsx", save_filename_csv, fixed = TRUE)
+
+readr::write_csv(dat_indicator, paste0(save_folder, "/", save_filename_csv))
+writexl::write_xlsx(dat_indicator, paste0(save_folder, "/", save_filename_xlsx))
+  
+# dat_indicator <- read.csv(paste0(save_folder, "/", save_filename_csv))
+
+```
+
 
 ## .
 ## ThE REST
