@@ -1,5 +1,5 @@
 ---
-title: "Import and fix HI/NIFES data for 2022 report"
+title: "Import and fix HI/NIFES data 2023 (for 2024 report)"
 output: 
   html_document:
     keep_md: true
@@ -20,6 +20,8 @@ library(readxl)
 library(ggplot2)
 library(purrr)
 
+library(leaflet)
+
 source("11_Import_and_fix_NIFES_data_2021_functions.R")
 
 save_data <- TRUE
@@ -31,19 +33,17 @@ save_data <- TRUE
 ```{r}
 # dir("Input_data")
 
-fn <- "Input_data/Cd Pb torsk lever 2006-2022 HI.xlsx"
-# excel_sheets(fn)
-dat1 <- read_excel(fn, col_types = "text")
+fn <- "Input_data/Data torsk Nordsjøen 30.01.2024 til kart.xlsx"
+excel_sheets(fn)
+dat1 <- read_excel(fn, col_types = "text", sheet = "Cd og Pb i lever")
 
-fn <- "Input_data/Kvikksølv torskefilet Bhav 2006-2022 HI.xlsx"
-# excel_sheets(fn)
-dat2 <- read_excel(fn, col_types = "text") %>%
-  rename(Prøvenr. = `Prøve nr.`)      # fix this column name (equal to dat1)
+dat2 <- read_excel(fn, col_types = "text", sheet = "Metaller i filet", range = "A1:AF1018") # %>%
+#  rename(Prøvenr. = `Prøve nr.`)      # fix this column name (equal to dat1)
 
-fn <- "Input_data/POPs torskelever Bhav 2006-2022 inkl. PBDE HI.xlsx"
-# excel_sheets(fn)
-dat3 <- read_excel(fn, col_types = "text") %>%
-  rename(Prøvenr. = `Prøve nr.`)      # fix this column name (equal to dat1)
+dat3 <- read_excel(fn, col_types = "text", sheet = "Org. miljøgifter i lever") # %>%
+
+# dat3 <- read_excel(fn, col_types = "text") %>%
+#   rename(Prøvenr. = `Prøve nr.`)      # fix this column name (equal to dat1)
 
 ```
 
@@ -65,82 +65,102 @@ data.frame(
 # colnames(dat2)
 ```
 
+### Check Jnr of dat3   
 
-### Check sample identifier Prøvenr.     
+* Two Jnr columns   
+* Not really necessary for this, but:  
+    - some lack both Jnr, but these always have `Merking...2` 
+    - some rows have the same Jnr  
+    - some rows have only Jnr 1, these mostly correspond to a Jnr in metals in liver  
+    - some rows have only Jnr 2, these always correspond to a Jnr in metals in filet  
+
 ```{r}
-# All should be zero - not the case for dat2 (16)
-for (dat in list(dat1, dat2, dat3))
-  print(
-    dat %>%
-      add_count(Prøvenr.) %>%
-      filter(n > 1) %>% nrow()
-  )
 
-# If we now run the stuff on top again, it's OK (zero for all 3)
+# Lacking Jnr: these have Merking..2 instead
+sum(is.na(dat3$Jnr...1))
+sum(is.na(dat3$Jnr...18))
+both_lacking <- is.na(dat3$Jnr...1) & is.na(dat3$Jnr...18)
+sum(both_lacking)  # 262
+sum(both_lacking & is.na(dat3$Merking...2))  # zero - all lacking Jnr have Merking..2 instead
+
+# Lacking Jnr and having Merking..2 instead  
+table(dat3$År)  # in various years but 
+table(dat3[both_lacking,]$År)  # in various years but especially in 2005 and 2008
+
+# Equal Jnr
+equal_1_and_2 <- dat3$Jnr...1 == dat3$Jnr...18
+sum(equal_1_and_2, na.rm = TRUE)    # 409
+i <- head(which(equal_1_and_2))
+i
+# View(dat3[i,])
+
+# Check that all Jnr values are unique
+tab1 <- table(dat3$Jnr...1)   
+tab2 <- table(dat3$Jnr...18)
+max(tab1)   # 1 - all Jnr are unique
+max(tab2)   # 1 - all Jnr are unique
+
+# Get all Jnr values
+names1 <- names(tab1)
+names2 <- names(tab2)
+
+# Jnr found in both or just one:
+in_both <- intersect(names1, names2); length(in_both)
+in_1_only <- setdiff(names1, names2); length(in_1_only)
+in_2_only <- setdiff(names2, names1); length(in_1_only)
+
+# Jnr 1
+sum(in_1_only %in% unique(dat1$Jnr))     # is also in "metals in liver"
+mean(in_1_only %in% unique(dat1$Jnr))    # 87% are also in metals in liver
+mean(in_1_only %in% unique(dat2$Jnr))    # none are also in metals in filet
+
+# Jnr 2
+mean(in_2_only %in% unique(dat1$Jnr))    # none are also in metals in liver
+mean(in_2_only %in% unique(dat2$Jnr))    # 100% are also in metals in filet
+
+
+# Example: number that are in 1 but not in 2
+"2010-1040/28" %in% setdiff(names1, names2)  # only in 1
+"2010-1040/28" %in% unique(dat1$Jnr)         # is also in "metals in liver"
 
 ```
-#### Fix dat2  
+
+### Check Merking    
 
 ```{r}
 
-# Prøvenr. lacking for all in dat2:
+dat1 %>%
+  count(Uttaksdato, Merking, Uttakssted) %>%
+  filter(n > 1) %>%
+  nrow()
+
 dat2 %>%
-  count(Jnr, Prøvenr.) %>%
-  filter(n > 1)
+  count(Uttaksdato, Merking, Uttakssted) %>%
+  filter(n > 1) %>%
+  nrow()
 
-# Set prøvenr. for dat2:
-# dat2 <- dat2 %>%
-#   ungroup() %>%
-#   # group_by(Jnr) %>%
-#   group_by(År, Posisjon) %>%
-#   mutate(Prøvenr. = 1:length(År) %>% as.character())
-
-dat2$Prøvenr. <- as.character(1:nrow(dat2))
+dat3 %>%
+  count(Uttaksdato, Merking...2, Uttakssted) %>%
+  filter(n > 1) %>%
+  nrow()
+# NOT OK - 9 duplicates
 
 ```
 
-#### Fix dat3  
+### Fix Prøvenr.  
 
-- Prøvenr. lacking the part after the slash
+* Simply set one number per row  
+* NOTE: cannot link data between sheets   
+    - which is ok for this purpose, but may be wrong in other cases
 
 ```{r}
 
-# Prøvenr. lacking for all in dat2:
-check <- dat3 %>%
-  select(Jnr, Prøvenr.) %>%
-  add_count(Prøvenr.) %>%
-  filter(n > 1)
-
-affected_samples <- unique(check$Prøvenr.)
-
-dat3 <- dat3 %>%
-  mutate(
-    Prøvenr. = case_when(
-      Prøvenr. %in% affected_samples ~ Jnr,
-      TRUE ~ Prøvenr.)
-  )
+dat1$Prøvenr. <- as.character(1:nrow(dat1) + 10000)
+dat2$Prøvenr. <- as.character(1:nrow(dat2) + 20000)
+dat3$Prøvenr. <- as.character(1:nrow(dat3) + 30000)
 
 ```
 
-
-### Check sample identifier Prøvenr.     
-```{r}
-
-check1 <- list(dat1, dat2, dat3) %>%
-  map(
-    ~ .x %>%
-      select(Jnr, Prøvenr.) %>%
-      add_count(Prøvenr.) %>%
-      filter(n > 1)
-  )
-
-check2 <- map_int(check1, nrow)
-
-if (sum(check2) > 0){
-  stop(sum(sum(check2) > 0), " of the datasets have duplicate Prøvenr.! Check 'check1'")
-}
-
-```
 
 
 ## 3. Standardize and combine data  
@@ -162,28 +182,30 @@ for (dt in list(dat1, dat2, dat3)){
   check <- dt %>%
     count(Prøvenr.) %>%
     filter(n > 1)
-  print(nrow(check))
+  cat("No. of duplicates:", nrow(check), "\n")
 }
 
 ```
 
 
-### Check sample identifier Prøvenr.     
+### Check Jnr and Prøvenr.     
 ```{r}
 
-check1 <- list(dat1, dat2, dat3) %>%
-  map(
-    ~ .x %>%
-      select(Jnr, Prøvenr.) %>%
-      add_count(Prøvenr.) %>%
-      filter(n > 1)
-  )
+# Dropping this
 
-check2 <- map_int(check1, nrow)
-
-if (sum(check2) > 0){
-  stop(sum(sum(check2) > 0), " of the datasets have duplicate Prøvenr.! Check 'check1'")
-}
+# check1 <- list(dat1, dat2, dat3) %>%
+#   map(
+#     ~ .x %>%
+#       select(Jnr, Prøvenr.) %>%
+#       add_count(Prøvenr.) %>%
+#       filter(n > 1)
+#   )
+# 
+# check2 <- map_int(check1, nrow)
+# 
+# if (sum(check2) > 0){
+#   stop(sum(sum(check2) > 0), " of the datasets have duplicate Prøvenr.! Check 'check1'")
+# }
 
 ```
 
@@ -192,36 +214,107 @@ if (sum(check2) > 0){
 Put all data sets on long format and combine
 ```{r}
 
-# Remove columns that we don't need  
-dat1 <- dat1 %>%
-  select(-c(`Engelsk beskrivelse`, `Latinsk navn`, `Produkt beskrivelse`))
-dat2 <- dat2 %>%
-  select(-c(`Engelsk beskrivelse`, `Latinsk navn`, `Produkt beskrivelse`))
-dat3 <- dat3 %>%
-  select(-c(`Engelsk beskrivelse`, `Latinsk navn`, `Produkt beskrivelse`))
+dat_raw <- list(dat1, dat2, dat3)
 
-if (FALSE){
-  # Checking:
-  nifes_standardize_data(dat1) %>% xtabs(~Parameter, .)
-  nifes_standardize_data(dat2) %>% xtabs(~Parameter, .)
-  nifes_standardize_data(dat3) %>% xtabs(~Parameter, .)
+# Key columns
+dat_key <- list()
+for (i in 1:3){
+  dat_key[[i]] <- dat_raw[[i]] %>%
+    select(Prøvenr., År, Uttakssted,	Uttaksområde, Organ)  
 }
 
-df_nifes_cod <- bind_rows(
-  nifes_standardize_data(dat1),
-  nifes_standardize_data(dat2),
-  nifes_standardize_data(dat3)
-)
+#
+# Check column numbers for concentrations:
+#
+# i <- 1
+# data.frame(i = seq_len(ncol(dat_raw[[i]])), col = names(dat_raw[[i]]))  # 15, 17
+# i <- 2
+# data.frame(i = seq_len(ncol(dat_raw[[i]])), col = names(dat_raw[[i]]))  # 31
+# i <- 3
+# data.frame(i = seq_len(ncol(dat_raw[[i]])), col = names(dat_raw[[i]]))  
+# 22-36 (every second)
+# 36-37
+# 39-51 (every second)
+# 53-59
 
+# Concentration columns
+dat_conc <- list()
+dat_conc[[1]] <- dat_raw[[1]][c(15,17)]
+dat_conc[[2]] <- dat_raw[[2]][c(31)]
+dat_conc[[3]] <- dat_raw[[3]][c(seq(22,34,2), 36:37, seq(39,51,2), 53:59)]
+
+# Combine to wide data  
+dat_wide <- list()
+for (i in 1:3){
+  dat_wide[[i]] <- bind_cols(dat_key[[i]], dat_conc[[i]])
+}
+
+# Combined wide data  
+dat_long <- list()
+for (i in 1:3){
+  dat_long[[i]] <- dat_wide[[i]] %>%
+    pivot_longer(
+      cols = -c(Prøvenr., År, Uttakssted,	Uttaksområde, Organ), 
+      names_to = "PARAM", 
+      values_to = "Conc_txt")
+}
+
+df_nifes_cod_1 <- bind_rows(dat_long) %>%
+  filter(!is.na(Conc_txt)) %>%
+  mutate(
+    MYEAR = as.numeric(År),
+    Conc_txt = sub(",", ".", Conc_txt, fixed = TRUE),
+    VALUE_WW = as.numeric(sub("<", "", Conc_txt, fixed = TRUE)),
+    FLAG1 = ifelse(grepl("<", Conc_txt), "<", as.character(NA))
+  )
+
+# i <- 3
+# View(dat_long[[i]])
+
+```
+
+### Check units  
+
+* Output should say "number of different units = 1" for all 
+
+```{r}
+
+dat_unit <- list()
+
+# unit is in the column after the concentration, hence the "+1":  
+dat_unit[[1]] <- dat_raw[[1]][c(15,17) + 1]
+dat_unit[[2]] <- dat_raw[[2]][c(31) + 1]
+dat_unit[[3]] <- dat_raw[[3]][c(seq(22,34,2) + 1, seq(39,51,2) + 1)]
+
+# each dataset
+for (i in 1:3){
+  # each column
+  for (j in 1:ncol(dat_unit[[i]])){
+    units <- dat_unit[[i]][[j]]
+    units <- sub(" ww", "", units, fixed = TRUE)        # remove "ww" when present 
+    units <- sub("ng/g", "µg/kg", units, fixed = TRUE)  # these two are synonyms, we us µg/kg for all 
+    cat(i, j, ": number of different units =", length(table(units)), "\n")
+    # length(table(units)) %>% print()
+    
+    # table(dat_unit[[i]][[j]])
+  }
+}
+
+cat("\n\nExamples: \n")
+table(dat_unit[[1]][[1]])
+table(dat_unit[[3]][[1]])
+table(dat_unit[[3]][[10]])
 
 
 ```
+
+
 
 ### Check measurements where conversion failed  
 
 ```{r}
 
-check <- df_nifes_cod %>% filter(is.na(Conc))
+check <- df_nifes_cod_1 %>% filter(is.na(VALUE_WW))
 
 if (nrow(check) > 0)
   warning(nrow(check), " measurements were not converted to numeric values - look at 'check'")
@@ -235,38 +328,235 @@ if (nrow(check) > 0)
 
 ```{r}
 
-check <- df_nifes_cod %>% 
-  add_count(År, Posisjon, Organ, Prøvenr., Parameter) %>%
+check <- df_nifes_cod_1 %>% 
+  add_count(MYEAR, Organ, Prøvenr., PARAM) %>%
   filter(n > 1)
 
-xtabs(~n, check)
-xtabs(~År, check)
-xtabs(~Parameter, check)
+nrow(check)
+
+# xtabs(~n, check)
+# xtabs(~MYEAR, check)
+# xtabs(~PARAM, check)
 
 ```
+## 4. Sampling positions  
+
+### Check raw data      
 
 ```{r}
 
-#### testing nifes_standardize_data()   
+check <- df_nifes_cod_1 %>% 
+  count(MYEAR, Uttaksområde, Uttakssted)
 
-if (FALSE){
+# View(check)
 
-  # debugonce(nifes_standardize_data)
-# debugonce(nifes_standardize_conc)
-test1 <- nifes_standardize_data(dat1)
-test2 <- nifes_standardize_data(dat2)
-test3 <- nifes_standardize_data(dat3)
-table(test1$Parameter)
-table(test2$Parameter)
-table(test3$Parameter)
-
-  
-}
-
-
+# xtabs(~n, check)
+# xtabs(~MYEAR, check)
+# xtabs(~PARAM, check)
 
 ```
 
+### Extract Lat,long  
+
+```{r}
+
+df_nifes_cod_1 <- df_nifes_cod_1 %>%
+  # Split by one or more 'space' characters  
+  separate(Uttakssted, c("lat1","long1"), sep = "\ +", remove = FALSE) %>%
+  # Remove letters
+  mutate(
+    lat1 = sub("[a-zA-Z]", "", lat1),
+         long1 = sub("[a-zA-Z]", "", long1)) %>%
+  # Get lat, long (first replace decimal comma by '.', then convert)
+  mutate(
+    lat1 = as.numeric(sub(",", ".", lat1)),
+         long1 = as.numeric(sub(",", ".", long1)),
+    # Some times the decimal comma is lost
+    # Knowing that latitude is >50 and <90
+    #   and longitude is between -10 and +10,
+    #   we solve it like this:
+    lat = case_when(
+      lat1 > 5E6 ~ lat1/1E5,
+      lat1 > 5E5 ~ lat1/1E4,
+      lat1 > 5E4 ~ lat1/1E3,
+      lat1 > 5E3 ~ lat1/1E2,
+      lat1 > 5E2 ~ lat1/1E1,
+      TRUE ~ lat1),
+    long = case_when(
+      abs(long1) > 1E5 ~ long1/1E5,
+      abs(long1) > 1E4 ~ long1/1E4,
+      abs(long1) > 1E3 ~ long1/1E3,
+      abs(long1) > 1E2 ~ long1/1E2,
+      abs(long1) > 1E1 ~ long1/1E1,
+      TRUE ~ long1),    
+  )
+
+```
+
+### Check geographic outliers  
+
+* red locations are deleted  
+
+```{r}
+
+df_nifes_pos_1 <- df_nifes_cod_1 %>% 
+  filter(
+    # include data <= 10 years old
+    MYEAR >= 2013) %>%
+  group_by(Uttaksområde, Uttakssted, lat, long, lat1, long1) %>%
+  summarise(
+    n = n(),
+    n_years = length(unique(MYEAR)),
+    years = unique(MYEAR),
+  ) %>%
+  mutate(
+    include = ifelse(
+      # include data north of Esbjerg 
+      lat > 55.5 &
+        # include data east of Shetland 
+        long > -0.5 &
+        # include as long as not inside fjords close to Bergen 
+        !(lat > 58.6 & long > 4.3),
+      1, 0)
+  )
+
+cols <- rep("darkgreen", nrow(df_nifes_pos_1))
+cols[df_nifes_pos_1$include == 0] <- "red"
+leaflet(df_nifes_pos_1) %>%
+  addTiles() %>%
+  addCircleMarkers(lng = ~long, lat = ~lat, radius = ~n/100, color = cols) %>%
+  leafem::addMouseCoordinates()
+
+```
+
+### Create filtered data set  
+```{r}
+
+df_nifes_cod <- df_nifes_cod_1 %>%
+  filter(
+    # include data <= 10 years old
+    MYEAR >= 2013,
+    # include data north of Esbjerg 
+    lat > 55.5,
+    # include data east of Shetland 
+    long > -0.5,
+    # include as long as not inside fjords close to Bergen 
+    !(lat > 58.6 & long > 4.3)
+    )
+
+df_nifes_pos <- df_nifes_cod %>%
+  group_by(Uttaksområde, Uttakssted, lat, long, lat1, long1) %>%
+  summarise(
+    n = n(),
+    n_years = length(unique(MYEAR)),
+    years = unique(MYEAR),
+  )
+
+```
+
+### Leaflet map - name of 'Uttaksområde'  
+
+```{r}
+
+cols <- rep("darkgreen", nrow(df_nifes_pos))
+cols[grepl("Egersundbanken", df_nifes_pos$Uttaksområde)] <- "red"
+cols[df_nifes_pos$Uttaksområde %in% "Nordsjøen sentral"] <- "blue"
+cols[df_nifes_pos$Uttaksområde %in% "Nordsjøen"] <- "orange"
+popups <- paste(df_nifes_pos$long, df_nifes_pos$lat, 
+                "<br>", df_nifes_pos$years)
+
+leaflet(df_nifes_pos) %>%
+  addTiles() %>%
+  addCircleMarkers(lng = ~long, lat = ~lat, radius = ~n/100, color = cols,
+                   popup = popups) %>%
+  leafem::addMouseCoordinates()
+
+```
+
+### Check year by latitude  
+
+```{r}
+
+df_nifes_pos %>%
+  mutate(
+    lat_cut = cut(lat, breaks = seq(57.5, 62, 0.5))
+  ) %>%
+  xtabs(~lat_cut + years, .)
+
+```
+
+
+### Split by latitude (leaflet map)  
+
+```{r}
+
+latitude_split <- 59
+
+cols <- rep("darkgreen", nrow(df_nifes_pos))
+cols[df_nifes_pos$lat > latitude_split] <- "blue"
+popups <- paste(df_nifes_pos$long, df_nifes_pos$lat)
+# table(cols)
+leaflet(df_nifes_pos) %>%
+  addTiles() %>%
+  addCircleMarkers(lng = ~long, lat = ~lat, radius = ~n/100, color = cols,
+                   popup = popups)
+
+```
+
+### Plot contaminants  
+
+```{r}
+
+# table(df_nifes_cod$PARAM, is.na(df_nifes_cod$FLAG1))
+
+param <- "Hg"
+param <- "PCB-118"
+df_nifes_pos_conc <- df_nifes_cod %>% 
+  group_by(Uttaksområde, Uttakssted, lat, long, lat1, long1) %>%
+  summarise(
+    n = n(),
+    n_years = length(unique(MYEAR)),
+    years = unique(MYEAR),
+    mean_conc = mean(VALUE_WW)
+  )
+
+# set max size of circles  
+divisor <- max(df_nifes_pos_conc$mean_conc)/15
+# divisor
+
+
+popups <- paste(df_nifes_pos$long, df_nifes_pos$lat)
+# table(cols)
+leaflet(df_nifes_pos_conc) %>%
+  addTiles() %>%
+  addCircleMarkers(lng = ~long, lat = ~lat, 
+                   radius = ~mean_conc/divisor, 
+                   color = cols,
+                   popup = popups) %>%
+  leafem::addMouseCoordinates()
+
+```
+
+### Add North sea "stations"  
+
+```{r}
+
+df_nifes_cod <- df_nifes_cod %>%
+  ungroup() %>%
+  mutate(
+    STATION_CODE = case_when(
+      lat >= latitude_split ~ paste("Nordsjøen N for", latitude_split), 
+      lat < latitude_split ~ paste("Nordsjøen S for", latitude_split))
+  ) %>%
+  group_by(STATION_CODE) %>%
+  mutate(
+    Station_lat = mean(lat),
+    Station_long = mean(long))
+
+```
+
+
+## 5.Sum parameters  
 
 ### Checking PBDEs   
 
@@ -274,352 +564,380 @@ table(test3$Parameter)
 
 pars_bde6s <- c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154")
 
-ggplot(df_nifes_cod %>% filter(Parameter %in% pars_bde6s), 
-       aes(as.numeric(År), Conc, color = Flag)) + 
+ggplot(df_nifes_cod %>% filter(PARAM %in% pars_bde6s), 
+       aes(as.numeric(MYEAR), VALUE_WW, color = FLAG1)) + 
   geom_jitter(width = 0.2) + 
-  facet_grid(vars(Parameter), vars(Område))
+  facet_grid(vars(PARAM), vars(STATION_CODE)) 
+
+```
+### Checking PCB   
+
+```{r}
+
+# table(df_nifes_cod$PARAM)
+# table(df_nifes_cod$PARAM) %>% names %>% dput
+
+pars_pcb7 <- c("PCB-28", "PCB-52", "PCB-101", "PCB-118", "PCB-138", "PCB-153", "PCB-180")
+
+ggplot(df_nifes_cod %>% filter(PARAM %in% pars_pcb7), 
+       aes(as.numeric(MYEAR), VALUE_WW, color = FLAG1)) + 
+  geom_jitter(width = 0.2) + 
+  facet_grid(vars(PARAM), vars(STATION_CODE)) 
+
 
 ```
 
 
-## 4. Missing values  
+### Make sum parameters   
 
-### Check missing values  
 ```{r}
-# 1. Missing Conc values (list of parameters)
-tab <- xtabs(~Parameter + is.na(Conc), df_nifes_cod)
-tab[tab[,2] > 0,]
-cat(sum(tab[,2]), "missing Conc values\n")
 
-sel1 <- is.na(df_nifes_cod$Conc) & !is.na(df_nifes_cod$Conc_chr) 
-cat(sum(sel1), "missing Conc values with non-missing values of Conc_chr\n")
+pars_sum <- list(
+  c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154"),
+  c("PCB-28", "PCB-52", "PCB-101", "PCB-118", "PCB-138", "PCB-153", "PCB-180")
+)
+names(pars_sum) <- c("BDE6S", "CB_S7")
 
-sel2 <- df_nifes_cod$Comment != ""
-cat(sum(sel2), "'starred' Conc_chr values\n")
+df_sums_list <- list()
+for (i in 1:length(pars_sum)){
+  df_sums_list[[i]] <- df_nifes_cod %>%
+  filter(
+    PARAM %in% pars_sum[[i]]
+  ) %>%
+  mutate(
+    VALUE_WW_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
+    VALUE_WW_up = VALUE_WW
+  ) %>%
+  group_by(STATION_CODE, Prøvenr., Organ, MYEAR) %>%
+  summarise(
+    VALUE_WW_lo = sum(VALUE_WW_lo),
+    VALUE_WW_up = sum(VALUE_WW_up),
+    n_param = n(), .groups = "drop"
+  ) %>%
+  mutate(
+    PARAM = names(pars_sum)[i]
+  )
+  cat(names(pars_sum)[i], "\n")
+  cat(" - table of values over LOQ ('TRUE':\n")  # should be 6 for BDE, 7 for PCB  
+  df_nifes_cod %>% filter(PARAM %in% pars_sum[[i]]) %>% xtabs(~PARAM + is.na(FLAG1), .) %>% print(); cat("\n")
+  cat(" - table of number of parameters used in the sum:")  # should be 6 for BDE, 7 for PCB  
+  table(df_sums_list[[i]]$n_param) %>% print(); cat("\n")
+}
 
-# 2. Missing Conc but unmissing Conc_chr values
-# All have "n.a."
-df_nifes_cod[sel1,] %>% select(Jnr, Parameter, Conc_chr, Conc, Unit, Flag)
+df_sums <- bind_rows(df_sums_list)
 
-# 3. Starred values
-df_nifes_cod[sel2,] %>% select(Jnr, Parameter, Conc_chr, Conc, Unit, Flag, Comment)
+# i <- 2
+# View(df_sums_list[[i]])
 
 ```
 
-### Remove missing values  
+#### Check plot    
+
 ```{r}
 
-df_nifes_cod <- df_nifes_cod %>%
-  filter(!is.na(Conc))
+# Data
+ggplot(df_sums, aes(x = MYEAR)) +
+  geom_jitter(aes(y = VALUE_WW_up), color = "red") +
+  geom_jitter(aes(y = VALUE_WW_lo), color = "blue") +
+  facet_wrap(vars(PARAM, STATION_CODE)) +
+  labs(title = "Concentration, upper and lower bound")
+
+# Difference between upper and lower bound  
+ggplot(df_sums, aes(x = MYEAR)) +
+  geom_jitter(aes(y = VALUE_WW_up - VALUE_WW_lo), width = 0.3, height = 0) +
+  facet_grid(vars(PARAM), vars(STATION_CODE), scales = "free_y") +
+  labs(title = "Difference between upper and lower bound")
+
+# Difference between upper and lower bound, percent  
+ggplot(df_sums, aes(x = MYEAR)) +
+  geom_jitter(aes(y = (VALUE_WW_up - VALUE_WW_lo)/VALUE_WW_up*100), width = 0.3, height = 0) +
+  facet_grid(vars(PARAM), vars(STATION_CODE), scales = "free_y") +
+  labs(title = "Difference between upper and lower bound. percent")
 
 ```
 
 
-## 5. Add Lat, Long
-
-### Check lacking positions  
+#### Check values of a given sample  
 ```{r}
-# Just three positions, and some (125) missing 
+
+yr <- 2022
+id <- 31251
+yr <- 2020
+id <- 31158
+# df_nifes_cod %>% filter(MYEAR == yr) %>% pull(Prøvenr.) %>% table()
+
 df_nifes_cod %>% 
-  count(Posisjon)
+  filter(PARAM %in% pars_bde6s,
+         MYEAR == yr,
+         Prøvenr. == id) 
 
-# All are Hg in cod fillet
-df_nifes_cod %>%
-  mutate(Has_position = ifelse(is.na(Posisjon),"Lack_position", "Has_position")) %>%
-  count(Art, Organ, Parameter, Has_position) %>%
-  pivot_wider(names_from = Has_position, values_from = n) %>%
-  filter(!is.na(Lack_position))
+df_sums %>% 
+  filter(PARAM %in% "BDE6S",
+         MYEAR == yr,
+         Prøvenr. == id) 
 
-# One Lnr may have several positions
-#  (So we cant use Jnr for fixing position)
 df_nifes_cod %>% 
-  filter(!is.na(Posisjon)) %>%
-  count(Jnr, Posisjon) %>%
-  count(Jnr) %>%
-  rename(No_of_positions_per_Jnr = n) %>%
-  count(No_of_positions_per_Jnr)
+  filter(PARAM %in% pars_pcb7,
+         MYEAR == yr,
+         Prøvenr. == id) 
+
+df_sums %>% 
+  filter(PARAM %in% "CB_S7",
+         MYEAR == yr,
+         Prøvenr. == id) 
 
 ```
 
-### Remove lacking positions  
+
+## 6. Medians  
+
+### Old results (for reference)  
 ```{r}
 
-df_nifes_cod <- df_nifes_cod %>%
-  filter(!is.na(Posisjon))
+readLines(  "Data_export/2021 report North Sea blue mussel/GaduMor_2020data_ver01.csv", 2)
+lookup_old_cod <- read.csv(
+  "Data_export/2021 report North Sea blue mussel/GaduMor_2020data_ver01.csv")
+xtabs(~PARAM, lookup_old_cod)
+xtabs(~STATION_CODE + PARAM, lookup_old_cod)
 
 ```
-
-### Extract Lat,long
+### Ordinary parameters, create medians  
 ```{r}
 
-df_nifes_cod <- df_nifes_cod %>%
-  # Split spring
-  separate(Posisjon, c("LATITUDE","LONGITUDE"), sep = " ", remove = FALSE) %>%
-  # Remove letters
-  mutate(LATITUDE = sub("[a-zA-Z]", "", LATITUDE),
-         LONGITUDE = sub("[a-zA-Z]", "", LONGITUDE)) %>%
-  # Get LATITUDE, LONGITUDE (first replace decimal comma by '.', then convert)
-  mutate(LATITUDE = as.numeric(sub(",", ".", LATITUDE)),
-         LONGITUDE = as.numeric(sub(",", ".", LONGITUDE))
+df_median_1 <- df_nifes_cod %>%
+  mutate(
+    VALUE_WW_lo = ifelse(is.na(FLAG1), VALUE_WW, 0),
+    VALUE_WW_up = VALUE_WW) %>%
+  group_by(STATION_CODE, Organ, PARAM, MYEAR) %>%
+  summarise(
+    VALUE_WW_lo = median(VALUE_WW_lo),
+    VALUE_WW_up = median(VALUE_WW_up), .groups = "drop"
   )
 
-df_nifes_cod %>% 
-  count(Posisjon, LATITUDE, LONGITUDE)
-
 ```
 
-## 6. More fixing     
 
-### Fix year     
 
-Don't have date, so we can't set Measurement year = 1.april to 31. March...    
+### Sum parameters, stacked plots  
 ```{r}
 
-# df_nifes_cod %>% 
-#   count(År)
-
-df_nifes_cod <- df_nifes_cod %>% 
-  mutate(Year = as.numeric(År))
-
-df_nifes_cod %>% 
-  count(År)
-
-```
-
-### Fix tissue  
-
-Both Filet and Muskel, set all to Muskel  
-
-```{r}
-
-# Both Filet and Muskel, 
-# xtabs(~Year + Organ + Art, df_nifes_cod)  
-
-df_nifes_cod <- df_nifes_cod %>% 
-  mutate(Organ = ifelse(Organ %in% "Filet", "Muskel", Organ))
-
-xtabs(~Year + Organ + Art, df_nifes_cod)  
+# table(df_sums_median$PARAM)
+df_median_1 %>% 
+  filter(PARAM %in% pars_bde6s) %>%
+  mutate(PARAM = factor(PARAM, levels = pars_bde6s)) %>%
+  ggplot(aes(as.numeric(MYEAR), VALUE_WW_lo, fill = PARAM)) + 
+  geom_col(width = 0.2) + 
+  facet_grid(vars(STATION_CODE)) +
+  labs(title = "Sum of BDE6 (medians of lower bound)")
+  
+df_median_1 %>% 
+  filter(PARAM %in% pars_pcb7) %>%
+  mutate(PARAM = factor(PARAM, levels = pars_pcb7)) %>%
+  ggplot(aes(as.numeric(MYEAR), VALUE_WW_lo, fill = PARAM)) + 
+  geom_col(width = 0.2) + 
+  facet_grid(vars(STATION_CODE)) +
+  labs(title = "Sum of PCB7 (medians of lower bound)")
+  
 
 ```
 
 
-###  Add BDE6S
-
-#### Checking PBDEs   
-
+### Sum parameters, create medians  
 ```{r}
 
-pars_bde6s <- c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154")
-
-ggplot(df_nifes_cod %>% filter(Parameter %in% pars_bde6s), 
-       aes(Year, Conc, color = Flag)) + 
-  geom_jitter(width = 0.2) + 
-  facet_grid(vars(Parameter), vars(Område))
-
-```
-
-
-#### Add sum
-```{r}
-
-df_nifes_cod_BACKUP <- df_nifes_cod
-# If error, restore the original
-# df_nifes_cod <- df_nifes_cod_BACKUP
-
-pars_bde6s <- c("PBDE 28","PBDE 47","PBDE 99","PBDE 100","PBDE 153","PBDE 154")
-
-table(addNA(df_nifes_cod$Flag))
-
-df_nifes_cod_extra <- df_nifes_cod %>%
-  filter(Parameter %in% pars_bde6s & !is.na(Flag)) %>%
-  group_by(Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ, Prøvenr.) %>%
-  summarise(Conc = sum(Conc),
-            Flag = ifelse(sum(Flag %in% "") > 1, "", "<"),
-            N_congeners = n()
-            ) %>%
-  ungroup() %>%
-  mutate(Parameter = "BDE6S")
-
-xtabs(~Year + N_congeners, df_nifes_cod_extra)
-
-```
-
-
-#### Check sum value  
-```{r}
-
-# df_nifes_cod_extra
-
-df_nifes_cod_extra %>%
-  ggplot(aes(Year, Conc, color = Posisjon)) +
-  geom_jitter(size = 1) +
-  facet_wrap(vars(Posisjon))
-
-# df_nifes_cod %>% 
-#   filter(Prøvenr. == "2019-390" & Parameter %in% pars_bde6s) %>%
-#   View("example1")
-
-df_nifes_cod %>% 
-  count(Year, Prøvenr., Parameter) %>%
-  arrange(n, Year) %>%
-  filter(n > 1)
-
-
-```
-#### Add BDE sum to the rest
-
-```{r}
-
-if (!"BDE6S" %in% unique(df_nifes_cod$Parameter)){
-  df_nifes_cod <- bind_rows(
-    df_nifes_cod,
-    df_nifes_cod_extra
+df_sums_median <- df_sums %>%
+  group_by(STATION_CODE, Organ, PARAM, MYEAR) %>%
+  summarise(
+    VALUE_WW_lo = median(VALUE_WW_lo),
+    VALUE_WW_up = median(VALUE_WW_up), .groups = "drop"
   )
-}
 
 ```
-
-#### Check individual BDE and the sum  
-```{r}
-
-df_nifes_cod %>%
-  filter(Parameter %in% c(pars_bde6s, "BDE6S")) %>%
-  ggplot(aes(Year, Conc, color = Posisjon)) +
-  geom_jitter(size = 1) +
-  facet_wrap(vars(Parameter))
-
-df_nifes_cod %>%
-  filter(Parameter %in% c(pars_bde6s, "BDE6S")) %>% 
-  group_by(Parameter, Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ) %>%
-  summarise(Above_LOQ = mean(Flag %in% "")) %>%
-  ggplot(aes(Year, Above_LOQ, color = Posisjon)) +
-  geom_point() +
-  facet_wrap(vars(Parameter))
-
-
-```
-
-
-## 7. Checks
-```{r}
-
-unique(df_nifes_cod$Parameter)
-
-# unique(df_nifes_cod$Parameter) %>% dput()
-
-```
-
-### Test plot  
-Annual medians of the most important parameters
-```{r, fig.width=9, fig.height=7}
-
-df_nifes_cod %>%
-  filter(Parameter %in% c("Cd", "Pb", "Hg", "PCB-118", "Sum PCB 7", 
-                          "Hexachlorobenzene (HCB)", "pp-DDE", "PBDE 47", "BDE6S")) %>%
-  group_by(Year, Posisjon, Parameter, Organ) %>%
-  mutate(Conc_median = median(Conc)) %>%
-  ggplot(aes(Year, Conc_median, color = Posisjon)) +
-  geom_smooth(method = "lm") + geom_point() +
-  facet_wrap(vars(Parameter, Organ), scales = "free_y")
-
-```
-
-## 8. Put on same format as NIVA data  
-
-### a. Add "station code"  
+#### Check plot    
 
 ```{r}
 
-df_nifes_stations <- df_nifes_cod %>%
-  distinct(LONGITUDE, LATITUDE) %>%
-  mutate(STATION_CODE = paste0("HI_Barents", 1:n()))
+# Data
+ggplot(df_sums_median, aes(x = MYEAR)) +
+  geom_point(aes(y = VALUE_WW_up), color = "red", shape = "_", size = rel(4)) +
+  geom_point(aes(y = VALUE_WW_lo), color = "blue", shape = "_", size = rel(4)) +
+  facet_grid(vars(PARAM), vars(STATION_CODE), scales = "free_y") +
+  labs(title = "Median concentrations, upper and lower bound") 
 
-if (!"STATION_CODE" %in% names(df_nifes_cod)){
-  df_nifes_cod <- df_nifes_cod %>%
-    left_join(df_nifes_stations, by = c("LATITUDE", "LONGITUDE"))
-}
+# Difference between upper and lower bound  
+ggplot(df_sums_median, aes(x = MYEAR)) +
+  geom_point(aes(y = VALUE_WW_up - VALUE_WW_lo)) +
+  facet_grid(vars(PARAM), vars(STATION_CODE), scales = "free_y") +
+  labs(title = "Difference between medians of upper and lower bound")
+
+  
+```
+
+### Combine medians   
+
+```{r}
+
+sel_param <-  c("BDE6S", "CB_S7", "CD", "DDEPP", "HCB", "HG", "PB")  
+
+
+# df_median_1 %>% names
+# df_sums_median %>% names
+
+df_median <- bind_rows(df_median_1, df_sums_median) %>%
+  mutate(
+    PARAM = case_when(
+      PARAM %in% c("Cd", "Hg", "Pb") ~ toupper(PARAM),
+      PARAM %in% "pp-DDE" ~ "DDEPP",
+      TRUE ~ PARAM)
+  ) %>%
+  filter(
+    PARAM %in% sel_param
+  )
+
+xtabs(~PARAM, df_median)
+
+```
+#### Test plot  
+```{r}
+
+param <- "PB"
+
+df_median %>%
+  filter(PARAM %in% param) %>%
+  ggplot(aes(x = MYEAR)) +
+  geom_point(aes(y = VALUE_WW_up), color = "red", shape = "_", size = rel(4)) +
+  geom_point(aes(y = VALUE_WW_lo), color = "blue", shape = "_", size = rel(4)) +
+  facet_grid(vars(PARAM), vars(STATION_CODE), scales = "free_y") +
+  labs(title = "Median concentrations, upper and lower bound") 
 
 ```
 
-### b. Set parameter names  
+
+## 7. Trends  
+
+
+
+
+### Test interval_lm_qi  
+
+- Turns out it doesn't work perfectly  
+- It also turns out we don't need it, see next chunk  
+
 ```{r}
 
-df_nifes_cod <- df_nifes_cod %>%
-  mutate(PARAM = case_when(
-    Parameter %in% "Cd" ~ "CD",
-    Parameter %in% "Pb" ~ "PB",
-    Parameter %in% "Hg" ~ "HG",
-    Parameter %in% "Sum PCB 6" ~ "CB_S6",
-    Parameter %in% "Sum PCB 7" ~ "CB_S7",
-    Parameter %in% "Hexachlorobenzene (HCB)" ~ "HCB",
-    Parameter %in% "pp-DDE" ~ "DDEPP",     # the rest of the DDT compounds we ignore
-    grepl("^PCB", Parameter) ~  sub("PCB-", "CB", Parameter, fixed = TRUE),
-    grepl("^PBDE", Parameter) ~  sub("PBDE", "BDE", Parameter, fixed = TRUE),
-    TRUE ~ Parameter)
+source("interval_lm_qi.R")  # function 'int_linear_qi'  
+
+
+
+if (FALSE) {
+
+  
+  # Something wrong with 'int_linear_qi'   
+  # - "Node inconsistent with parents" for some Z1 nodes  
+  # So we need to manipulate the data so we have no uncensored values 
+  #   by setting VALUE_WW_lo to be 0.999 of VALUE_WW_up if they actually are equal   
+  
+  test_df <- df_sums_median %>%
+    filter(STATION_CODE %in% "Nordsjøen S for 59", 
+           PARAM %in% "BDE6S")  %>% # xtabs(~MYEAR, .)
+    # Fix to avoid problems with int_linear_qi(), see comment below  
+    mutate(VALUE_WW_lo = case_when(
+      VALUE_WW_lo == VALUE_WW_up ~ 0.999*VALUE_WW_up,
+      TRUE ~ VALUE_WW_lo)
     )
-
-if (FALSE)
-  count(df_nifes_cod, Parameter, PARAM)
-
-```
-
-### Save  
-```{r}
-
-if (save_data){
-  saveRDS(df_nifes_cod, "Data/11_df_nifes_cod (2022).rds")
+  test_mod <- int_linear_qi(data = test_df, x = "MYEAR", 
+                            y_lo = "VALUE_WW_lo", y_up = "VALUE_WW_up")  
+  
+  cat("Estimate of slope (with uncertainty) \n")
+  mod$slope
+  # The 95% "confidence interval" is defined by '2.5%' and '97.5%'
+  
+  cat("Estimate of slope (with uncertainty) for linear model \n")
+  mod_lm <- lm(VALUE_WW_up ~ MYEAR, data = test_df)
+  summary(mod_lm)$coef[2,1] + c(-2,0,2)*summary(mod_lm)$coef[2,2]
+  
+  # Test plot  
+  ggplot(test_df, aes(x = MYEAR)) +
+    geom_point(aes(y = VALUE_WW_up), color = "red") +
+    geom_point(aes(y = VALUE_WW_lo), color = "blue") +
+    geom_line(data = mod$plot_data, aes(x, y)) +
+    geom_line(data = mod$plot_data, aes(x, y_lo), linetype = "dashed") +
+    geom_line(data = mod$plot_data, aes(x, y_hi), linetype = "dashed") +
+    geom_abline(intercept = summary(mod_lm)$coef[1,1],
+                slope = summary(mod_lm)$coef[2,1], color = "purple")
+  
+  
 }
 
 ```
 
+### Number of years where VALUE_WW_lo < 0.9*VALUE_WW_up  
 
-## 9. Create df_median and set parameter names  
-Note that we use Flag = "" for data over LOQ (not ">" as in the original script)  
+- Only Pb has years where VALUE_WW_lo is substantially below VALUE_WW_hi   
+    - And Pb is under LOQ in all years -> cannot produce trends anyway   
+- So we only need ordinary regression  
+
 ```{r}
 
-# Create df_median
-df_median <- df_nifes_cod %>% 
-  group_by(Year, Posisjon, LONGITUDE, LATITUDE, Art, Organ, Parameter) %>%
-  summarise(Conc = median(Conc), 
-            Conc_min = min(Conc), Conc_max = max(Conc),
-            N = n(), Over_LOQ = sum(Flag %in% "")
-            ) %>%
-  ungroup()
+df_median %>%
+  filter(PARAM %in% sel_param) %>%
+  group_by(PARAM, STATION_CODE, MYEAR) %>%
+  summarise(ratio_lo = VALUE_WW_lo/VALUE_WW_up, .drop = "last") %>%
+  summarise(
+    n_years_different = sum(ratio_lo < 0.9),
+    perc_years_different = 100*mean(ratio_lo < 0.9))
 
-
-# set parameter names
-df_median <- df_median %>%
-  mutate(Parameter = sub("PCB-", "CB", Parameter, fixed = TRUE)) %>% # xtabs(~Parameter, .)
-  mutate(Parameter = sub("PBDE ", "BDE", Parameter, fixed = TRUE)) %>% # xtabs(~Parameter, .)
-  mutate(Parameter = case_when(
-    Parameter %in% "Cd" ~ "CD",
-    Parameter %in% "Pb" ~ "PB",
-    Parameter %in% "Hg" ~ "HG",
-    Parameter %in% "Sum PCB 7" ~ "CB_S7",
-    Parameter %in% "Hexachlorobenzene (HCB)" ~ "HCB",
-    Parameter %in% "pp-DDE" ~ "DDEPP",     # the rest of the DDT compounds we ignore
-    TRUE ~ Parameter)
-    )
-
-unique(df_median$Parameter)
-
-
-# Check all
-# cat("Parameters:\n", table(df_median$Parameter) %>% names() %>% paste(collapse = "; "))
 ```
 
+### Ordinary linear regression of VALUE_WW_lo 
 
-## 10. Save 
+- based on medians  
+
 ```{r}
-# dir.create("Data")
 
-if (save_data){
-  saveRDS(df_nifes_cod, "Data/11_df_nifes_cod (2022).rds")
-  saveRDS(df_median, "Data/11_df_median (2022).rds")
-}
+library(broom)
 
-# df_median <- readRDS("Data/01_df_median.rds")
-# xtabs(~Parameter + Organ, df_median)
+results_1 <- df_median %>%
+  filter(PARAM %in% sel_param & VALUE_WW_lo > 0) %>%
+  mutate(log_value = log(VALUE_WW_lo)) %>%
+  nest_by(PARAM, STATION_CODE) %>%
+  mutate(model = list(lm(log_value ~ MYEAR, data = data)), n_years = nrow(data)) %>%
+  reframe(tidy(model), .groups = "drop") %>%     
+  filter(term == "MYEAR") 
+
+results_2 <- df_median %>%
+  filter(PARAM %in% sel_param) %>%
+  group_by(PARAM, STATION_CODE, Organ) %>%
+  summarise(n_years = sum(VALUE_WW_lo > 0), .groups = "drop") 
+
+# From script 15:
+# dat_indicator <- read.csv(paste0(save_folder, "/", save_filename_csv))
+# table(dat_indicator$Trend_string)
+
+results_trend <- results_2 %>%
+  left_join(results_1, by = join_by(PARAM, STATION_CODE)) %>%
+  mutate(
+    Trend_string = case_when(
+      n_years < 5 ~ "Not enough data after 2013",
+      p.value < 0.05 & estimate < 0 ~ "Decreasing",
+      p.value < 0.05 & estimate > 0 ~ "Increasing",
+      p.value >= 0.05 ~ "No trend"),
+    Perc_annual = 100-100*exp(-estimate)
+  ) 
+
+```
+
+## 8. Save medians and trends  
+
+```{r}
+
+save_folder <- "Data_export/2022 report North Sea"
+
+save_filename_csv <- "Results_North_sea_cod_HI_medians.csv"
+readr::write_csv(df_median, paste0(save_folder, "/", save_filename_csv))
+
+save_filename_csv <- "Results_North_sea_cod_HI_trends.csv"
+readr::write_csv(results_trend, paste0(save_folder, "/", save_filename_csv))
 
 ```
 
