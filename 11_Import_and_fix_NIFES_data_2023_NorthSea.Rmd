@@ -797,6 +797,7 @@ df_median <- bind_rows(df_median_1, df_sums_median) %>%
 xtabs(~PARAM, df_median)
 
 ```
+
 #### Test plot  
 ```{r}
 
@@ -929,15 +930,33 @@ results_trend <- results_2 %>%
 
 ## 8. Save medians and trends  
 
+### Data  
 ```{r}
 
 save_folder <- "Data_export/2022 report North Sea"
 
 save_filename_csv <- "Results_North_sea_cod_HI_medians.csv"
 readr::write_csv(df_median, paste0(save_folder, "/", save_filename_csv))
+# df_median <- read.csv(paste0(save_folder, "/", save_filename_csv))
 
 save_filename_csv <- "Results_North_sea_cod_HI_trends.csv"
 readr::write_csv(results_trend, paste0(save_folder, "/", save_filename_csv))
+
+```
+
+### Coordinates  
+```{r}
+
+df_stations <- df_nifes_cod %>%
+  group_by(STATION_CODE) %>%
+  summarize(
+    Long = first(Station_long),
+    Lat = first(Station_lat),
+  )
+
+save_filename_csv <- "Results_North_sea_cod_HI_stations.csv"
+readr::write_csv(df_stations, paste0(save_folder, "/", save_filename_csv))
+
 
 ```
 
