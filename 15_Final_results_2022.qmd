@@ -1105,10 +1105,15 @@ unique(dat_indicator$PARAM)
 ### Saving  
 ```{r}
 
+if (FALSE){
+  
 saveRDS(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022.rds")
 write.csv(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022.csv")
 
 writexl::write_xlsx(dat_indicator, "Data_export/2022 report Barents Sea/Indicators_Barents_Sea_2022_ver7.xlsx")
+# version with manual changes in BDE6 trends (19B: no trend, 98B1: upwards, 43B2: downwards) called VER8!
+
+}
 
 ```
 
