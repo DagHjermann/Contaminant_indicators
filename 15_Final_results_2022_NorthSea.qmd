@@ -157,6 +157,7 @@ dat_all <- readRDS("../Milkys2_pc/Files_from_Jupyterhub_2022/Raw_data/dat_raw5.r
     VALUE_lo = case_when(
       is.na(Flag) ~ VALUE,
       !is.na(Flag) ~ 0),
+    VALUE_up = VALUE
   )
 
 # xtabs(~transform, dat_all)
@@ -194,13 +195,14 @@ dat_trend_all_02 <- dat_trend_all_01 %>%
 
 ```{r}
 
-dat_medians_hi <- read.csv("Data_export/2022 report North Sea/Results_North_sea_cod_HI_medians.csv") %>%
+dat_medians_hi <- read.csv("Data_export/2022 report North Sea/Results_North_sea_cod_HI_medians.csv") %>% 
   mutate(
     TISSUE_NAME = case_when(
       Organ %in% "Filet" ~ "Muskel",
       Organ %in% "Lever" ~ "Lever"),
     LATIN_NAME = "Gadus morhua",
-    Conc = VALUE_WW_lo
+    Conc_lo = VALUE_WW_lo,
+    Conc_up = VALUE_WW_up
   ) 
 
 dat_trends_hi <- read.csv("Data_export/2022 report North Sea/Results_North_sea_cod_HI_trends.csv") %>%
@@ -219,18 +221,32 @@ dat_trends_hi <- read.csv("Data_export/2022 report North Sea/Results_North_sea_c
 * Using lower bound for assessment of levels  
     - which equals zero for single substances under LOQ  
 
+* NOTE: modifgying how to treat <LOQ values in relation to 
+    - e.g. since 2017, HCB in blue mussel has always been under 0.5, while EQS is 10, so they should be marked as EQS = 1  
+* Possible rule: 
+    - for last year with data: if LOQ < EQS and data are under LOQ, mark station as "under EQS"  
+    - for last year with data: if LOQ > EQS and data are under LOQ, but some earlier year is > LOQ: mark station depending on that value  
+    - for last year with data: if LOQ > EQS and data are under LOQ, and no earlier year is > LOQ: mark station as "unknown" (or "over EQS"?)  
+* Start by setting status year by year, following these codes for EQS and Mattrygghet:
+    - 1 = under threshold
+    - 2 = over threshold
+    - 0 = uncertain  
+    
 
+    
 ```{r}
 
 dat_medians_1 <- dat_all %>%
   group_by(PARAM, STATION_CODE, LATIN_NAME, TISSUE_NAME, MYEAR) %>%
   summarise(
-    Conc = median(VALUE_lo), .groups = "drop"
-  )
+    Conc_lo = median(VALUE_lo),
+    Conc_up = median(VALUE_up),
+    .groups = "drop"
+  ) 
 
 dat_medians_1b <- dat_medians_1 %>%
   bind_rows(
-    dat_medians_hi %>% select(PARAM, STATION_CODE, LATIN_NAME, TISSUE_NAME, MYEAR, Conc)
+    dat_medians_hi %>% select(PARAM, STATION_CODE, LATIN_NAME, TISSUE_NAME, MYEAR, Conc_lo, Conc_up)
   )
 
 dat_medians_2 <- dat_medians_1b %>%
@@ -243,19 +259,25 @@ dat_medians_3 <- dat_medians_2 %>%
     lookup_proref %>% select(PARAM, LATIN_NAME, PROREF),
     by = c("PARAM", "LATIN_NAME"))
 
+# Codes for EQS and Mattrygghet:
+# 1 = under threshold
+# 2 = over threshold
+# 0 = uncertain  
 dat_medians_4 <- dat_medians_3 %>%
   mutate(
     EQS = case_when(
-      Conc/EQS_threshold <= 1 ~ 1,
-      Conc/EQS_threshold > 1 ~ 2),
+      Conc_up/EQS_threshold <= 1 ~ 1,
+      Conc_up/EQS_threshold > 1 & Conc_lo/EQS_threshold > 1 ~ 2,
+      Conc_up/EQS_threshold > 1 & Conc_lo/EQS_threshold <= 1 ~ 0),
     Mattrygghet = case_when(
-      Conc/Mattrygghet_threshold <= 1 ~ 1,
-      Conc/Mattrygghet_threshold > 1 ~ 2),
+      Conc_up/Mattrygghet_threshold <= 1 ~ 1,
+      Conc_up/Mattrygghet_threshold > 1 & Conc_lo/Mattrygghet_threshold > 1 ~ 2,
+      Conc_up/Mattrygghet_threshold > 1 & Conc_lo/Mattrygghet_threshold <= 1 ~ 0),
   CLASS_proref = case_when(
-    Conc/PROREF < 1 ~ 1,
-    Conc/PROREF < 2 ~ 2,
-    Conc/PROREF < 10 ~ 3,
-    Conc/PROREF >= 10 ~4)
+    Conc_up/PROREF < 1 ~ 1,
+    Conc_up/PROREF < 2 ~ 2,
+    Conc_up/PROREF < 10 ~ 3,
+    Conc_up/PROREF >= 10 ~4)
   )
 
 ```
@@ -280,9 +302,17 @@ dat_trend_all_03 <- dat_trend_all_02 %>%
 
 ### Select rows  
 
+## . 
+## . 
+## . CODE NOT FINISHED  
+## . 
+## . 
+
+
 * We normally select the last year  
     - but if median concentration is under LOQ, the last year with data over LOQ is picked  
-    - if no year has data over LOQ the last 10 years, no data  
+    - if no year has data over LOQ the last 10 years, no data   
+
 
 ```{r}
 
@@ -305,6 +335,38 @@ dat_medians_sel_1 <- dat_medians_4 %>%
     lookup_coordinates %>% select(STATION_CODE, Station_short, Lat, Long),
     by = "STATION_CODE"
   )
+
+#
+# MODIFIED CODE - NOT FINISHED
+#
+
+dat_status_EQS_1 <- dat_medians_4 %>%
+  filter(
+    STATION_CODE %in% unique(lookup_old_mussel$STATION_CODE),
+    PARAM %in% unique(lookup_old_mussel$PARAM),
+    MYEAR >= (selected_year - 10)) %>%
+  group_by(STATION_CODE, PARAM) %>%
+  mutate(
+    Last_year_status_known = max(MYEAR[EQS %in% 1:2]),
+    No_years_status_known = sum(EQS %in% 1:2),
+    Year_select = case_when(
+      No_years_status_known > 0 ~ Last_year_status_known,
+      No_years_status_known == 0 ~ max(MYEAR))
+    ) %>% 
+  ungroup()
+
+dat_status_EQS <- dat_status_EQS_1 %>%
+  # Pick only that year
+  filter(MYEAR == Year_select) %>%
+  select(STATION_CODE, PARAM, MYEAR, Conc_lo, Conc_up, EQS) %>%
+  rename(
+    EQS_year = MYEAR,
+    EQS_conc_lo = Conc_lo,
+    EQS_conc_up = Conc_up
+  )
+
+  
+  
 
 ```
 
