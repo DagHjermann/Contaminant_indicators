@@ -367,6 +367,39 @@ dat_indicator %>%
 
 ```
 
+### Plot  
+
+```{r}
+
+for (param in unique(dat_indicator$PARAM)){
+  # param <- "CD"
+  gg <- dat_indicator %>%
+    filter(PARAM == param & LATIN_NAME == "Mytilus edulis") %>%
+    mutate(
+      EQS = factor(EQS),
+      Mattrygghet = factor(Mattrygghet)) %>%
+    ggplot(aes(Long, Lat)) +
+    annotation_map(very_simple_map, fill = "grey80") +
+    geom_point(aes(color = Mattrygghet), size = 8) +
+    geom_point(aes(color = EQS), size = 5) +
+    scale_color_manual(values = c("lightblue", "pink2")) +
+    coord_fixed(ratio = 2, xlim = c(4.5, 11.5), ylim = c(57.8, 62.5)) +
+    geom_point(aes(shape = Trend_string)) +
+    scale_shape_manual(
+      values = c("Decreasing" = 6,
+                 "Increasing" = 2,
+                 "No change" = 0,
+                 "No trend" = 4)) +
+    labs(title = param) +
+      theme_bw()
+  print(gg)
+}
+
+# dat_indicator %>%
+#   filter(PARAM == param & LATIN_NAME == "Mytilus edulis")
+  
+```
+
 
 ## Cod    
 
