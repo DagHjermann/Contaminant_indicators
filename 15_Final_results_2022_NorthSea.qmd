@@ -30,6 +30,10 @@ library(R2jags)
 library(rjags)
 library(purrr)
 
+library(maps)
+# library(mapdata)
+very_simple_map <- map_data("world")
+
 source("interval_lm_qi.R")  # function 'int_linear_qi'  
 
 ```
@@ -39,6 +43,8 @@ source("interval_lm_qi.R")  # function 'int_linear_qi'
 ```{r}
 
 selected_year <- 2022
+
+save_data <- FALSE
 
 ```
 
@@ -169,7 +175,7 @@ dat_trend_all_01 <- readRDS("../Milkys2_pc/Files_from_Jupyterhub_2022/Trend_data
 dat_trend_all_02 <- dat_trend_all_01 %>%
   mutate(
     Basis_selected = case_when(
-      PARAM %in% "HG" ~ "WWa",
+      LATIN_NAME == "Gadus morhua" & PARAM %in% "HG" ~ "WWa",
       TRUE ~ "WW")
   ) %>%
   filter(
@@ -210,7 +216,9 @@ dat_trends_hi <- read.csv("Data_export/2022 report North Sea/Results_North_sea_c
 
 ### Medians
 
-* Using lower bound for assessment of levels
+* Using lower bound for assessment of levels  
+    - which equals zero for single substances under LOQ  
+
 
 ```{r}
 
@@ -284,7 +292,7 @@ dat_medians_sel_1 <- dat_medians_4 %>%
     PARAM %in% unique(lookup_old_mussel$PARAM),
     MYEAR >= (selected_year - 10),
     !(PARAM != "VDSI" & Conc == 0)    
-  ) %>% 
+  ) %>% # View("x")
   # Get last year with data over LOQ
   group_by(STATION_CODE, PARAM) %>%
   mutate(Last_year_over_LOQ = max(MYEAR)) %>% 
@@ -341,9 +349,11 @@ save_folder <- "Data_export/2022 report North Sea"
 save_filename_csv <- "Indicators_North_sea_mussels_2022.csv"
 save_filename_xlsx <- sub(".csv", "_fromR.xlsx", save_filename_csv, fixed = TRUE)
 
-readr::write_csv(dat_indicator, paste0(save_folder, "/", save_filename_csv))
-writexl::write_xlsx(dat_indicator, paste0(save_folder, "/", save_filename_xlsx))
-  
+if (save_data){
+  readr::write_csv(dat_indicator, paste0(save_folder, "/", save_filename_csv))
+  writexl::write_xlsx(dat_indicator, paste0(save_folder, "/", save_filename_xlsx))
+}
+
 # dat_indicator <- read.csv(paste0(save_folder, "/", save_filename_csv))
 
 ```
@@ -433,9 +443,12 @@ save_folder <- "Data_export/2022 report North Sea"
 save_filename_csv <- "Indicators_North_sea_cod_2022.csv"
 save_filename_xlsx <- sub(".csv", "_fromR.xlsx", save_filename_csv, fixed = TRUE)
 
-readr::write_csv(dat_indicator, paste0(save_folder, "/", save_filename_csv))
-writexl::write_xlsx(dat_indicator, paste0(save_folder, "/", save_filename_xlsx))
-  
+
+if (save_data){
+  readr::write_csv(dat_indicator, paste0(save_folder, "/", save_filename_csv))
+  writexl::write_xlsx(dat_indicator, paste0(save_folder, "/", save_filename_xlsx))
+}
+
 # dat_indicator <- read.csv(paste0(save_folder, "/", save_filename_csv))
 
 ```
